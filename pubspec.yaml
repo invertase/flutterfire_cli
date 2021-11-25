@@ -1,0 +1,18 @@
+name: "flutterfire_cli_monorepo"
+publish_to: none
+
+executables:
+  flutterfire: flutterfire_dev
+
+dev_dependencies:
+  flutterfire_cli:
+    path: ./packages/flutterfire_cli
+  path: ^1.8.0
+  yaml: ^3.1.0
+
+dependency_overrides:
+  flutterfire_cli:
+    path: ./packages/flutterfire_cli
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
