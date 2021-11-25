@@ -20,7 +20,9 @@ import '../flutter_app.dart';
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
-  ConfigCommand(FlutterApp flutterApp) : super(flutterApp);
+  ConfigCommand(FlutterApp flutterApp) : super(flutterApp) {
+    setupFirebaseCliOptions();
+  }
 
   @override
   final String name = 'config';

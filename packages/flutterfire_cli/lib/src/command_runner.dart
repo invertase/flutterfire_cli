@@ -41,18 +41,6 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
       negatable: false,
       help: 'Enable verbose logging.',
     );
-    argParser.addOption(
-      'project',
-      valueHelp: 'alias_or_project_id',
-      abbr: 'p',
-      help: 'The Firebase project to use for this command.',
-    );
-    argParser.addOption(
-      'account',
-      valueHelp: 'email',
-      abbr: 'a',
-      help: 'The Google account to use for authorization.',
-    );
     argParser.addFlag(
       'version',
       abbr: 'v',

@@ -31,6 +31,29 @@ abstract class FlutterFireCommand extends Command<void> {
   Logger get logger =>
       globalResults!['verbose'] as bool ? Logger.verbose() : Logger.standard();
 
+  String? get projectId {
+    return argResults!['project'] as String?;
+  }
+
+  String? get accountEmail {
+    return argResults!['account'] as String?;
+  }
+
+  void setupFirebaseCliOptions() {
+    argParser.addOption(
+      'project',
+      valueHelp: 'alias_or_project_id',
+      abbr: 'p',
+      help: 'The Firebase project to use for this command.',
+    );
+    argParser.addOption(
+      'account',
+      valueHelp: 'email',
+      abbr: 'a',
+      help: 'The Google account to use for authorization.',
+    );
+  }
+
   /// Overridden to support line wrapping when printing usage.
   @override
   late final ArgParser argParser = ArgParser(

@@ -15,6 +15,8 @@
  *
  */
 
+import 'package:ansi_styles/ansi_styles.dart';
+
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
 
@@ -22,5 +24,18 @@ class FlutterAppRequiredException implements FlutterFireException {
   @override
   String toString() {
     return 'FlutterAppRequiredException: The current directory does not appear to be a Flutter application project.';
+  }
+}
+
+class FirebaseCommandException implements FlutterFireException {
+  FirebaseCommandException(this.command, this.error) : super();
+
+  final String command;
+
+  final String error;
+
+  @override
+  String toString() {
+    return '${AnsiStyles.red('FirebaseCommandException: An error occured on the Firebase CLI when attempting to run a command.\n')}COMMAND: ${AnsiStyles.cyan('firebase $command')} \nERROR: $error';
   }
 }
