@@ -39,7 +39,7 @@ abstract class FlutterFireCommand extends Command<void> {
     return argResults!['account'] as String?;
   }
 
-  void setupFirebaseCliOptions() {
+  void setupDefaultFirebaseCliOptions() {
     argParser.addOption(
       'project',
       valueHelp: 'alias_or_project_id',
@@ -49,7 +49,7 @@ abstract class FlutterFireCommand extends Command<void> {
     argParser.addOption(
       'account',
       valueHelp: 'email',
-      abbr: 'a',
+      abbr: 'e',
       help: 'The Google account to use for authorization.',
     );
   }

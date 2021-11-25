@@ -21,7 +21,31 @@ import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
   ConfigCommand(FlutterApp flutterApp) : super(flutterApp) {
-    setupFirebaseCliOptions();
+    setupDefaultFirebaseCliOptions();
+    argParser.addOption(
+      'ios-bundle-id',
+      valueHelp: 'bundleIdentifier',
+      abbr: 'i',
+      help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
+          'If no identifier is provided then an attempt will be made to '
+          'automatically detect it from your "ios" folder (if it exists).',
+    );
+    argParser.addOption(
+      'macos-bundle-id',
+      valueHelp: 'bundleIdentifier',
+      abbr: 'm',
+      help: 'The bundle identifier of your macOS app, e.g. "com.example.app". '
+          'If no identifier is provided then an attempt will be made to '
+          'automatically detect it from your "macos" folder (if it exists).',
+    );
+    argParser.addOption(
+      'android-app-id',
+      valueHelp: 'applicationId',
+      abbr: 'a',
+      help: 'The application id of you Android app, e.g. "com.example.app". '
+          'If no identifier is provided then an attempt will be made to '
+          'automatically detect it from your "android" folder (if it exists).',
+    );
   }
 
   @override
