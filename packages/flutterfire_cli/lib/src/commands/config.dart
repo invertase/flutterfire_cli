@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-present Invertase Limited & Contributors
+ * Copyright (c) 2016-present Invertase Limited & Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this library except in compliance with the License.
@@ -15,12 +15,23 @@
  *
  */
 
-/// A base class for all FlutterFire CLI exceptions.
-abstract class FlutterFireException implements Exception {}
+import '../flutter_app.dart';
 
-class FlutterAppRequiredException implements FlutterFireException {
+import 'base.dart';
+
+class ConfigCommand extends FlutterFireCommand {
+  ConfigCommand(FlutterApp flutterApp) : super(flutterApp);
+
   @override
-  String toString() {
-    return 'FlutterAppRequiredException: The current directory does not appear to be a Flutter application project.';
+  final String name = 'config';
+
+  @override
+  final String description = 'Configure Firebase for your Flutter app. This '
+      'command will fetch Firebase configuration for you and generate a '
+      'lib/firebase_config.dart file with FirebaseOptions you can use.';
+
+  @override
+  Future<void> run() async {
+    // TODO
   }
 }

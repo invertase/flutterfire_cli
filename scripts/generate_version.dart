@@ -15,7 +15,8 @@ Future<void> main() async {
   // ignore: avoid_print
   print('Updating generated file $outputPath');
   final pubspecPath = joinAll(
-      [Directory.current.path, 'packages', 'flutterfire_cli', 'pubspec.yaml']);
+    [Directory.current.path, 'packages', 'flutterfire_cli', 'pubspec.yaml'],
+  );
   final yamlMap = loadYaml(File(pubspecPath).readAsStringSync()) as YamlMap;
   final currentVersion = yamlMap['version'] as String;
   final fileContents =

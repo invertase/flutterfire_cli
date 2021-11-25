@@ -8,8 +8,12 @@ environment:
 dependencies:
   ansi_styles: ^0.3.0
   args: ^2.3.0
+  cli_util: ^0.3.5
   file: ^6.1.2
   path: ^1.8.0
+  platform: ^3.0.2
+  prompts: ^2.0.0
+  pubspec: ^2.0.1
 
 dev_dependencies:
   test: ^1.16.0

@@ -15,12 +15,25 @@
  *
  */
 
-/// A base class for all FlutterFire CLI exceptions.
-abstract class FlutterFireException implements Exception {}
+import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
+import 'package:cli_util/cli_logging.dart';
 
-class FlutterAppRequiredException implements FlutterFireException {
+import '../common/utils.dart';
+import '../flutter_app.dart';
+
+/// A base class for all FlutterFire commandss.
+abstract class FlutterFireCommand extends Command<void> {
+  FlutterFireCommand(this.flutterApp);
+
+  final FlutterApp flutterApp;
+
+  Logger get logger =>
+      globalResults!['verbose'] as bool ? Logger.verbose() : Logger.standard();
+
+  /// Overridden to support line wrapping when printing usage.
   @override
-  String toString() {
-    return 'FlutterAppRequiredException: The current directory does not appear to be a Flutter application project.';
-  }
+  late final ArgParser argParser = ArgParser(
+    usageLineLength: terminalWidth,
+  );
 }

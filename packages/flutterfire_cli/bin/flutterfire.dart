@@ -19,10 +19,18 @@ import 'dart:io';
 
 import 'package:flutterfire_cli/src/command_runner.dart';
 import 'package:flutterfire_cli/src/common/exception.dart';
+import 'package:flutterfire_cli/src/flutter_app.dart';
+import 'package:flutterfire_cli/version.g.dart';
 
 Future<void> main(List<String> arguments) async {
+  if (arguments.contains('--version')) {
+    // ignore: avoid_print
+    print(cliVersion);
+    return;
+  }
   try {
-    await FlutterFireCommandRunner().run(arguments);
+    final flutterApp = await FlutterApp.load(Directory.current);
+    await FlutterFireCommandRunner(flutterApp).run(arguments);
   } on FlutterFireException catch (err) {
     stderr.writeln(err.toString());
     exitCode = 1;

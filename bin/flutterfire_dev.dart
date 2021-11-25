@@ -6,7 +6,8 @@ void main(List<String> arguments) {
     // ignore_for_file: avoid_print
     print('------------------------------------------------------------------');
     print(
-        '| You are running a local development version of FlutterFire CLI. |');
+      '| You are running a local development version of FlutterFire CLI. |',
+    );
     print('------------------------------------------------------------------');
     print('');
   }

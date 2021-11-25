@@ -15,10 +15,10 @@
  *
  */
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import '../version.g.dart';
+import 'commands/config.dart';
 import 'common/utils.dart';
+import 'flutter_app.dart';
 
 /// A class that can run FlutterFire commands.
 ///
@@ -30,7 +30,7 @@ import 'common/utils.dart';
 /// await FlutterFireCommandRunner.run(['config']);
 /// ```
 class FlutterFireCommandRunner extends CommandRunner<void> {
-  FlutterFireCommandRunner()
+  FlutterFireCommandRunner(FlutterApp flutterApp)
       : super(
           'flutterfire',
           'A CLI tool for FlutterFire projects.',
@@ -41,6 +41,18 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
       negatable: false,
       help: 'Enable verbose logging.',
     );
+    argParser.addOption(
+      'project',
+      valueHelp: 'alias_or_project_id',
+      abbr: 'p',
+      help: 'The Firebase project to use for this command.',
+    );
+    argParser.addOption(
+      'account',
+      valueHelp: 'email',
+      abbr: 'a',
+      help: 'The Google account to use for authorization.',
+    );
     argParser.addFlag(
       'version',
       abbr: 'v',
@@ -48,16 +60,6 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
       help: 'Print the current CLI version.',
     );
 
-    // TODO add commands
-  }
-
-  @override
-  Future<void> runCommand(ArgResults topLevelResults) async {
-    if (topLevelResults['version'] == true) {
-      // ignore: avoid_print
-      print(cliVersion);
-      return;
-    }
-    await super.runCommand(topLevelResults);
+    addCommand(ConfigCommand(flutterApp));
   }
 }
