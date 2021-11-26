@@ -27,6 +27,13 @@ class FlutterAppRequiredException implements FlutterFireException {
   }
 }
 
+class NoFlutterPlatformsSelectedException implements FlutterFireException {
+  @override
+  String toString() {
+    return 'NoFlutterPlatformsSelectedException: You must select at least one Flutter platform to generate your configuration for.';
+  }
+}
+
 class FirebaseProjectRequiredException implements FlutterFireException {
   @override
   String toString() {
@@ -42,6 +49,17 @@ class FirebaseProjectNotFoundException implements FlutterFireException {
   @override
   String toString() {
     return 'FirebaseProjectNotFoundException: Firebase project id "$projectId" could not be found on this Firebase account.';
+  }
+}
+
+class FirebaseOptionsAlreadyExistsException implements FlutterFireException {
+  FirebaseOptionsAlreadyExistsException(this.filePath) : super();
+
+  final String filePath;
+
+  @override
+  String toString() {
+    return 'FirebaseOptionsAlreadyExistsException: Firebase options file ${AnsiStyles.cyan(filePath)} already exists.';
   }
 }
 

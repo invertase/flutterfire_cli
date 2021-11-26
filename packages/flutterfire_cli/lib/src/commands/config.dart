@@ -22,6 +22,8 @@ import '../common/exception.dart';
 import '../common/platform.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
+import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../flutter_app.dart';
 
@@ -77,6 +79,10 @@ class ConfigCommand extends FlutterFireCommand {
   final String description = 'Configure Firebase for your Flutter app. This '
       'command will fetch Firebase configuration for you and generate a '
       'Dart file with prefilled FirebaseOptions you can use.';
+
+  String get outputFilePath {
+    return argResults!['out'] as String;
+  }
 
   Future<FirebaseProject> _promptCreateFirebaseProject() async {
     final newProjectId = interact.Input(
@@ -194,25 +200,98 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
+  Future<FirebaseOptions> _buildFirebaseOptionsForAndroid(
+    FirebaseProject selectedProject,
+  ) async {
+    // TODO implement me
+    return const FirebaseOptions(
+      apiKey: 'apiKey',
+      appId: 'appId',
+      messagingSenderId: 'messagingSenderId',
+      projectId: 'projectId',
+    );
+  }
+
+  Future<FirebaseOptions> _buildFirebaseOptionsForIos(
+    FirebaseProject selectedProject,
+  ) async {
+    // TODO implement me
+    return const FirebaseOptions(
+      apiKey: 'apiKey',
+      appId: 'appId',
+      messagingSenderId: 'messagingSenderId',
+      projectId: 'projectId',
+    );
+  }
+
+  Future<FirebaseOptions> _buildFirebaseOptionsForMacos(
+    FirebaseProject selectedProject,
+  ) async {
+    // TODO implement me
+    return const FirebaseOptions(
+      apiKey: 'apiKey',
+      appId: 'appId',
+      messagingSenderId: 'messagingSenderId',
+      projectId: 'projectId',
+    );
+  }
+
+  Future<FirebaseOptions> _buildFirebaseOptionsForWeb(
+    FirebaseProject selectedProject,
+  ) async {
+    // TODO implement me
+    return const FirebaseOptions(
+      apiKey: 'apiKey',
+      appId: 'appId',
+      messagingSenderId: 'messagingSenderId',
+      projectId: 'projectId',
+    );
+  }
+
   @override
   Future<void> run() async {
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
-    // print(selectedPlatforms);
 
-    // final firebaseApps =
-    // await firebase.getApps(project: 'react-native-firebase-testing');
-    // final newApp = await firebase.createAppleApp(
-    //   project: project,
-    //   displayName: 'ffclitest2ios',
-    //   bundleId: 'com.flutterfire.cli.test',
-    // );
-    // print(newApp);
-    // print(newApp.appId);
-    // print(newApp.platform);
+    if (!selectedPlatforms.containsValue(true)) {
+      throw NoFlutterPlatformsSelectedException();
+    }
 
-    // final firebaseProject =
-    //     await firebase.createProject(projectId: 'ffclitest2');
-    // print(firebaseProject);
+    FirebaseOptions? androidOptions;
+    if (selectedPlatforms[kAndroid]!) {
+      androidOptions =
+          await _buildFirebaseOptionsForAndroid(selectedFirebaseProject);
+    }
+
+    FirebaseOptions? iosOptions;
+    if (selectedPlatforms[kIos]!) {
+      iosOptions = await _buildFirebaseOptionsForIos(selectedFirebaseProject);
+    }
+
+    FirebaseOptions? macosOptions;
+    if (selectedPlatforms[kMacos]!) {
+      macosOptions =
+          await _buildFirebaseOptionsForMacos(selectedFirebaseProject);
+    }
+
+    FirebaseOptions? webOptions;
+    if (selectedPlatforms[kWeb]!) {
+      webOptions = await _buildFirebaseOptionsForWeb(selectedFirebaseProject);
+    }
+
+    final configFile = FirebaseConfigurationFile(
+      outputFilePath,
+      androidOptions: androidOptions,
+      iosOptions: iosOptions,
+      macosOptions: macosOptions,
+      webOptions: webOptions,
+    );
+
+    await configFile.write();
+
+    logger.stdout(
+      'Firebase configuration file ${AnsiStyles.cyan(outputFilePath)} generated successfully!',
+    );
+    // TODO how to import and use it
   }
 }
