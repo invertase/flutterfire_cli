@@ -42,7 +42,7 @@ abstract class FlutterFireCommand extends Command<void> {
   void setupDefaultFirebaseCliOptions() {
     argParser.addOption(
       'project',
-      valueHelp: 'alias_or_project_id',
+      valueHelp: 'aliasOrProjectId',
       abbr: 'p',
       help: 'The Firebase project to use for this command.',
     );

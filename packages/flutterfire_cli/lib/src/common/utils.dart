@@ -17,7 +17,6 @@
 
 import 'dart:io';
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
-import 'package:prompts/prompts.dart' as prompts;
 import 'platform.dart';
 
 /// Key for windows platform.
@@ -46,12 +45,12 @@ extension Let<T> on T? {
   }
 }
 
-String promptInput(String message, {String? defaultsTo}) {
-  return prompts.get(message, defaultsTo: defaultsTo);
-}
-
-bool promptBool({String message = 'Continue?', bool defaultsTo = false}) {
-  return prompts.getBool(message, defaultsTo: defaultsTo);
+bool get isCI {
+  final keys = currentPlatform.environment.keys;
+  return keys.contains('CI') ||
+      keys.contains('CONTINUOUS_INTEGRATION') ||
+      keys.contains('BUILD_NUMBER') ||
+      keys.contains('RUN_ID');
 }
 
 int get terminalWidth {
@@ -60,6 +59,10 @@ int get terminalWidth {
   }
 
   return 80;
+}
+
+String firebaseRcPathForDirectory(Directory directory) {
+  return joinAll([directory.path, '.firebaserc']);
 }
 
 String pubspecPathForDirectory(Directory directory) {

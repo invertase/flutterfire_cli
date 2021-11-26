@@ -27,6 +27,24 @@ class FlutterAppRequiredException implements FlutterFireException {
   }
 }
 
+class FirebaseProjectRequiredException implements FlutterFireException {
+  @override
+  String toString() {
+    return 'FirebaseProjectRequiredException: A Firebase project id must be specified, either via the `--project` option or a `.firebaserc` file.';
+  }
+}
+
+class FirebaseProjectNotFoundException implements FlutterFireException {
+  FirebaseProjectNotFoundException(this.projectId) : super();
+
+  final String projectId;
+
+  @override
+  String toString() {
+    return 'FirebaseProjectNotFoundException: Firebase project id "$projectId" could not be found on this Firebase account.';
+  }
+}
+
 class FirebaseCommandException implements FlutterFireException {
   FirebaseCommandException(this.command, this.error) : super();
 
