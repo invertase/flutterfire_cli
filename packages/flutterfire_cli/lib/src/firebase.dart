@@ -18,6 +18,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ansi_styles/ansi_styles.dart';
+
 import 'common/exception.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
@@ -142,9 +144,10 @@ Future<FirebaseProject> createProject({
 Future<List<FirebaseApp>> getApps({
   required String project,
   String? account,
+  String? platform,
 }) async {
   final response = await runFirebaseCommand(
-    ['apps:list'],
+    ['apps:list', if (platform != null) platform],
     project: project,
     account: account,
   );
@@ -155,6 +158,104 @@ Future<List<FirebaseApp>> getApps({
             FirebaseApp.fromJson(Map<String, dynamic>.from(e)),
       )
       .toList();
+}
+
+Future<FirebaseApp> findOrCreateFirebaseApp({
+  required String platformIdentifier,
+  required String displayName,
+  required String project,
+  String? packageNameOrBundleIdentifier,
+  String? firebaseAccount,
+}) async {
+  var foundFirebaseApp = false;
+  final displayNameWithPlatform = '\\"$displayName ($platformIdentifier)\\"';
+  final fetchingAppsSpinner = spinner(
+    (done) {
+      final loggingAppName =
+          packageNameOrBundleIdentifier ?? displayNameWithPlatform;
+      if (!done) {
+        return AnsiStyles.bold(
+          'Fetching registered Firebase apps for Firebase project ${AnsiStyles.cyan(project)}',
+        );
+      }
+      if (!foundFirebaseApp) {
+        return AnsiStyles.bold(
+          'Firebase $platformIdentifier app ${AnsiStyles.cyan(loggingAppName)} is not registered on Firebase project ${AnsiStyles.cyan(project)}. A new one will be registered.',
+        );
+      }
+      return AnsiStyles.bold(
+        'Firebase $platformIdentifier app ${AnsiStyles.cyan(loggingAppName)} is already registered, skipping registration.',
+      );
+    },
+  );
+  final unfilteredFirebaseApps = await getApps(
+    project: project,
+    account: firebaseAccount,
+    // macos & ios apps are not seperated on Firebase
+    platform: platformIdentifier == kMacos ? kIos : platformIdentifier,
+  );
+  final filteredFirebaseApps = unfilteredFirebaseApps.where(
+    (firebaseApp) {
+      if (packageNameOrBundleIdentifier != null) {
+        return firebaseApp.packageNameOrBundleIdentifier ==
+                packageNameOrBundleIdentifier &&
+            firebaseApp.platform == platformIdentifier;
+      }
+      // Web has no package name or bundle identifier so we match on
+      // our generated display names instead.
+      return firebaseApp.displayName == displayNameWithPlatform &&
+          firebaseApp.platform == platformIdentifier;
+    },
+  );
+  foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
+  fetchingAppsSpinner.done();
+  if (foundFirebaseApp) {
+    return filteredFirebaseApps.first;
+  }
+
+  // Existing app not found so we need to create it.
+  Future<FirebaseApp> createFirebaseAppFuture;
+  switch (platformIdentifier) {
+    case kAndroid:
+      createFirebaseAppFuture = createAndroidApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+        packageName: packageNameOrBundleIdentifier!,
+      );
+      break;
+    case kIos:
+    case kMacos:
+      createFirebaseAppFuture = createAppleApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+        bundleId: packageNameOrBundleIdentifier!,
+      );
+      break;
+    case kWeb:
+      createFirebaseAppFuture = createWebApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+      );
+      break;
+    default:
+      throw FlutterPlatformNotSupportedException(platformIdentifier);
+  }
+
+  final creatingAppSpinner = spinner(
+    (done) {
+      if (!done) {
+        return AnsiStyles.bold(
+          'Registering new Firebase $platformIdentifier app on Firebase project ${AnsiStyles.cyan(project)}.',
+        );
+      }
+      return AnsiStyles.bold(
+        'Registered a new Firebase $platformIdentifier app on Firebase project ${AnsiStyles.cyan(project)}.',
+      );
+    },
+  );
+  final firebaseApp = await createFirebaseAppFuture;
+  creatingAppSpinner.done();
+  return firebaseApp;
 }
 
 /// Create a new web [FirebaseApp].
@@ -175,7 +276,7 @@ Future<FirebaseApp> createWebApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'WEB'
+    'platform': kWeb
   });
 }
 
@@ -199,7 +300,7 @@ Future<FirebaseApp> createAndroidApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'ANDROID'
+    'platform': kAndroid
   });
 }
 
@@ -223,6 +324,6 @@ Future<FirebaseApp> createAppleApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'IOS'
+    'platform': kIos
   });
 }

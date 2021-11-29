@@ -63,6 +63,17 @@ class FirebaseOptionsAlreadyExistsException implements FlutterFireException {
   }
 }
 
+class FlutterPlatformNotSupportedException implements FlutterFireException {
+  FlutterPlatformNotSupportedException(this.platform) : super();
+
+  final String platform;
+
+  @override
+  String toString() {
+    return 'FlutterPlatformNotSupportedException: ${AnsiStyles.cyan(platform)} is not currently supported by this CLI.';
+  }
+}
+
 class FirebaseCommandException implements FlutterFireException {
   FirebaseCommandException(this.command, this.error) : super();
 

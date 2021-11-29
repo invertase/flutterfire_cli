@@ -16,6 +16,8 @@
  */
 
 import 'dart:io';
+import 'package:ansi_styles/ansi_styles.dart';
+import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 import 'platform.dart';
 
@@ -59,6 +61,67 @@ int get terminalWidth {
   }
 
   return 80;
+}
+
+void logWithGreenCheckMarkIcon(String message) {
+  // ignore: avoid_print
+  print('${AnsiStyles.green('✔')} ${AnsiStyles.bold(message)}');
+}
+
+int promptSelect(
+  String prompt,
+  List<String> choices, {
+  int initialIndex = 0,
+}) {
+  return interact.Select(
+    prompt: 'Select a Firebase project to build your configuration from',
+    options: choices,
+    initialIndex: initialIndex,
+  ).interact();
+}
+
+List<int> promptMultiSelect(
+  String prompt,
+  List<String> choices, {
+  List<bool>? defaultSelection,
+}) {
+  return interact.MultiSelect(
+    prompt: 'Select a Firebase project to build your configuration from',
+    options: choices,
+    defaults: defaultSelection,
+  ).interact();
+}
+
+String promptInput(
+  String prompt, {
+  String? defaultValue,
+  dynamic Function(String)? validator,
+}) {
+  return interact.Input(
+    prompt: prompt,
+    defaultValue: defaultValue,
+    validator: (String input) {
+      if (validator == null) return true;
+      final Object? validatorResult = validator(input);
+      if (validatorResult is bool) {
+        return validatorResult;
+      }
+      if (validatorResult is String) {
+        // ignore: only_throw_errors
+        throw interact.ValidationError(validatorResult);
+      }
+      return false;
+    },
+  ).interact();
+}
+
+interact.SpinnerState? activeSpinnerState;
+interact.SpinnerState spinner(String Function(bool) rightPrompt) {
+  activeSpinnerState = interact.Spinner(
+    icon: AnsiStyles.green('✔'),
+    rightPrompt: rightPrompt,
+  ).interact();
+  return activeSpinnerState!;
 }
 
 String firebaseRcPathForDirectory(Directory directory) {

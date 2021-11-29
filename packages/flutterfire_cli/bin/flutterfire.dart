@@ -19,6 +19,7 @@ import 'dart:io';
 
 import 'package:flutterfire_cli/src/command_runner.dart';
 import 'package:flutterfire_cli/src/common/exception.dart';
+import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:flutterfire_cli/version.g.dart';
 
@@ -32,6 +33,9 @@ Future<void> main(List<String> arguments) async {
     final flutterApp = await FlutterApp.load(Directory.current);
     await FlutterFireCommandRunner(flutterApp).run(arguments);
   } on FlutterFireException catch (err) {
+    if (utils.activeSpinnerState != null) {
+      utils.activeSpinnerState!.done();
+    }
     stderr.writeln(err.toString());
     exitCode = 1;
   } catch (err) {

@@ -16,12 +16,13 @@
  */
 
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:interact/interact.dart' as interact;
 
 import '../common/exception.dart';
 import '../common/platform.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
+import '../firebase/firebase_android_options.dart';
+import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
@@ -80,34 +81,34 @@ class ConfigCommand extends FlutterFireCommand {
       'command will fetch Firebase configuration for you and generate a '
       'Dart file with prefilled FirebaseOptions you can use.';
 
+  String? get androidApplicationId {
+    // TODO validate appId is valid if provided
+    return argResults!['android-app-id'] as String?;
+  }
+
   String get outputFilePath {
     return argResults!['out'] as String;
   }
 
   Future<FirebaseProject> _promptCreateFirebaseProject() async {
-    final newProjectId = interact.Input(
-      prompt:
-          'Enter a project id for your new Firebase project (e.g. ${AnsiStyles.cyan('my-cool-project')})',
+    final newProjectId = promptInput(
+      'Enter a project id for your new Firebase project (e.g. ${AnsiStyles.cyan('my-cool-project')})',
       validator: (String x) {
         if (RegExp(r'^[a-zA-Z0-9\-]+$').hasMatch(x)) {
           return true;
         } else {
-          // ignore: only_throw_errors
-          throw interact.ValidationError(
-            'Firebase project ids must be lowercase and contain only alphanumeric and dash characters.',
-          );
+          return 'Firebase project ids must be lowercase and contain only alphanumeric and dash characters.';
         }
       },
-    ).interact();
-    final creatingProjectSpinner = interact.Spinner(
-      icon: AnsiStyles.green('✔'),
-      rightPrompt: (done) {
+    );
+    final creatingProjectSpinner = spinner(
+      (done) {
         if (!done) {
           return 'Creating new Firebase project ${AnsiStyles.cyan(newProjectId)}...';
         }
         return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created succesfully.';
       },
-    ).interact();
+    );
     final newProject = await firebase.createProject(
       projectId: newProjectId,
       account: accountEmail,
@@ -120,9 +121,8 @@ class ConfigCommand extends FlutterFireCommand {
     var selectedProjectId = projectId;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
     List<FirebaseProject>? firebaseProjects;
-    final fetchingProjectsSpinner = interact.Spinner(
-      icon: AnsiStyles.green('✔'),
-      rightPrompt: (done) {
+    final fetchingProjectsSpinner = spinner(
+      (done) {
         if (!done) {
           return 'Fetching available Firebase projects...';
         }
@@ -133,7 +133,7 @@ class ConfigCommand extends FlutterFireCommand {
         }
         return baseMessage;
       },
-    ).interact();
+    );
     firebaseProjects = await firebase.getProjects(account: accountEmail);
     fetchingProjectsSpinner.done();
     if (selectedProjectId != null) {
@@ -163,10 +163,10 @@ class ConfigCommand extends FlutterFireCommand {
       AnsiStyles.green('<create a new project>'),
     ];
 
-    final selectedChoiceIndex = interact.Select(
-      prompt: 'Select a Firebase project to build your configuration from',
-      options: choices,
-    ).interact();
+    final selectedChoiceIndex = promptSelect(
+      'Select a Firebase project to build your configuration from',
+      choices,
+    );
     // Last choice is to create a new project.
     if (selectedChoiceIndex == choices.length - 1) {
       return _promptCreateFirebaseProject();
@@ -182,12 +182,11 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos: flutterApp.macos,
       kWeb: flutterApp.web,
     };
-    final answers = interact.MultiSelect(
-      prompt:
-          'Which platforms should your FirebaseOptions configuration support?',
-      options: selectedPlatforms.keys.toList(),
-      defaults: selectedPlatforms.values.toList(),
-    ).interact();
+    final answers = promptMultiSelect(
+      'Which platforms should your FirebaseOptions configuration support?',
+      selectedPlatforms.keys.toList(),
+      defaultSelection: selectedPlatforms.values.toList(),
+    );
     var index = 0;
     for (final key in selectedPlatforms.keys) {
       if (answers.contains(index)) {
@@ -198,42 +197,6 @@ class ConfigCommand extends FlutterFireCommand {
       index++;
     }
     return selectedPlatforms;
-  }
-
-  Future<FirebaseOptions> _buildFirebaseOptionsForAndroid(
-    FirebaseProject selectedProject,
-  ) async {
-    // TODO implement me
-    return const FirebaseOptions(
-      apiKey: 'apiKey',
-      appId: 'appId',
-      messagingSenderId: 'messagingSenderId',
-      projectId: 'projectId',
-    );
-  }
-
-  Future<FirebaseOptions> _buildFirebaseOptionsForIos(
-    FirebaseProject selectedProject,
-  ) async {
-    // TODO implement me
-    return const FirebaseOptions(
-      apiKey: 'apiKey',
-      appId: 'appId',
-      messagingSenderId: 'messagingSenderId',
-      projectId: 'projectId',
-    );
-  }
-
-  Future<FirebaseOptions> _buildFirebaseOptionsForMacos(
-    FirebaseProject selectedProject,
-  ) async {
-    // TODO implement me
-    return const FirebaseOptions(
-      apiKey: 'apiKey',
-      appId: 'appId',
-      messagingSenderId: 'messagingSenderId',
-      projectId: 'projectId',
-    );
   }
 
   Future<FirebaseOptions> _buildFirebaseOptionsForWeb(
@@ -259,19 +222,30 @@ class ConfigCommand extends FlutterFireCommand {
 
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
-      androidOptions =
-          await _buildFirebaseOptionsForAndroid(selectedFirebaseProject);
+      final androidPlatformOptions = await FirebaseAndroidOptions.forFlutterApp(
+        flutterApp,
+        androidApplicationId: androidApplicationId,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
+      );
+      androidOptions = androidPlatformOptions.options;
     }
 
     FirebaseOptions? iosOptions;
     if (selectedPlatforms[kIos]!) {
-      iosOptions = await _buildFirebaseOptionsForIos(selectedFirebaseProject);
+      final applePlatformOptions = await FirebaseAppleOptions.forFlutterIosApp(
+        flutterApp,
+      );
+      iosOptions = applePlatformOptions.options;
     }
 
     FirebaseOptions? macosOptions;
     if (selectedPlatforms[kMacos]!) {
-      macosOptions =
-          await _buildFirebaseOptionsForMacos(selectedFirebaseProject);
+      final applePlatformOptions =
+          await FirebaseAppleOptions.forFlutterMacosApp(
+        flutterApp,
+      );
+      macosOptions = applePlatformOptions.options;
     }
 
     FirebaseOptions? webOptions;
@@ -292,6 +266,8 @@ class ConfigCommand extends FlutterFireCommand {
     logger.stdout(
       'Firebase configuration file ${AnsiStyles.cyan(outputFilePath)} generated successfully!',
     );
-    // TODO how to import and use it
+    logger.stdout(
+      'To learn how to import and use these generated options see the documentation at https://firebase.flutter.dev/docs/cli',
+    );
   }
 }

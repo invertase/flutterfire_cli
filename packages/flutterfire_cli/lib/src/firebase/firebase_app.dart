@@ -21,14 +21,17 @@ class FirebaseApp {
     required this.displayName,
     required this.platform,
     required this.appId,
+    required this.packageNameOrBundleIdentifier,
   });
 
   FirebaseApp.fromJson(Map<dynamic, dynamic> json)
       : this(
-          platform: json['platform'] as String,
+          platform: (json['platform'] as String).toLowerCase(),
           appId: json['appId'] as String,
           displayName: json['displayName'] as String,
           name: json['name'] as String,
+          packageNameOrBundleIdentifier:
+              (json['packageName'] ?? json['bundleIdentifier']) as String?,
         );
 
   final String platform;
@@ -39,8 +42,10 @@ class FirebaseApp {
 
   final String appId;
 
+  final String? packageNameOrBundleIdentifier;
+
   @override
   String toString() {
-    return 'FirebaseApp["$displayName", $platform]';
+    return 'FirebaseApp["$displayName", "$packageNameOrBundleIdentifier", "$platform"]';
   }
 }
