@@ -18,6 +18,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:ansi_styles/ansi_styles.dart';
+
 import 'common/exception.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
@@ -142,9 +144,11 @@ Future<FirebaseProject> createProject({
 Future<List<FirebaseApp>> getApps({
   required String project,
   String? account,
+  String? platform,
 }) async {
+  if (platform != null) _assertFirebaseSupportedPlatform(platform);
   final response = await runFirebaseCommand(
-    ['apps:list'],
+    ['apps:list', if (platform != null) platform],
     project: project,
     account: account,
   );
@@ -155,6 +159,126 @@ Future<List<FirebaseApp>> getApps({
             FirebaseApp.fromJson(Map<String, dynamic>.from(e)),
       )
       .toList();
+}
+
+/// Get registered Firebase apps for a project.
+Future<String> getAppSdkConfig({
+  required String appId,
+  required String platform,
+  String? account,
+}) async {
+  final platformFirebase = platform == kMacos ? kIos : platform;
+  _assertFirebaseSupportedPlatform(platformFirebase);
+  final response = await runFirebaseCommand(
+    ['apps:sdkconfig', platformFirebase, appId],
+    account: account,
+  );
+  final result = Map<String, dynamic>.from(response['result'] as Map);
+  return result['fileContents'] as String;
+}
+
+void _assertFirebaseSupportedPlatform(String platformIdentifier) {
+  if (![kAndroid, kWeb, kIos].contains(platformIdentifier)) {
+    throw FirebasePlatformNotSupportedException(platformIdentifier);
+  }
+}
+
+Future<FirebaseApp> findOrCreateFirebaseApp({
+  required String platform,
+  required String displayName,
+  required String project,
+  String? packageNameOrBundleIdentifier,
+  String? account,
+}) async {
+  var foundFirebaseApp = false;
+  final displayNameWithPlatform = '$displayName ($platform)';
+  final platformFirebase = platform == kMacos ? kIos : platform;
+  _assertFirebaseSupportedPlatform(platformFirebase);
+  final fetchingAppsSpinner = spinner(
+    (done) {
+      final loggingAppName =
+          packageNameOrBundleIdentifier ?? displayNameWithPlatform;
+      if (!done) {
+        return AnsiStyles.bold(
+          'Fetching registered ${AnsiStyles.cyan(platform)} Firebase apps for project ${AnsiStyles.cyan(project)}',
+        );
+      }
+      if (!foundFirebaseApp) {
+        return AnsiStyles.bold(
+          'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is not registered on Firebase project ${AnsiStyles.cyan(project)}.',
+        );
+      }
+      return AnsiStyles.bold(
+        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is already registered.',
+      );
+    },
+  );
+  final unfilteredFirebaseApps = await getApps(
+    project: project,
+    account: account,
+    platform: platformFirebase,
+  );
+  final filteredFirebaseApps = unfilteredFirebaseApps.where(
+    (firebaseApp) {
+      if (packageNameOrBundleIdentifier != null) {
+        return firebaseApp.packageNameOrBundleIdentifier ==
+                packageNameOrBundleIdentifier &&
+            firebaseApp.platform == platformFirebase;
+      }
+      // Web has no package name or bundle identifier so we match on
+      // our generated display names instead.
+      return firebaseApp.displayName == displayNameWithPlatform &&
+          firebaseApp.platform == platformFirebase;
+    },
+  );
+  foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
+  fetchingAppsSpinner.done();
+  if (foundFirebaseApp) {
+    return filteredFirebaseApps.first;
+  }
+
+  // Existing app not found so we need to create it.
+  Future<FirebaseApp> createFirebaseAppFuture;
+  switch (platformFirebase) {
+    case kAndroid:
+      createFirebaseAppFuture = createAndroidApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+        packageName: packageNameOrBundleIdentifier!,
+      );
+      break;
+    case kIos:
+      createFirebaseAppFuture = createAppleApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+        bundleId: packageNameOrBundleIdentifier!,
+      );
+      break;
+    case kWeb:
+      createFirebaseAppFuture = createWebApp(
+        project: project,
+        displayName: displayNameWithPlatform,
+      );
+      break;
+    default:
+      throw FlutterPlatformNotSupportedException(platform);
+  }
+
+  final creatingAppSpinner = spinner(
+    (done) {
+      if (!done) {
+        return AnsiStyles.bold(
+          'Registering new Firebase ${AnsiStyles.cyan(platform)} app on Firebase project ${AnsiStyles.cyan(project)}.',
+        );
+      }
+      return AnsiStyles.bold(
+        'Registered a new Firebase ${AnsiStyles.cyan(platform)} app on Firebase project ${AnsiStyles.cyan(project)}.',
+      );
+    },
+  );
+  final firebaseApp = await createFirebaseAppFuture;
+  creatingAppSpinner.done();
+  return firebaseApp;
 }
 
 /// Create a new web [FirebaseApp].
@@ -175,7 +299,7 @@ Future<FirebaseApp> createWebApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'WEB'
+    'platform': kWeb
   });
 }
 
@@ -199,7 +323,7 @@ Future<FirebaseApp> createAndroidApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'ANDROID'
+    'platform': kAndroid
   });
 }
 
@@ -223,6 +347,6 @@ Future<FirebaseApp> createAppleApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': 'IOS'
+    'platform': kIos
   });
 }

@@ -3,17 +3,19 @@ description: A command-line application for FlutterFire.
 version: 0.1.0
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   ansi_styles: ^0.3.0
   args: ^2.3.0
   cli_util: ^0.3.5
+  deep_pick: ^0.10.0
   file: ^6.1.2
   interact: ^2.1.1
   path: ^1.8.0
   platform: ^3.0.2
   pubspec: ^2.0.1
+  xml: ^5.3.1
 
 dev_dependencies:
   test: ^1.16.0

@@ -56,7 +56,38 @@ class FlutterApp {
     if (_iosBundleId != null) {
       return _iosBundleId;
     }
-    // TODO
+    return _iosBundleId = _readBundleIdFromProjectFile(
+      xcodeProjectFileInDirectory(Directory(package.path), kIos),
+    );
+  }
+
+  // Cached macOS bundle identifier if available.
+  String? _macosBundleId;
+
+  String? get macosBundleId {
+    if (!macos) return null;
+    if (_macosBundleId != null) {
+      return _macosBundleId;
+    }
+    return _macosBundleId = _readBundleIdFromProjectFile(
+      xcodeProjectFileInDirectory(Directory(package.path), kMacos),
+    );
+  }
+
+  String? _readBundleIdFromProjectFile(File pbxproj) {
+    if (!pbxproj.existsSync()) return null;
+    final fileContents = pbxproj.readAsStringSync();
+    final bundleIdRegex = RegExp(
+      r'''^[\s]+PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+);$''',
+      multiLine: true,
+    );
+    // TODO there can be multiple matches, e.g. build variants,
+    //      perhaps we should build a set and prompt for a choice?
+    final match = bundleIdRegex.firstMatch(fileContents);
+    if (match != null) {
+      return match.namedGroup('bundleId');
+    }
+    return null;
   }
 
   /// The Android Application (or Package Name) for this Flutter
@@ -115,10 +146,20 @@ class FlutterApp {
     return _supportsPlatform(kAndroid);
   }
 
+  /// Returns the directory where the Android platform specific project exists.
+  Directory get androidDirectory {
+    return _platformDirectory(kAndroid);
+  }
+
   /// Returns whether this Flutter app can run on Web.
   bool get web {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kWeb);
+  }
+
+  /// Returns the directory where the Web platform specific project exists.
+  Directory get webDirectory {
+    return _platformDirectory(kWeb);
   }
 
   /// Returns whether this Flutter app can run on Windows.
@@ -127,10 +168,20 @@ class FlutterApp {
     return _supportsPlatform(kWindows);
   }
 
+  /// Returns the directory where the Windows platform specific project exists.
+  Directory get windowsDirectory {
+    return _platformDirectory(kWindows);
+  }
+
   /// Returns whether this Flutter app can run on MacOS.
   bool get macos {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kMacos);
+  }
+
+  /// Returns the directory where the macOS platform specific project exists.
+  Directory get macosDirectory {
+    return _platformDirectory(kMacos);
   }
 
   /// Returns whether this Flutter app can run on iOS.
@@ -139,13 +190,23 @@ class FlutterApp {
     return _supportsPlatform(kIos);
   }
 
+  /// Returns the directory where the iOS platform specific project exists.
+  Directory get iosDirectory {
+    return _platformDirectory(kIos);
+  }
+
   /// Returns whether this Flutter app can run on Linux.
   bool get linux {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kLinux);
   }
 
-  bool _supportsPlatform(String platform) {
+  /// Returns the directory where the Linux platform specific project exists.
+  Directory get linuxDirectory {
+    return _platformDirectory(kLinux);
+  }
+
+  Directory _platformDirectory(String platform) {
     assert(
       platform == kIos ||
           platform == kAndroid ||
@@ -154,9 +215,12 @@ class FlutterApp {
           platform == kWindows ||
           platform == kLinux,
     );
-
     return Directory(
       '${package.path}${currentPlatform.pathSeparator}$platform',
-    ).existsSync();
+    );
+  }
+
+  bool _supportsPlatform(String platform) {
+    return _platformDirectory(platform).existsSync();
   }
 }

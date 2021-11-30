@@ -16,6 +16,8 @@
  */
 
 import 'dart:io';
+import 'package:ansi_styles/ansi_styles.dart';
+import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 import 'platform.dart';
 
@@ -61,6 +63,97 @@ int get terminalWidth {
   return 80;
 }
 
+String listAsPaddedTable(List<List<String>> table, {int paddingSize = 1}) {
+  final output = <String>[];
+  final maxColumnSizes = <int, int>{};
+  for (final row in table) {
+    var i = 0;
+    for (final column in row) {
+      if (maxColumnSizes[i] == null ||
+          maxColumnSizes[i]! < AnsiStyles.strip(column).length) {
+        maxColumnSizes[i] = AnsiStyles.strip(column).length;
+      }
+      i++;
+    }
+  }
+
+  for (final row in table) {
+    var i = 0;
+    final rowBuffer = StringBuffer();
+    for (final column in row) {
+      final colWidth = maxColumnSizes[i]! + paddingSize;
+      final cellWidth = AnsiStyles.strip(column).length;
+      var padding = colWidth - cellWidth;
+      if (padding < paddingSize) padding = paddingSize;
+
+      // last cell of the list, no need for padding
+      if (i + 1 >= row.length) padding = 0;
+
+      rowBuffer.write('$column${List.filled(padding, ' ').join()}');
+      i++;
+    }
+    output.add(rowBuffer.toString());
+  }
+
+  return output.join('\n');
+}
+
+int promptSelect(
+  String prompt,
+  List<String> choices, {
+  int initialIndex = 0,
+}) {
+  return interact.Select(
+    prompt: 'Select a Firebase project to build your configuration from',
+    options: choices,
+    initialIndex: initialIndex,
+  ).interact();
+}
+
+List<int> promptMultiSelect(
+  String prompt,
+  List<String> choices, {
+  List<bool>? defaultSelection,
+}) {
+  return interact.MultiSelect(
+    prompt: 'Select a Firebase project to build your configuration from',
+    options: choices,
+    defaults: defaultSelection,
+  ).interact();
+}
+
+String promptInput(
+  String prompt, {
+  String? defaultValue,
+  dynamic Function(String)? validator,
+}) {
+  return interact.Input(
+    prompt: prompt,
+    defaultValue: defaultValue,
+    validator: (String input) {
+      if (validator == null) return true;
+      final Object? validatorResult = validator(input);
+      if (validatorResult is bool) {
+        return validatorResult;
+      }
+      if (validatorResult is String) {
+        // ignore: only_throw_errors
+        throw interact.ValidationError(validatorResult);
+      }
+      return false;
+    },
+  ).interact();
+}
+
+interact.SpinnerState? activeSpinnerState;
+interact.SpinnerState spinner(String Function(bool) rightPrompt) {
+  activeSpinnerState = interact.Spinner(
+    icon: AnsiStyles.blue('i'),
+    rightPrompt: rightPrompt,
+  ).interact();
+  return activeSpinnerState!;
+}
+
 String firebaseRcPathForDirectory(Directory directory) {
   return joinAll([directory.path, '.firebaserc']);
 }
@@ -71,6 +164,14 @@ String pubspecPathForDirectory(Directory directory) {
 
 String androidAppBuildGradlePathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle']);
+}
+
+File xcodeProjectFileInDirectory(Directory directory, String platform) {
+  return File(
+    joinAll(
+      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
+    ),
+  );
 }
 
 String androidManifestPathForAppDirectory(Directory directory) {

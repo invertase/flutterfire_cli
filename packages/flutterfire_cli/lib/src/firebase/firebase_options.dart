@@ -15,6 +15,7 @@
  *
  */
 
+/// Mirrored from FlutterFire
 class FirebaseOptions {
   const FirebaseOptions({
     required this.apiKey,
