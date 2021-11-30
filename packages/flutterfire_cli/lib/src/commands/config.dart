@@ -65,7 +65,7 @@ class ConfigCommand extends FlutterFireCommand {
       valueHelp: 'applicationId',
       mandatory: isCI,
       abbr: 'a',
-      help: 'The application id of you Android app, e.g. "com.example.app". '
+      help: 'The application id of your Android app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
           'automatically detect it from your "android" folder (if it exists).',
     );
