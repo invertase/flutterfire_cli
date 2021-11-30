@@ -51,7 +51,7 @@ class FirebaseConfigurationFile {
     if (outputFile.existsSync() && !isCI) {
       final shouldOverwrite = interact.Confirm(
         prompt:
-            'FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
+            'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
         defaultValue: true,
       ).interact();
       if (!shouldOverwrite) {

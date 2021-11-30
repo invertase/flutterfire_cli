@@ -63,9 +63,39 @@ int get terminalWidth {
   return 80;
 }
 
-void logWithGreenCheckMarkIcon(String message) {
-  // ignore: avoid_print
-  print('${AnsiStyles.green('✔')} ${AnsiStyles.bold(message)}');
+String listAsPaddedTable(List<List<String>> table, {int paddingSize = 1}) {
+  final output = <String>[];
+  final maxColumnSizes = <int, int>{};
+  for (final row in table) {
+    var i = 0;
+    for (final column in row) {
+      if (maxColumnSizes[i] == null ||
+          maxColumnSizes[i]! < AnsiStyles.strip(column).length) {
+        maxColumnSizes[i] = AnsiStyles.strip(column).length;
+      }
+      i++;
+    }
+  }
+
+  for (final row in table) {
+    var i = 0;
+    final rowBuffer = StringBuffer();
+    for (final column in row) {
+      final colWidth = maxColumnSizes[i]! + paddingSize;
+      final cellWidth = AnsiStyles.strip(column).length;
+      var padding = colWidth - cellWidth;
+      if (padding < paddingSize) padding = paddingSize;
+
+      // last cell of the list, no need for padding
+      if (i + 1 >= row.length) padding = 0;
+
+      rowBuffer.write('$column${List.filled(padding, ' ').join()}');
+      i++;
+    }
+    output.add(rowBuffer.toString());
+  }
+
+  return output.join('\n');
 }
 
 int promptSelect(
@@ -118,7 +148,7 @@ String promptInput(
 interact.SpinnerState? activeSpinnerState;
 interact.SpinnerState spinner(String Function(bool) rightPrompt) {
   activeSpinnerState = interact.Spinner(
-    icon: AnsiStyles.green('✔'),
+    icon: AnsiStyles.blue('i'),
     rightPrompt: rightPrompt,
   ).interact();
   return activeSpinnerState!;

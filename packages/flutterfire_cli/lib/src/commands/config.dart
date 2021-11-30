@@ -45,6 +45,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'ios-bundle-id',
       valueHelp: 'bundleIdentifier',
+      mandatory: isCI,
       abbr: 'i',
       help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -53,6 +54,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'macos-bundle-id',
       valueHelp: 'bundleIdentifier',
+      mandatory: isCI,
       abbr: 'm',
       help: 'The bundle identifier of your macOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -61,6 +63,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'android-app-id',
       valueHelp: 'applicationId',
+      mandatory: isCI,
       abbr: 'a',
       help: 'The application id of you Android app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -83,18 +86,21 @@ class ConfigCommand extends FlutterFireCommand {
       'Dart file with prefilled FirebaseOptions you can use.';
 
   String? get androidApplicationId {
+    final value = argResults!['android-app-id'] as String?;
     // TODO validate appId is valid if provided
-    return argResults!['android-app-id'] as String?;
+    return value;
   }
 
   String? get iosBundleId {
+    final value = argResults!['ios-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return argResults!['ios-bundle-id'] as String?;
+    return value;
   }
 
   String? get macosBundleId {
+    final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return argResults!['macos-bundle-id'] as String?;
+    return value;
   }
 
   String get outputFilePath {
@@ -131,6 +137,11 @@ class ConfigCommand extends FlutterFireCommand {
   Future<FirebaseProject> _selectFirebaseProject() async {
     var selectedProjectId = projectId;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
+
+    if (isCI && selectedProjectId == null) {
+      throw FirebaseProjectRequiredException();
+    }
+
     List<FirebaseProject>? firebaseProjects;
     final fetchingProjectsSpinner = spinner(
       (done) {
@@ -156,11 +167,6 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    // We can't prompt to select a Firebase in a CI environmet.
-    if (isCI) {
-      throw FirebaseProjectRequiredException();
-    }
-
     // No projects to choose from so lets
     // prompt to create straight away.
     if (firebaseProjects.isEmpty) {
@@ -175,7 +181,7 @@ class ConfigCommand extends FlutterFireCommand {
     ];
 
     final selectedChoiceIndex = promptSelect(
-      'Select a Firebase project to build your configuration from',
+      'Select a Firebase project to configure your Flutter application with',
       choices,
     );
     // Last choice is to create a new project.
@@ -193,6 +199,9 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos: flutterApp.macos,
       kWeb: flutterApp.web,
     };
+    if (isCI) {
+      return selectedPlatforms;
+    }
     final answers = promptMultiSelect(
       'Which platforms should your FirebaseOptions configuration support?',
       selectedPlatforms.keys.toList(),
@@ -269,11 +278,27 @@ class ConfigCommand extends FlutterFireCommand {
 
     await configFile.write();
 
+    logger.stdout('');
     logger.stdout(
-      'Firebase configuration file ${AnsiStyles.cyan(outputFilePath)} generated successfully!',
+      'Firebase configuration file ${AnsiStyles.cyan(outputFilePath)} generated successfully with the following Firebase apps:',
     );
+    logger.stdout('');
     logger.stdout(
-      'To learn how to import and use these generated options see the documentation at https://firebase.flutter.dev/docs/cli',
+      listAsPaddedTable(
+        [
+          [AnsiStyles.bold('Platform'), AnsiStyles.bold('Firebase App Id')],
+          if (webOptions != null) [kWeb, webOptions.appId],
+          if (androidOptions != null) [kAndroid, androidOptions.appId],
+          if (iosOptions != null) [kIos, iosOptions.appId],
+          if (macosOptions != null) [kMacos, macosOptions.appId],
+        ],
+        paddingSize: 2,
+      ),
+    );
+    logger.stdout('');
+    logger.stdout(
+      'Learn more about using this file in the FlutterFire documentation:\n'
+      ' > https://firebase.flutter.dev/docs/cli',
     );
   }
 }

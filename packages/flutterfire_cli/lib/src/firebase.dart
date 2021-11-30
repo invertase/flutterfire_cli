@@ -200,7 +200,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
           packageNameOrBundleIdentifier ?? displayNameWithPlatform;
       if (!done) {
         return AnsiStyles.bold(
-          'Fetching registered ${AnsiStyles.cyan(platform)} Firebase apps for Firebase project ${AnsiStyles.cyan(project)}',
+          'Fetching registered ${AnsiStyles.cyan(platform)} Firebase apps for project ${AnsiStyles.cyan(project)}',
         );
       }
       if (!foundFirebaseApp) {
@@ -209,7 +209,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         );
       }
       return AnsiStyles.bold(
-        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is already registered, skipping registration.',
+        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is already registered.',
       );
     },
   );
