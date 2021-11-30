@@ -26,6 +26,7 @@ import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
+import '../firebase/firebase_web_options.dart';
 import '../flutter_app.dart';
 
 import 'base.dart';
@@ -84,6 +85,16 @@ class ConfigCommand extends FlutterFireCommand {
   String? get androidApplicationId {
     // TODO validate appId is valid if provided
     return argResults!['android-app-id'] as String?;
+  }
+
+  String? get iosBundleId {
+    // TODO validate bundleId is valid if provided
+    return argResults!['ios-bundle-id'] as String?;
+  }
+
+  String? get macosBundleId {
+    // TODO validate bundleId is valid if provided
+    return argResults!['macos-bundle-id'] as String?;
   }
 
   String get outputFilePath {
@@ -199,18 +210,6 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
-  Future<FirebaseOptions> _buildFirebaseOptionsForWeb(
-    FirebaseProject selectedProject,
-  ) async {
-    // TODO implement me
-    return const FirebaseOptions(
-      apiKey: 'apiKey',
-      appId: 'appId',
-      messagingSenderId: 'messagingSenderId',
-      projectId: 'projectId',
-    );
-  }
-
   @override
   Future<void> run() async {
     final selectedFirebaseProject = await _selectFirebaseProject();
@@ -222,35 +221,42 @@ class ConfigCommand extends FlutterFireCommand {
 
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
-      final androidPlatformOptions = await FirebaseAndroidOptions.forFlutterApp(
+      androidOptions = await FirebaseAndroidOptions.forFlutterApp(
         flutterApp,
         androidApplicationId: androidApplicationId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
       );
-      androidOptions = androidPlatformOptions.options;
     }
 
     FirebaseOptions? iosOptions;
     if (selectedPlatforms[kIos]!) {
-      final applePlatformOptions = await FirebaseAppleOptions.forFlutterIosApp(
+      iosOptions = await FirebaseAppleOptions.forFlutterApp(
         flutterApp,
+        appleBundleIdentifier: iosBundleId,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
       );
-      iosOptions = applePlatformOptions.options;
     }
 
     FirebaseOptions? macosOptions;
     if (selectedPlatforms[kMacos]!) {
-      final applePlatformOptions =
-          await FirebaseAppleOptions.forFlutterMacosApp(
+      macosOptions = await FirebaseAppleOptions.forFlutterApp(
         flutterApp,
+        appleBundleIdentifier: macosBundleId,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
+        macos: true,
       );
-      macosOptions = applePlatformOptions.options;
     }
 
     FirebaseOptions? webOptions;
     if (selectedPlatforms[kWeb]!) {
-      webOptions = await _buildFirebaseOptionsForWeb(selectedFirebaseProject);
+      webOptions = await FirebaseWebOptions.forFlutterApp(
+        flutterApp,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
+      );
     }
 
     final configFile = FirebaseConfigurationFile(

@@ -136,6 +136,14 @@ String androidAppBuildGradlePathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle']);
 }
 
+File xcodeProjectFileInDirectory(Directory directory, String platform) {
+  return File(
+    joinAll(
+      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
+    ),
+  );
+}
+
 String androidManifestPathForAppDirectory(Directory directory) {
   return joinAll([
     directory.path,

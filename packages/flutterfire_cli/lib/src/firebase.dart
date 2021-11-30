@@ -146,6 +146,7 @@ Future<List<FirebaseApp>> getApps({
   String? account,
   String? platform,
 }) async {
+  if (platform != null) _assertFirebaseSupportedPlatform(platform);
   final response = await runFirebaseCommand(
     ['apps:list', if (platform != null) platform],
     project: project,
@@ -160,51 +161,74 @@ Future<List<FirebaseApp>> getApps({
       .toList();
 }
 
+/// Get registered Firebase apps for a project.
+Future<String> getAppSdkConfig({
+  required String appId,
+  required String platform,
+  String? account,
+}) async {
+  final platformFirebase = platform == kMacos ? kIos : platform;
+  _assertFirebaseSupportedPlatform(platformFirebase);
+  final response = await runFirebaseCommand(
+    ['apps:sdkconfig', platformFirebase, appId],
+    account: account,
+  );
+  final result = Map<String, dynamic>.from(response['result'] as Map);
+  return result['fileContents'] as String;
+}
+
+void _assertFirebaseSupportedPlatform(String platformIdentifier) {
+  if (![kAndroid, kWeb, kIos].contains(platformIdentifier)) {
+    throw FirebasePlatformNotSupportedException(platformIdentifier);
+  }
+}
+
 Future<FirebaseApp> findOrCreateFirebaseApp({
-  required String platformIdentifier,
+  required String platform,
   required String displayName,
   required String project,
   String? packageNameOrBundleIdentifier,
-  String? firebaseAccount,
+  String? account,
 }) async {
   var foundFirebaseApp = false;
-  final displayNameWithPlatform = '\\"$displayName ($platformIdentifier)\\"';
+  final displayNameWithPlatform = '$displayName ($platform)';
+  final platformFirebase = platform == kMacos ? kIos : platform;
+  _assertFirebaseSupportedPlatform(platformFirebase);
   final fetchingAppsSpinner = spinner(
     (done) {
       final loggingAppName =
           packageNameOrBundleIdentifier ?? displayNameWithPlatform;
       if (!done) {
         return AnsiStyles.bold(
-          'Fetching registered Firebase apps for Firebase project ${AnsiStyles.cyan(project)}',
+          'Fetching registered ${AnsiStyles.cyan(platform)} Firebase apps for Firebase project ${AnsiStyles.cyan(project)}',
         );
       }
       if (!foundFirebaseApp) {
         return AnsiStyles.bold(
-          'Firebase $platformIdentifier app ${AnsiStyles.cyan(loggingAppName)} is not registered on Firebase project ${AnsiStyles.cyan(project)}. A new one will be registered.',
+          'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is not registered on Firebase project ${AnsiStyles.cyan(project)}.',
         );
       }
       return AnsiStyles.bold(
-        'Firebase $platformIdentifier app ${AnsiStyles.cyan(loggingAppName)} is already registered, skipping registration.',
+        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is already registered, skipping registration.',
       );
     },
   );
   final unfilteredFirebaseApps = await getApps(
     project: project,
-    account: firebaseAccount,
-    // macos & ios apps are not seperated on Firebase
-    platform: platformIdentifier == kMacos ? kIos : platformIdentifier,
+    account: account,
+    platform: platformFirebase,
   );
   final filteredFirebaseApps = unfilteredFirebaseApps.where(
     (firebaseApp) {
       if (packageNameOrBundleIdentifier != null) {
         return firebaseApp.packageNameOrBundleIdentifier ==
                 packageNameOrBundleIdentifier &&
-            firebaseApp.platform == platformIdentifier;
+            firebaseApp.platform == platformFirebase;
       }
       // Web has no package name or bundle identifier so we match on
       // our generated display names instead.
       return firebaseApp.displayName == displayNameWithPlatform &&
-          firebaseApp.platform == platformIdentifier;
+          firebaseApp.platform == platformFirebase;
     },
   );
   foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
@@ -215,7 +239,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
 
   // Existing app not found so we need to create it.
   Future<FirebaseApp> createFirebaseAppFuture;
-  switch (platformIdentifier) {
+  switch (platformFirebase) {
     case kAndroid:
       createFirebaseAppFuture = createAndroidApp(
         project: project,
@@ -224,7 +248,6 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       );
       break;
     case kIos:
-    case kMacos:
       createFirebaseAppFuture = createAppleApp(
         project: project,
         displayName: displayNameWithPlatform,
@@ -238,18 +261,18 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       );
       break;
     default:
-      throw FlutterPlatformNotSupportedException(platformIdentifier);
+      throw FlutterPlatformNotSupportedException(platform);
   }
 
   final creatingAppSpinner = spinner(
     (done) {
       if (!done) {
         return AnsiStyles.bold(
-          'Registering new Firebase $platformIdentifier app on Firebase project ${AnsiStyles.cyan(project)}.',
+          'Registering new Firebase ${AnsiStyles.cyan(platform)} app on Firebase project ${AnsiStyles.cyan(project)}.',
         );
       }
       return AnsiStyles.bold(
-        'Registered a new Firebase $platformIdentifier app on Firebase project ${AnsiStyles.cyan(project)}.',
+        'Registered a new Firebase ${AnsiStyles.cyan(platform)} app on Firebase project ${AnsiStyles.cyan(project)}.',
       );
     },
   );

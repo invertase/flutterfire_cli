@@ -31,7 +31,7 @@ class FirebaseApp {
           displayName: json['displayName'] as String,
           name: json['name'] as String,
           packageNameOrBundleIdentifier:
-              (json['packageName'] ?? json['bundleIdentifier']) as String?,
+              (json['packageName'] ?? json['bundleId']) as String?,
         );
 
   final String platform;

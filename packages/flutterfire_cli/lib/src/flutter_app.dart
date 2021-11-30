@@ -56,7 +56,38 @@ class FlutterApp {
     if (_iosBundleId != null) {
       return _iosBundleId;
     }
-    // TODO
+    return _iosBundleId = _readBundleIdFromProjectFile(
+      xcodeProjectFileInDirectory(Directory(package.path), kIos),
+    );
+  }
+
+  // Cached macOS bundle identifier if available.
+  String? _macosBundleId;
+
+  String? get macosBundleId {
+    if (!macos) return null;
+    if (_macosBundleId != null) {
+      return _macosBundleId;
+    }
+    return _macosBundleId = _readBundleIdFromProjectFile(
+      xcodeProjectFileInDirectory(Directory(package.path), kMacos),
+    );
+  }
+
+  String? _readBundleIdFromProjectFile(File pbxproj) {
+    if (!pbxproj.existsSync()) return null;
+    final fileContents = pbxproj.readAsStringSync();
+    final bundleIdRegex = RegExp(
+      r'''^[\s]+PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+);$''',
+      multiLine: true,
+    );
+    // TODO there can be multiple matches, e.g. build variants,
+    //      perhaps we should build a set and prompt for a choice?
+    final match = bundleIdRegex.firstMatch(fileContents);
+    if (match != null) {
+      return match.namedGroup('bundleId');
+    }
+    return null;
   }
 
   /// The Android Application (or Package Name) for this Flutter

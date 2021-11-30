@@ -74,6 +74,17 @@ class FlutterPlatformNotSupportedException implements FlutterFireException {
   }
 }
 
+class FirebasePlatformNotSupportedException implements FlutterFireException {
+  FirebasePlatformNotSupportedException(this.platform) : super();
+
+  final String platform;
+
+  @override
+  String toString() {
+    return 'FirebasePlatformNotSupportedException: ${AnsiStyles.cyan(platform)} is not currently supported by Firebase.';
+  }
+}
+
 class FirebaseCommandException implements FlutterFireException {
   FirebaseCommandException(this.command, this.error) : super();
 
