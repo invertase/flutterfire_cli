@@ -24,7 +24,7 @@ import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:flutterfire_cli/version.g.dart';
 
 Future<void> main(List<String> arguments) async {
-  if (arguments.contains('--version')) {
+  if (arguments.contains('--version') || arguments.contains('-v')) {
     // ignore: avoid_print
     print(cliVersion);
     return;
