@@ -2,11 +2,11 @@
 
 <p align="center">
   <a href="https://github.com/invertase/melos#readme-badge"><img src="https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square" alt="Melos" /></a>
-  <a href="https://docs.page"><img src="https://img.shields.io/badge/powered%20by-docs.page-34C4AC.svg?style=flat-square" alt="docs.page" /></a>
+  <!---<a href="https://docs.page"><img src="https://img.shields.io/badge/powered%20by-docs.page-34C4AC.svg?style=flat-square" alt="docs.page" /></a>-->
 </p>
 
 <p align="center">
-  <a href="https://flutterfirecli.invertase.dev">Documentation</a> &bull; 
+  <a href="https://firebase.flutter.dev/docs/cli">Documentation</a> &bull; 
   <a href="https://github.com/invertase/flutterfire_cli/blob/main/LICENSE">License</a>
 </p>
 
