@@ -81,6 +81,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     if (project != null) '--project=$project',
     if (account != null) '--account=$account',
   ];
+
   final process = await Process.run(
     'firebase',
     execArgs,
@@ -226,13 +227,15 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
             firebaseApp.platform == platformFirebase;
       }
       // Web has no package name or bundle identifier so we match on
-      // our generated display names instead.
-      return firebaseApp.displayName == displayNameWithPlatform &&
+      // our generated display names instead or any Web app.
+      return firebaseApp.displayName == displayNameWithPlatform ||
           firebaseApp.platform == platformFirebase;
     },
   );
   foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
   fetchingAppsSpinner.done();
+  // TODO in the case of web, if more than one found app then
+  // TODO we should maybe prompt to choose one.
   if (foundFirebaseApp) {
     return filteredFirebaseApps.first;
   }

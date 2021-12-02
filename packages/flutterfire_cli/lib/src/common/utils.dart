@@ -104,7 +104,7 @@ int promptSelect(
   int initialIndex = 0,
 }) {
   return interact.Select(
-    prompt: 'Select a Firebase project to build your configuration from',
+    prompt: prompt,
     options: choices,
     initialIndex: initialIndex,
   ).interact();
@@ -116,7 +116,7 @@ List<int> promptMultiSelect(
   List<bool>? defaultSelection,
 }) {
   return interact.MultiSelect(
-    prompt: 'Select a Firebase project to build your configuration from',
+    prompt: prompt,
     options: choices,
     defaults: defaultSelection,
   ).interact();

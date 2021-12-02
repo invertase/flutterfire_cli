@@ -184,6 +184,7 @@ class ConfigCommand extends FlutterFireCommand {
       'Select a Firebase project to configure your Flutter application with',
       choices,
     );
+
     // Last choice is to create a new project.
     if (selectedChoiceIndex == choices.length - 1) {
       return _promptCreateFirebaseProject();
@@ -203,7 +204,7 @@ class ConfigCommand extends FlutterFireCommand {
       return selectedPlatforms;
     }
     final answers = promptMultiSelect(
-      'Which platforms should your FirebaseOptions configuration support?',
+      'Which platforms should your configuration support (use arrow keys & space to select)?',
       selectedPlatforms.keys.toList(),
       defaultSelection: selectedPlatforms.values.toList(),
     );

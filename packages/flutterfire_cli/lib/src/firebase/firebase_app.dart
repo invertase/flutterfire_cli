@@ -28,7 +28,7 @@ class FirebaseApp {
       : this(
           platform: (json['platform'] as String).toLowerCase(),
           appId: json['appId'] as String,
-          displayName: json['displayName'] as String,
+          displayName: json['displayName'] as String?,
           name: json['name'] as String,
           packageNameOrBundleIdentifier:
               (json['packageName'] ?? json['bundleId']) as String?,
@@ -36,7 +36,7 @@ class FirebaseApp {
 
   final String platform;
 
-  final String displayName;
+  final String? displayName;
 
   final String name;
 
