@@ -142,14 +142,14 @@ class ConfigCommand extends FlutterFireCommand {
       throw FirebaseProjectRequiredException();
     }
 
-    List<FirebaseProject>? firebaseProjects;
+    late List<FirebaseProject>? firebaseProjects;
     final fetchingProjectsSpinner = spinner(
       (done) {
         if (!done) {
           return 'Fetching available Firebase projects...';
         }
         final baseMessage =
-            'Found ${AnsiStyles.cyan('${firebaseProjects!.length}')} Firebase projects.';
+            'Found ${AnsiStyles.cyan('${firebaseProjects?.length ?? 0}')} Firebase projects.';
         if (selectedProjectId != null) {
           return '$baseMessage Selecting project ${AnsiStyles.cyan(selectedProjectId)}.';
         }

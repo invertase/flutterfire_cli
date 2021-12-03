@@ -34,7 +34,9 @@ Future<void> main(List<String> arguments) async {
     await FlutterFireCommandRunner(flutterApp).run(arguments);
   } on FlutterFireException catch (err) {
     if (utils.activeSpinnerState != null) {
-      utils.activeSpinnerState!.done();
+      try {
+        utils.activeSpinnerState!.done();
+      } catch (_) {}
     }
     stderr.writeln(err.toString());
     exitCode = 1;
