@@ -142,7 +142,7 @@ class ConfigCommand extends FlutterFireCommand {
       throw FirebaseProjectRequiredException();
     }
 
-    late List<FirebaseProject>? firebaseProjects;
+    List<FirebaseProject>? firebaseProjects;
     final fetchingProjectsSpinner = spinner(
       (done) {
         if (!done) {
