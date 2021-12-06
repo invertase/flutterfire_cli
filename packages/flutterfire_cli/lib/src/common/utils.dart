@@ -174,6 +174,14 @@ File xcodeProjectFileInDirectory(Directory directory, String platform) {
   );
 }
 
+File xcodeAppInfoConfigFileInDirectory(Directory directory, String platform) {
+  return File(
+    joinAll(
+      [directory.path, platform, 'Runner', 'Configs', 'AppInfo.xcconfig'],
+    ),
+  );
+}
+
 String androidManifestPathForAppDirectory(Directory directory) {
   return joinAll([
     directory.path,

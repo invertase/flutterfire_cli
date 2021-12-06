@@ -56,9 +56,7 @@ class FlutterApp {
     if (_iosBundleId != null) {
       return _iosBundleId;
     }
-    return _iosBundleId = _readBundleIdFromProjectFile(
-      xcodeProjectFileInDirectory(Directory(package.path), kIos),
-    );
+    return _iosBundleId = _readBundleIdForPlatform(kIos);
   }
 
   // Cached macOS bundle identifier if available.
@@ -69,24 +67,39 @@ class FlutterApp {
     if (_macosBundleId != null) {
       return _macosBundleId;
     }
-    return _macosBundleId = _readBundleIdFromProjectFile(
-      xcodeProjectFileInDirectory(Directory(package.path), kMacos),
-    );
+    return _macosBundleId = _readBundleIdForPlatform(kMacos);
   }
 
-  String? _readBundleIdFromProjectFile(File pbxproj) {
-    if (!pbxproj.existsSync()) return null;
-    final fileContents = pbxproj.readAsStringSync();
+  String? _readBundleIdForPlatform(String platform) {
+    final xcodeProjFile =
+        xcodeProjectFileInDirectory(Directory(package.path), kMacos);
+    final xcodeAppInfoConfigFile =
+        xcodeAppInfoConfigFileInDirectory(Directory(package.path), kMacos);
     final bundleIdRegex = RegExp(
-      r'''^[\s]+PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+);$''',
+      r'''^[\s]*PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+)[;]*$''',
       multiLine: true,
     );
-    // TODO there can be multiple matches, e.g. build variants,
-    //      perhaps we should build a set and prompt for a choice?
-    final match = bundleIdRegex.firstMatch(fileContents);
-    if (match != null) {
-      return match.namedGroup('bundleId');
+
+    if (xcodeProjFile.existsSync()) {
+      final fileContents = xcodeProjFile.readAsStringSync();
+      // TODO there can be multiple matches, e.g. build variants,
+      //      perhaps we should build a set and prompt for a choice?
+      final match = bundleIdRegex.firstMatch(fileContents);
+      if (match != null) {
+        return match.namedGroup('bundleId');
+      }
     }
+
+    if (xcodeAppInfoConfigFile.existsSync()) {
+      final fileContents = xcodeAppInfoConfigFile.readAsStringSync();
+      // TODO there can be multiple matches, e.g. build variants,
+      //      perhaps we should build a set and prompt for a choice?
+      final match = bundleIdRegex.firstMatch(fileContents);
+      if (match != null) {
+        return match.namedGroup('bundleId');
+      }
+    }
+
     return null;
   }
 
