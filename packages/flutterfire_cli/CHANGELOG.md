@@ -1,3 +1,10 @@
+## 0.1.1
+
+ - **FIX**: run all firebase cli commands in shell - avoids unhelpful process not found exception messages.
+ - **FIX**: late initialisation error (only on happens on Windows).
+ - **FIX**: Add `runInShell` when running on Windows (#4).
+ - **FEAT**: additionally support reading apple bundle identifier from `AppInfo.xcconfig`.
+
 ## 0.1.0+4
 
  - **FIX**: late initialisation error (only on happens on Windows).
