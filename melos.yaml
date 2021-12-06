@@ -22,4 +22,4 @@ scripts:
         - flutterfire_cli
 
   format: dart format -o write .
-  version: dart run scripts/generate_version.dart
+  version: dart run scripts/generate_version.dart && git add packages/flutterfire_cli/lib/version.g.dart
