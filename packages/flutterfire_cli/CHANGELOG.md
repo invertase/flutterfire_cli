@@ -1,3 +1,7 @@
+## 0.1.1+1
+
+ - **FIX**: add `lines_longer_than_80_chars` ignore for file lint rule in generated options file.
+
 ## 0.1.1
 
  - **FIX**: run all firebase cli commands in shell - avoids unhelpful process not found exception messages.
