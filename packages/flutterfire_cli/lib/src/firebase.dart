@@ -34,7 +34,7 @@ Future<bool> exists() async {
   final process = await Process.run(
     'firebase',
     ['--version'],
-    runInShell: Platform.isWindows,
+    runInShell: true,
   );
   return _existsCache = process.exitCode == 0;
 }
@@ -87,7 +87,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     'firebase',
     execArgs,
     workingDirectory: workingDirectoryPath,
-    runInShell: Platform.isWindows,
+    runInShell: true,
   );
 
   final jsonString = process.stdout.toString();
