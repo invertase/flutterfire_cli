@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2021-12-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+- There are no breaking changes in this release.
+
+Packages with other changes:
+
+- [`flutterfire_cli` - `v0.1.1+2`](#flutterfire_cli---v0112)
+
+---
+
+#### `flutterfire_cli` - `v0.1.1+2`
+
+ - **FIX**: don't globally require a Flutter app, this allows for help commands to work (fixes #7).
+ - **FIX**: don't use `lib/main.dart` as a way of detecting a flutter app, `isFlutterPackage` & `!isFlutterPlugin` should suffice (fixes #12).
+
+
 ## 2021-12-03
 
 ### Changes
