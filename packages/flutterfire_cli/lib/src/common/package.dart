@@ -16,7 +16,6 @@
  */
 
 import 'dart:io';
-import 'package:path/path.dart';
 import 'package:pubspec/pubspec.dart';
 import 'exception.dart';
 import 'utils.dart';
@@ -83,7 +82,7 @@ class Package {
     // Must not have a Flutter plugin definition in it's pubspec.yaml.
     if (isFlutterPlugin) return false;
 
-    return File(joinAll([path, 'lib', 'main.dart'])).existsSync();
+    return true;
   }
 
   /// Returns whether this package is a Flutter plugin.
