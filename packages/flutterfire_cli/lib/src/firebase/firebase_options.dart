@@ -63,7 +63,7 @@ class FirebaseOptions {
         appGroupId = map['appGroupId'] as String?;
 
   /// An API key used for authenticating requests from your app, for example
-  /// "AIzaSyDdVgKwhZl0sTTTLZ7iTmt1r3N2cJLnaDk", used to identify your app to
+  /// "AIxxxxxxxxxxxxxxxxxxxxxxDk", used to identify your app to
   /// Google servers.
   final String apiKey;
 
