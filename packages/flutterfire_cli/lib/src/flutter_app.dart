@@ -32,13 +32,13 @@ class FlutterApp {
   final Package package;
 
   /// Loads the Flutter app located in the [appDirectory]
-  static Future<FlutterApp> load(Directory appDirectory) async {
+  static Future<FlutterApp?> load(Directory appDirectory) async {
     if (!File(pubspecPathForDirectory(appDirectory)).existsSync()) {
       throw FlutterAppRequiredException();
     }
     final package = await Package.load(appDirectory);
     if (!package.isFlutterApp) {
-      throw FlutterAppRequiredException();
+      return null;
     }
     return FlutterApp(
       package: package,

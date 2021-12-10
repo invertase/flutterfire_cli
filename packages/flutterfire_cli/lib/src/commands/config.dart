@@ -32,7 +32,7 @@ import '../flutter_app.dart';
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
-  ConfigCommand(FlutterApp flutterApp) : super(flutterApp) {
+  ConfigCommand(FlutterApp? flutterApp) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
     argParser.addOption(
       'out',
@@ -195,10 +195,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   Map<String, bool> _selectPlatforms() {
     final selectedPlatforms = <String, bool>{
-      kAndroid: flutterApp.android,
-      kIos: flutterApp.ios,
-      kMacos: flutterApp.macos,
-      kWeb: flutterApp.web,
+      kAndroid: flutterApp!.android,
+      kIos: flutterApp!.ios,
+      kMacos: flutterApp!.macos,
+      kWeb: flutterApp!.web,
     };
     if (isCI) {
       return selectedPlatforms;
@@ -222,6 +222,8 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    commandRequiresFlutterApp();
+
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
 
@@ -232,7 +234,7 @@ class ConfigCommand extends FlutterFireCommand {
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
       androidOptions = await FirebaseAndroidOptions.forFlutterApp(
-        flutterApp,
+        flutterApp!,
         androidApplicationId: androidApplicationId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
@@ -242,7 +244,7 @@ class ConfigCommand extends FlutterFireCommand {
     FirebaseOptions? iosOptions;
     if (selectedPlatforms[kIos]!) {
       iosOptions = await FirebaseAppleOptions.forFlutterApp(
-        flutterApp,
+        flutterApp!,
         appleBundleIdentifier: iosBundleId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
@@ -252,7 +254,7 @@ class ConfigCommand extends FlutterFireCommand {
     FirebaseOptions? macosOptions;
     if (selectedPlatforms[kMacos]!) {
       macosOptions = await FirebaseAppleOptions.forFlutterApp(
-        flutterApp,
+        flutterApp!,
         appleBundleIdentifier: macosBundleId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
@@ -263,7 +265,7 @@ class ConfigCommand extends FlutterFireCommand {
     FirebaseOptions? webOptions;
     if (selectedPlatforms[kWeb]!) {
       webOptions = await FirebaseWebOptions.forFlutterApp(
-        flutterApp,
+        flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
       );

@@ -19,6 +19,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 
+import '../common/exception.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 
@@ -26,7 +27,7 @@ import '../flutter_app.dart';
 abstract class FlutterFireCommand extends Command<void> {
   FlutterFireCommand(this.flutterApp);
 
-  final FlutterApp flutterApp;
+  final FlutterApp? flutterApp;
 
   Logger get logger =>
       globalResults!['verbose'] as bool ? Logger.verbose() : Logger.standard();
@@ -52,6 +53,12 @@ abstract class FlutterFireCommand extends Command<void> {
       abbr: 'e',
       help: 'The Google account to use for authorization.',
     );
+  }
+
+  void commandRequiresFlutterApp() {
+    if (flutterApp == null) {
+      throw FlutterAppRequiredException();
+    }
   }
 
   /// Overridden to support line wrapping when printing usage.
