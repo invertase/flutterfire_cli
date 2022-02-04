@@ -98,22 +98,19 @@ class FirebaseConfigurationFile {
       '\n',
     );
     _writeCurrentPlatformWeb();
-    _stringBuffer.writeln('    // ignore: missing_enum_constant_in_switch');
     _stringBuffer.writeln('    switch (defaultTargetPlatform) {');
     _writeCurrentPlatformSwitchAndroid();
     _writeCurrentPlatformSwitchIos();
     _writeCurrentPlatformSwitchMacos();
-    _stringBuffer.writeln('    }');
-    _stringBuffer.writeAll(
-      <String>[
-        '',
-        '    throw UnsupportedError(',
-        "      'DefaultFirebaseOptions are not supported for this platform.',",
-        '    );',
-        '  }', // } currentPlatform
-        '',
-      ],
-      '\n',
+    _stringBuffer.write(
+      '''
+      default:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions are not supported for this platform.',
+        );
+    }
+  }
+''',
     );
     _writeFirebaseOptionsStatic(kWeb, webOptions);
     _writeFirebaseOptionsStatic(kAndroid, androidOptions);
