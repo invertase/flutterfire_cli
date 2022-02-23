@@ -156,6 +156,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     List<FirebaseProject>? firebaseProjects;
+
     final fetchingProjectsSpinner = spinner(
       (done) {
         if (!done) {
@@ -170,6 +171,7 @@ class ConfigCommand extends FlutterFireCommand {
       },
     );
     firebaseProjects = await firebase.getProjects(account: accountEmail);
+
     fetchingProjectsSpinner.done();
     if (selectedProjectId != null) {
       return firebaseProjects.firstWhere(
@@ -297,13 +299,19 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (iosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
-          iosAppIDOutputFilePrefix, appIDFilePath, iosOptions.appId);
+        iosAppIDOutputFilePrefix,
+        appIDFilePath,
+        iosOptions.appId,
+      );
       futures.add(appIDFile.write());
     }
 
     if (macosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
-          macosAppIDOutputFilePrefix, appIDFilePath, macosOptions.appId);
+        macosAppIDOutputFilePrefix,
+        appIDFilePath,
+        macosOptions.appId,
+      );
       futures.add(appIDFile.write());
     }
 
