@@ -63,6 +63,28 @@ class FirebaseOptionsAlreadyExistsException implements FlutterFireException {
   }
 }
 
+class FirebaseAppIDAlreadyExistsException implements FlutterFireException {
+  FirebaseAppIDAlreadyExistsException(this.filePath) : super();
+
+  final String filePath;
+
+  @override
+  String toString() {
+    return 'FirebaseAppIDAlreadyExistsException: Firebase app ID file ${AnsiStyles.cyan(filePath)} already exists.';
+  }
+}
+
+class PlatformDirectoryDoesNotExistException implements FlutterFireException {
+  PlatformDirectoryDoesNotExistException(this.filePath) : super();
+
+  final String filePath;
+
+  @override
+  String toString() {
+    return 'PlatformDirectoryDoesNotExistException: platform directory ${AnsiStyles.cyan(filePath)} does not exist. Please re-run after initializing this directory with Flutter.';
+  }
+}
+
 class FlutterPlatformNotSupportedException implements FlutterFireException {
   FlutterPlatformNotSupportedException(this.platform) : super();
 
