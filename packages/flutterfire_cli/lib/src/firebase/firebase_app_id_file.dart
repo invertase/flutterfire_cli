@@ -15,8 +15,8 @@
  *
  */
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:interact/interact.dart' as interact;
@@ -59,10 +59,10 @@ class FirebaseAppIDFile {
   }
 
   void _writeHeaderAndAppID(String outputFile) {
-    Map<String, String> fileData = {
-      "file_generated_by": "FlutterFire CLI", 
-      "purpose": "FirebaseAppID for this Firebase app in this directory", 
-      "GOOGLE_APP_ID" : appId 
+    final fileData = {
+      'file_generated_by': 'FlutterFire CLI',
+      'purpose': 'FirebaseAppID for this Firebase app in this directory',
+      'GOOGLE_APP_ID': appId
     };
     _stringBuffer.write(json.encode(fileData));
   }
