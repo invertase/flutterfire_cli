@@ -17,6 +17,7 @@
 
 import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 import 'platform.dart';
@@ -48,11 +49,7 @@ extension Let<T> on T? {
 }
 
 bool get isCI {
-  final keys = currentPlatform.environment.keys;
-  return keys.contains('CI') ||
-      keys.contains('CONTINUOUS_INTEGRATION') ||
-      keys.contains('BUILD_NUMBER') ||
-      keys.contains('RUN_ID');
+  return ci.isCI;
 }
 
 int get terminalWidth {

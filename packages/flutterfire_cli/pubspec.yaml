@@ -9,6 +9,7 @@ environment:
 dependencies:
   ansi_styles: ^0.3.0
   args: ^2.3.0
+  ci: ^0.1.0
   cli_util: ^0.3.5
   deep_pick: ^0.10.0
   file: ^6.1.2
