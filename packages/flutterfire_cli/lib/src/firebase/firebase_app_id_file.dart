@@ -23,16 +23,17 @@ import 'package:path/path.dart';
 
 import '../common/exception.dart';
 import '../common/utils.dart';
+import 'firebase_options.dart';
 
 const _defaultAppIdFileName = 'firebase_app_id_file.json';
 const _keyGoogleAppId = 'GOOGLE_APP_ID';
 const _keyFirebaseProjectId = 'FIREBASE_PROJECT_ID';
+const _keyGcmSenderId = 'GCM_SENDER_ID';
 
 class FirebaseAppIDFile {
   FirebaseAppIDFile(
     this.outputDirectoryPath, {
-    required this.appId,
-    required this.firebaseProjectId,
+    required this.options,
     this.fileName = _defaultAppIdFileName,
     this.force = false,
   });
@@ -46,8 +47,7 @@ class FirebaseAppIDFile {
 
   final String fileName;
 
-  final String appId;
-  final String firebaseProjectId;
+  final FirebaseOptions options;
 
   Future<void> write() async {
     if (!Directory(outputDirectoryPath).existsSync()) {
@@ -57,27 +57,22 @@ class FirebaseAppIDFile {
     final appIDFilePath = joinAll([outputDirectoryPath, fileName]);
     final outputFile = File(joinAll([Directory.current.path, appIDFilePath]));
 
+    _writeHeaderAndAppID(outputFile.path);
+    final newFileContents = _stringBuffer.toString();
+
     if (outputFile.existsSync() && !force) {
       final existingFileContents = await outputFile.readAsString();
-      final existingFileContentsAsJson =
-          json.decode(existingFileContents) as Map;
-      final existingAppId =
-          existingFileContentsAsJson[_keyGoogleAppId] as String;
-      final existingFirebaseProjectId =
-          existingFileContentsAsJson[_keyFirebaseProjectId] as String;
       // Only prompt overwrite if values are different.
-      if (existingAppId != appId ||
-          existingFirebaseProjectId != firebaseProjectId) {
+      if (newFileContents != existingFileContents) {
         final shouldOverwrite = promptBool(
-          'Generated FirebaseAppID file ${AnsiStyles.cyan(appIDFilePath)} already exists (for app id "$existingAppId" on Firebase Project "$existingFirebaseProjectId"), do you want to override it?',
+          'Generated FirebaseAppID file ${AnsiStyles.cyan(appIDFilePath)} already exists, do you want to override it?',
         );
         if (!shouldOverwrite) {
           throw FirebaseAppIDAlreadyExistsException(appIDFilePath);
         }
       }
     }
-    _writeHeaderAndAppID(outputFile.path);
-    outputFile.writeAsStringSync(_stringBuffer.toString());
+    outputFile.writeAsStringSync(newFileContents);
   }
 
   void _writeHeaderAndAppID(String outputFile) {
@@ -85,8 +80,9 @@ class FirebaseAppIDFile {
       'file_generated_by': 'FlutterFire CLI',
       'purpose':
           'FirebaseAppID & ProjectID for this Firebase app in this directory',
-      _keyGoogleAppId: appId,
-      _keyFirebaseProjectId: firebaseProjectId,
+      _keyGoogleAppId: options.appId,
+      _keyFirebaseProjectId: options.projectId,
+      _keyGcmSenderId: options.messagingSenderId,
     };
     _stringBuffer.write(const JsonEncoder.withIndent('  ').convert(fileData));
   }

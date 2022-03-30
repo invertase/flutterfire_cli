@@ -312,8 +312,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (iosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
         iosAppIDOutputFilePrefix,
-        appId: iosOptions.appId,
-        firebaseProjectId: iosOptions.projectId,
+        options: iosOptions,
         force: isCI || yes,
       );
       futures.add(appIDFile.write());
@@ -322,8 +321,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (macosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
         macosAppIDOutputFilePrefix,
-        appId: macosOptions.appId,
-        firebaseProjectId: macosOptions.projectId,
+        options: macosOptions,
         force: isCI || yes,
       );
       futures.add(appIDFile.write());
@@ -332,8 +330,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (androidOptions != null) {
       final appIDFile = FirebaseAppIDFile(
         androidAppIDOutputFilePrefix,
-        appId: androidOptions.appId,
-        firebaseProjectId: androidOptions.projectId,
+        options: androidOptions,
         force: isCI || yes,
       );
       futures.add(appIDFile.write());
