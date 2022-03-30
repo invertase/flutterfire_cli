@@ -18,7 +18,7 @@ dependencies:
   path: ^1.8.0
   platform: ^3.0.2
   pub_updater: ^0.2.2
-  pubspec: ^2.0.1
+  pubspec: ^2.1.0
   xml: ^5.3.1
 
 dev_dependencies:
