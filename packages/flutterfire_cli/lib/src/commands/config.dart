@@ -108,16 +108,16 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['out'] as String;
   }
 
-  String get appIDFilePath {
-    return 'firebase_app_id_file.json';
-  }
-
   String get iosAppIDOutputFilePrefix {
     return 'ios';
   }
 
   String get macosAppIDOutputFilePrefix {
     return 'macos';
+  }
+
+  String get androidAppIDOutputFilePrefix {
+    return 'android';
   }
 
   Future<FirebaseProject> _promptCreateFirebaseProject() async {
@@ -300,8 +300,8 @@ class ConfigCommand extends FlutterFireCommand {
     if (iosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
         iosAppIDOutputFilePrefix,
-        appIDFilePath,
-        iosOptions.appId,
+        appId: iosOptions.appId,
+        firebaseProjectId: iosOptions.projectId,
       );
       futures.add(appIDFile.write());
     }
@@ -309,8 +309,17 @@ class ConfigCommand extends FlutterFireCommand {
     if (macosOptions != null) {
       final appIDFile = FirebaseAppIDFile(
         macosAppIDOutputFilePrefix,
-        appIDFilePath,
-        macosOptions.appId,
+        appId: macosOptions.appId,
+        firebaseProjectId: macosOptions.projectId,
+      );
+      futures.add(appIDFile.write());
+    }
+
+    if (androidOptions != null) {
+      final appIDFile = FirebaseAppIDFile(
+        androidAppIDOutputFilePrefix,
+        appId: androidOptions.appId,
+        firebaseProjectId: androidOptions.projectId,
       );
       futures.add(appIDFile.write());
     }
