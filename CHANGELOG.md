@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`flutterfire_cli` - `v0.1.3`](#flutterfire_cli---v013)
+
+---
+
+#### `flutterfire_cli` - `v0.1.3`
+
+ - **FEAT**: add messaging sender id to output. ([3ba34aed](https://github.com/invertase/flutterfire_cli/commit/3ba34aed8c6565ff2c471b1f519fe33401016a65))
+
+
+## 2022-03-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`flutterfire_cli` - `v0.1.2`](#flutterfire_cli---v012)
 
 ---
