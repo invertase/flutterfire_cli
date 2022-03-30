@@ -36,6 +36,7 @@ Object? _parseElement(xml.XmlElement element) {
     // 'array', 'real','integer' & 'date' are missing,
     // but we don't need then for our use case.
   }
+  throw UnsupportedError('Unsupported plist element: ${element.name.local}');
 }
 
 Map<String, Object?> _parseDict(xml.XmlElement element) {

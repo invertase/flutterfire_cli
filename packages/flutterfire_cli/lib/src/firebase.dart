@@ -55,6 +55,7 @@ Future<String?> getDefaultFirebaseProjectId() async {
   } catch (e) {
     return null;
   }
+  return null;
 }
 
 /// Executes a command on the Firebase CLI and returns
