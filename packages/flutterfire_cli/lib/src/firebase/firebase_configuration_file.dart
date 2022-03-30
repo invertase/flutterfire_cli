@@ -48,18 +48,26 @@ class FirebaseConfigurationFile {
 
   Future<void> write() async {
     final outputFile = File(joinAll([Directory.current.path, outputFilePath]));
-    if (outputFile.existsSync() && !isCI) {
-      final shouldOverwrite = interact.Confirm(
-        prompt:
-            'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
-        defaultValue: true,
-      ).interact();
-      if (!shouldOverwrite) {
-        throw FirebaseOptionsAlreadyExistsException(outputFilePath);
-      }
-    }
+
+    // Write buffer early so we can string compare contents if file exists already.
     _writeHeader();
     _writeClass();
+    final newFileContents = _stringBuffer.toString();
+
+    if (outputFile.existsSync() && !isCI) {
+      final existingFileContents = await outputFile.readAsString();
+      // Only prompt overwrite if contents have changed.
+      if (existingFileContents != newFileContents) {
+        final shouldOverwrite = interact.Confirm(
+          prompt:
+              'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
+          defaultValue: true,
+        ).interact();
+        if (!shouldOverwrite) {
+          throw FirebaseOptionsAlreadyExistsException(outputFilePath);
+        }
+      }
+    }
     outputFile.writeAsStringSync(_stringBuffer.toString());
   }
 
