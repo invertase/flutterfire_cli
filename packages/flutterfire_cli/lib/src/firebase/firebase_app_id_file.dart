@@ -19,7 +19,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart';
 
 import '../common/exception.dart';
@@ -65,11 +64,9 @@ class FirebaseAppIDFile {
       // Only prompt overwrite if values are different.
       if (existingAppId != appId ||
           existingFirebaseProjectId != firebaseProjectId) {
-        final shouldOverwrite = interact.Confirm(
-          prompt:
-              'Generated FirebaseAppID file ${AnsiStyles.cyan(appIDFilePath)} already exists (for app id "$existingAppId" on Firebase Project "$existingFirebaseProjectId"), do you want to override it?',
-          defaultValue: true,
-        ).interact();
+        final shouldOverwrite = promptBool(
+          'Generated FirebaseAppID file ${AnsiStyles.cyan(appIDFilePath)} already exists (for app id "$existingAppId" on Firebase Project "$existingFirebaseProjectId"), do you want to override it?',
+        );
         if (!shouldOverwrite) {
           throw FirebaseAppIDAlreadyExistsException(appIDFilePath);
         }

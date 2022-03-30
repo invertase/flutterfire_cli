@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 /*
  * Copyright (c) 2020-present Invertase Limited & Contributors
  *
@@ -22,13 +23,35 @@ import 'package:flutterfire_cli/src/common/exception.dart';
 import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:flutterfire_cli/version.g.dart';
+import 'package:pub_updater/pub_updater.dart';
 
 Future<void> main(List<String> arguments) async {
   if (arguments.contains('--version') || arguments.contains('-v')) {
-    // ignore: avoid_print
     print(cliVersion);
+    // No version checks on CIs.
+    if (utils.isCI) return;
+
+    // Check for updates.
+    final pubUpdater = PubUpdater();
+    const packageName = 'flutterfire_cli';
+    final isUpToDate = await pubUpdater.isUpToDate(
+      packageName: packageName,
+      currentVersion: cliVersion,
+    );
+    if (!isUpToDate) {
+      final latestVersion = await pubUpdater.getLatestVersion(packageName);
+      final shouldUpdate = utils.promptBool(
+        'There is a new version of $packageName available ($latestVersion). Would you like to update?',
+      );
+      if (shouldUpdate) {
+        await pubUpdater.update(packageName: packageName);
+      }
+      print('$packageName has been updated to version $latestVersion.');
+    }
+
     return;
   }
+
   try {
     final flutterApp = await FlutterApp.load(Directory.current);
     await FlutterFireCommandRunner(flutterApp).run(arguments);

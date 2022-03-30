@@ -18,7 +18,6 @@
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart';
 
 import '../common/exception.dart';
@@ -58,11 +57,9 @@ class FirebaseConfigurationFile {
       final existingFileContents = await outputFile.readAsString();
       // Only prompt overwrite if contents have changed.
       if (existingFileContents != newFileContents) {
-        final shouldOverwrite = interact.Confirm(
-          prompt:
-              'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
-          defaultValue: true,
-        ).interact();
+        final shouldOverwrite = promptBool(
+          'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
+        );
         if (!shouldOverwrite) {
           throw FirebaseOptionsAlreadyExistsException(outputFilePath);
         }

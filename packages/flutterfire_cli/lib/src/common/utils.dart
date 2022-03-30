@@ -98,6 +98,16 @@ String listAsPaddedTable(List<List<String>> table, {int paddingSize = 1}) {
   return output.join('\n');
 }
 
+bool promptBool(
+  String prompt, {
+  bool defaultValue = true,
+}) {
+  return interact.Confirm(
+    prompt: prompt,
+    defaultValue: defaultValue,
+  ).interact();
+}
+
 int promptSelect(
   String prompt,
   List<String> choices, {
