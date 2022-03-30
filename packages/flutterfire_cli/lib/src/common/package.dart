@@ -68,7 +68,8 @@ class Package {
 
   /// Returns whether this package is for Flutter.
   /// This is determined by whether the package depends on the Flutter SDK.
-  late final bool isFlutterPackage = dependencies.contains('flutter');
+  late final bool isFlutterPackage = dependencies.contains('flutter') ||
+      dependencies.contains('flutter_localizations');
 
   /// Returns whether this package is a Flutter app.
   /// This is determined by ensuring all the following conditions are met:
