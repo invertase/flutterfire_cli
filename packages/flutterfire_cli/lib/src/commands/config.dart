@@ -43,6 +43,13 @@ class ConfigCommand extends FlutterFireCommand {
       help: 'The output file path of the Dart file that will be generated with '
           'your Firebase configuration options.',
     );
+    argParser.addFlag(
+      'yes',
+      abbr: 'y',
+      negatable: false,
+      help:
+          'Skip the Y/n confirmation prompts and accept default options (such as detected platforms).',
+    );
     argParser.addOption(
       'ios-bundle-id',
       valueHelp: 'bundleIdentifier',
@@ -85,6 +92,10 @@ class ConfigCommand extends FlutterFireCommand {
   final String description = 'Configure Firebase for your Flutter app. This '
       'command will fetch Firebase configuration for you and generate a '
       'Dart file with prefilled FirebaseOptions you can use.';
+
+  bool get yes {
+    return argResults!['yes'] as bool || false;
+  }
 
   String? get androidApplicationId {
     final value = argResults!['android-app-id'] as String?;
@@ -151,7 +162,7 @@ class ConfigCommand extends FlutterFireCommand {
     var selectedProjectId = projectId;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
-    if (isCI && selectedProjectId == null) {
+    if ((isCI || yes) && selectedProjectId == null) {
       throw FirebaseProjectRequiredException();
     }
 
@@ -215,7 +226,7 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos: flutterApp!.macos,
       kWeb: flutterApp!.web,
     };
-    if (isCI) {
+    if (isCI || yes) {
       return selectedPlatforms;
     }
     final answers = promptMultiSelect(
@@ -294,6 +305,7 @@ class ConfigCommand extends FlutterFireCommand {
       iosOptions: iosOptions,
       macosOptions: macosOptions,
       webOptions: webOptions,
+      force: isCI || yes,
     );
     futures.add(configFile.write());
 
@@ -302,6 +314,7 @@ class ConfigCommand extends FlutterFireCommand {
         iosAppIDOutputFilePrefix,
         appId: iosOptions.appId,
         firebaseProjectId: iosOptions.projectId,
+        force: isCI || yes,
       );
       futures.add(appIDFile.write());
     }
@@ -311,6 +324,7 @@ class ConfigCommand extends FlutterFireCommand {
         macosAppIDOutputFilePrefix,
         appId: macosOptions.appId,
         firebaseProjectId: macosOptions.projectId,
+        force: isCI || yes,
       );
       futures.add(appIDFile.write());
     }
@@ -320,6 +334,7 @@ class ConfigCommand extends FlutterFireCommand {
         androidAppIDOutputFilePrefix,
         appId: androidOptions.appId,
         firebaseProjectId: androidOptions.projectId,
+        force: isCI || yes,
       );
       futures.add(appIDFile.write());
     }

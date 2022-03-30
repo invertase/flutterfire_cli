@@ -34,11 +34,15 @@ class FirebaseAppIDFile {
     required this.appId,
     required this.firebaseProjectId,
     this.fileName = _defaultAppIdFileName,
+    this.force = false,
   });
 
   final StringBuffer _stringBuffer = StringBuffer();
 
   final String outputDirectoryPath;
+
+  /// Whether to skip prompts and force write output file.
+  final bool force;
 
   final String fileName;
 
@@ -53,7 +57,7 @@ class FirebaseAppIDFile {
     final appIDFilePath = joinAll([outputDirectoryPath, fileName]);
     final outputFile = File(joinAll([Directory.current.path, appIDFilePath]));
 
-    if (outputFile.existsSync() && !isCI) {
+    if (outputFile.existsSync() && !force) {
       final existingFileContents = await outputFile.readAsString();
       final existingFileContentsAsJson =
           json.decode(existingFileContents) as Map;

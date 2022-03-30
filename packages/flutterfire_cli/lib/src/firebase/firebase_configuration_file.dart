@@ -31,11 +31,15 @@ class FirebaseConfigurationFile {
     this.iosOptions,
     this.macosOptions,
     this.webOptions,
+    this.force = false,
   });
 
   final StringBuffer _stringBuffer = StringBuffer();
 
   final String outputFilePath;
+
+  /// Whether to skip prompts and force write output file.
+  final bool force;
 
   FirebaseOptions? webOptions;
 
@@ -53,7 +57,7 @@ class FirebaseConfigurationFile {
     _writeClass();
     final newFileContents = _stringBuffer.toString();
 
-    if (outputFile.existsSync() && !isCI) {
+    if (outputFile.existsSync() && !force) {
       final existingFileContents = await outputFile.readAsString();
       // Only prompt overwrite if contents have changed.
       if (existingFileContents != newFileContents) {
