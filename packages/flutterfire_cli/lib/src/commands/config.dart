@@ -128,6 +128,7 @@ class ConfigCommand extends FlutterFireCommand {
         'Please provide value for android-package-name.',
       );
     }
+    return null;
   }
 
   String? get iosBundleId {
