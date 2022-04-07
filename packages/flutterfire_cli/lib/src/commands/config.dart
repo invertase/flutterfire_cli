@@ -116,14 +116,16 @@ class ConfigCommand extends FlutterFireCommand {
       return value;
     }
     if (deprecatedValue != null) {
-      // ignore: avoid_print
-      print(
-          'Warning - android-app-id (-a) is deprecated. Consider using android-package-name (-p) instead.');
+      logger.stdout(
+        'Warning - android-app-id (-a) is deprecated. Consider using android-package-name (-p) instead.',
+      );
       return deprecatedValue;
     }
 
     throw FirebaseCommandException(
-        'configure', 'Please provide value for android-package-name.');
+      'configure',
+      'Please provide value for android-package-name.',
+    );
   }
 
   String? get iosBundleId {
