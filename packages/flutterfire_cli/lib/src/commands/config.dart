@@ -122,10 +122,12 @@ class ConfigCommand extends FlutterFireCommand {
       return deprecatedValue;
     }
 
-    throw FirebaseCommandException(
-      'configure',
-      'Please provide value for android-package-name.',
-    );
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for android-package-name.',
+      );
+    }
   }
 
   String? get iosBundleId {
