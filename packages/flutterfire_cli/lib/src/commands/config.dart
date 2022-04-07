@@ -73,7 +73,7 @@ class ConfigCommand extends FlutterFireCommand {
       valueHelp: 'applicationId',
       abbr: 'a',
       help:
-          'Deprecated - use android-package-name instead. The application id of your Android app, e.g. "com.example.app". '
+          'DEPRECATED - use "android-package-name" instead. The application id of your Android app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
           'automatically detect it from your "android" folder (if it exists)',
     );
