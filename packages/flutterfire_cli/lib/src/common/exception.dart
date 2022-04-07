@@ -59,7 +59,7 @@ class FirebaseOptionsAlreadyExistsException implements FlutterFireException {
 
   @override
   String toString() {
-    return 'FirebaseOptionsAlreadyExistsException: Firebase options file ${AnsiStyles.cyan(filePath)} already exists.';
+    return 'FirebaseOptionsAlreadyExistsException: Firebase options file ${AnsiStyles.cyan(filePath)} is already up to date.';
   }
 }
 
@@ -70,7 +70,7 @@ class FirebaseAppIDAlreadyExistsException implements FlutterFireException {
 
   @override
   String toString() {
-    return 'FirebaseAppIDAlreadyExistsException: Firebase app ID file ${AnsiStyles.cyan(filePath)} already exists.';
+    return 'FirebaseAppIDAlreadyExistsException: Firebase app ID file ${AnsiStyles.cyan(filePath)} is already up to date.';
   }
 }
 
