@@ -59,7 +59,7 @@ class FirebaseOptionsAlreadyExistsException implements FlutterFireException {
 
   @override
   String toString() {
-    return 'FirebaseOptionsAlreadyExistsException: Firebase options file ${AnsiStyles.cyan(filePath)} is already up to date.';
+    return 'FirebaseOptionsAlreadyExistsException: Firebase config file ${AnsiStyles.cyan(filePath)} is already up to date.';
   }
 }
 
