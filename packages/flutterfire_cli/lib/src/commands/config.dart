@@ -71,10 +71,18 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'android-app-id',
       valueHelp: 'applicationId',
-      mandatory: isCI,
       abbr: 'a',
-      help: 'The application id of your Android app, e.g. "com.example.app". '
+      help:
+          'Deprecated - use android-package-name instead. The application id of your Android app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
+          'automatically detect it from your "android" folder (if it exists)',
+    );
+    argParser.addOption(
+      'android-package-name',
+      valueHelp: 'packageName',
+      abbr: 'p',
+      help: 'The package name of your Android app, e.g. "com.example.app". '
+          'If no package name is provided then an attempt will be made to '
           'automatically detect it from your "android" folder (if it exists).',
     );
   }
@@ -98,9 +106,24 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get androidApplicationId {
-    final value = argResults!['android-app-id'] as String?;
-    // TODO validate appId is valid if provided
-    return value;
+    final value = argResults!['android-package-name'] as String?;
+
+    final deprecatedValue = argResults!['android-app-id'] as String?;
+
+    // TODO validate appId is valid if provided.
+
+    if (value != null) {
+      return value;
+    }
+    if (deprecatedValue != null) {
+      // ignore: avoid_print
+      print(
+          'Warning - android-app-id (-a) is deprecated. Consider using android-package-name (-p) instead.');
+      return deprecatedValue;
+    }
+
+    throw FirebaseCommandException(
+        'configure', 'Please provide value for android-package-name.');
   }
 
   String? get iosBundleId {
