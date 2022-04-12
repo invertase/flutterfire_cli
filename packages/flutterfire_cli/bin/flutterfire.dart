@@ -45,8 +45,8 @@ Future<void> main(List<String> arguments) async {
       );
       if (shouldUpdate) {
         await pubUpdater.update(packageName: packageName);
+        print('$packageName has been updated to version $latestVersion.');
       }
-      print('$packageName has been updated to version $latestVersion.');
     }
 
     return;
