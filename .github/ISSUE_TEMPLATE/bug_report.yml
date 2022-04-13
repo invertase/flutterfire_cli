@@ -1,0 +1,103 @@
+name: Bug Report
+description: Create a bug report to help us improve the CLI.
+title: "[bug]:  "
+labels: ["bug", "triage"]
+# assignees:
+#   - ...
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: |
+        Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues.
+          required: true
+
+  - type: input
+    id: cli_version
+    validations:
+      required: true
+    attributes:
+      label: CLI Version
+      description: |
+        What version of FlutterFire CLI are you running?
+
+        > Tip: You can use `flutterfire --version` to get the current version.
+      placeholder: "0.2.0"
+
+  - type: input
+    id: firebase_version
+    validations:
+      required: true
+    attributes:
+      label: Firebase Tools version
+      description: |
+        What version of Firebase Tools are you running?
+
+        > Tip: You can use `firebase --version` to get the current version.
+      placeholder: "10.4.2"
+
+  - type: textarea
+    id: flutter_doctor
+    validations:
+      required: true
+    attributes:
+      label: Flutter Doctor Output
+      description: |
+        Please provide the output from the `flutter doctor -v` command.
+      placeholder: The output from the `flutter doctor -v` command is...
+
+  - type: textarea
+    id: description
+    validations:
+      required: true
+    attributes:
+      label: Description
+      description: |
+        Give us a clear and concise description of what the bug is and what happened.
+      placeholder: The CLI throws an error if I run this command...
+
+  - type: textarea
+    id: reproduction
+    validations:
+      required: true
+    attributes:
+      label: Steps to reproduce
+      description: |
+        What steps can we take to reproduce the bug?
+      placeholder: |
+        1. Run command '...'
+        2. See error
+
+  - type: textarea
+    id: expected
+    validations:
+      required: true
+    attributes:
+      label: Expected behavior
+      description: |
+        What did you expect to happen?
+      placeholder: |
+        When running ..., the CLI should ...
+
+  - type: textarea
+    id: screenshots
+    validations:
+      required: false
+    attributes:
+      label: Screenshots
+      description: |
+        If you have any screenshots, please attach them here.
+
+  - type: textarea
+    id: comments
+    attributes:
+      label: Additional context and comments
+      description: |
+        Anything else you want to say?
