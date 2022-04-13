@@ -24,6 +24,13 @@ import '../flutter_app.dart';
 import 'firebase_options.dart';
 
 extension FirebaseAndroidOptions on FirebaseOptions {
+  static String projectIdFromFileContents(String fileContents) {
+    final appSdkConfigMap =
+        const JsonDecoder().convert(fileContents) as Map<String, dynamic>;
+    return pick(appSdkConfigMap, 'project_info', 'project_id')
+        .asStringOrThrow();
+  }
+
   static Future<FirebaseOptions> forFlutterApp(
     FlutterApp flutterApp, {
     String? androidApplicationId,
@@ -43,13 +50,13 @@ extension FirebaseAndroidOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
     );
-    final appSdkConfigString = await firebase.getAppSdkConfig(
+    final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: kAndroid,
       account: firebaseAccount,
     );
-    final appSdkConfigMap =
-        const JsonDecoder().convert(appSdkConfigString) as Map<String, dynamic>;
+    final appSdkConfigMap = const JsonDecoder()
+        .convert(appSdkConfig.fileContents) as Map<String, dynamic>;
     final clientMap =
         pick(appSdkConfigMap, 'client').asListOrThrow<Map>((pick) {
       return pick.asMapOrEmpty<String, dynamic>();
@@ -59,6 +66,8 @@ extension FirebaseAndroidOptions on FirebaseOptions {
           firebaseApp.appId,
     );
     return FirebaseOptions(
+      optionsSourceContent: appSdkConfig.fileContents,
+      optionsSourceFileName: appSdkConfig.fileName,
       apiKey: pick(clientMap, 'api_key', 0, 'current_key').asStringOrThrow(),
       appId: firebaseApp.appId,
       projectId: firebaseProjectId,

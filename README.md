@@ -10,20 +10,15 @@
   <a href="https://github.com/invertase/flutterfire_cli/blob/main/LICENSE">License</a>
 </p>
 
-
 A CLI to help with using [FlutterFire](https://firebase.flutter.dev) in your Flutter applications.
-
 
 ## Local development setup
 
-To setup and use this CLI repo locally for the purposes of contributing, clone it and run the following commands from the root of the repository:
+To set up and use this CLI repo locally for the purposes of contributing, clone it and run the following commands from the root of the repository:
 
 ```bash
-# Remove previous instances of the cli:
-dart pub global deactivate flutterfire_cli
-
 # Activate CLI from path:
-dart pub global activate --source="path" . --executable="flutterfire"
+dart pub global activate --source="path" . --executable="flutterfire" --overwrite
 
 # Confirm you now using a local development version:
 flutterfire --help
@@ -38,7 +33,6 @@ flutterfire --help
 ```bash
 dart pub global activate flutterfire_cli
 ```
-
 
 ---
 

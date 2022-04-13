@@ -15,7 +15,10 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:path/path.dart' as path;
 
 import '../common/exception.dart';
 import '../common/platform.dart';
@@ -31,6 +34,22 @@ import '../firebase/firebase_web_options.dart';
 import '../flutter_app.dart';
 
 import 'base.dart';
+
+final _androidBuildGradleRegex = RegExp(
+  r'''(?:\s*?dependencies\s?{$\n(?<indentation>[\s\S\w]*?)classpath\s?['"]{1}com.android.tools.build:gradle:.*?['"]{1}\s*?$)''',
+  multiLine: true,
+);
+final _androidAppBuildGradleRegex = RegExp(
+  r'''(?:^[\s]+apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})''',
+  multiLine: true,
+);
+const _googleServicesPluginClass = 'com.google.gms:google-services';
+const _googleServicesPluginName = 'com.google.gms.google-services';
+const _googleServicesPluginVersion = '4.3.10';
+const _googleServicesPlugin =
+    "classpath '$_googleServicesPluginClass:$_googleServicesPluginVersion'";
+const _googleServicesConfigStart = '// START: FlutterFire Configuration';
+const _googleServicesConfigEnd = '// END: FlutterFire Configuration';
 
 class ConfigCommand extends FlutterFireCommand {
   ConfigCommand(FlutterApp? flutterApp) : super(flutterApp) {
@@ -71,7 +90,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'android-app-id',
       valueHelp: 'applicationId',
-      abbr: 'a',
       help:
           'DEPRECATED - use "android-package-name" instead. The application id of your Android app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -80,7 +98,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'android-package-name',
       valueHelp: 'packageName',
-      abbr: 'p',
+      abbr: 'a',
       help: 'The package name of your Android app, e.g. "com.example.app". '
           'If no package name is provided then an attempt will be made to '
           'automatically detect it from your "android" folder (if it exists).',
@@ -107,10 +125,9 @@ class ConfigCommand extends FlutterFireCommand {
 
   String? get androidApplicationId {
     final value = argResults!['android-package-name'] as String?;
-
     final deprecatedValue = argResults!['android-app-id'] as String?;
 
-    // TODO validate appId is valid if provided.
+    // TODO validate packagename is valid if provided.
 
     if (value != null) {
       return value;
@@ -184,6 +201,128 @@ class ConfigCommand extends FlutterFireCommand {
     );
     creatingProjectSpinner.done();
     return newProject;
+  }
+
+  Future<void> conditionallySetupAndroidGoogleServices({
+    required FlutterApp flutterApp,
+    required FirebaseOptions firebaseOptions,
+    bool force = false,
+  }) async {
+    if (!flutterApp.android) {
+      // Flutter application is not configured to target Android.
+      return;
+    }
+
+    // <app>/android/app/google-services.json
+    var existingProjectId = '';
+    var shouldPromptOverwriteGoogleServicesJson = false;
+    final androidGoogleServicesJsonFile = File(
+      path.join(
+        flutterApp.androidDirectory.path,
+        'app',
+        firebaseOptions.optionsSourceFileName,
+      ),
+    );
+    if (androidGoogleServicesJsonFile.existsSync()) {
+      final existingGoogleServicesJsonContents =
+          await androidGoogleServicesJsonFile.readAsString();
+      existingProjectId = FirebaseAndroidOptions.projectIdFromFileContents(
+        existingGoogleServicesJsonContents,
+      );
+      if (existingProjectId != firebaseOptions.projectId) {
+        shouldPromptOverwriteGoogleServicesJson = true;
+      }
+    }
+    if (shouldPromptOverwriteGoogleServicesJson && !force) {
+      final overwriteGoogleServicesJson = promptBool(
+        'The ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} file already exists but for a different Firebase project (${AnsiStyles.grey(existingProjectId)}). '
+        'Do you want to replace it with new Firebase project ${AnsiStyles.green(firebaseOptions.projectId)}?',
+      );
+      if (!overwriteGoogleServicesJson) {
+        logger.stdout(
+          'Skipping ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} setup. This may cause issues with some Firebase services on Android in your application.',
+        );
+        return;
+      }
+    }
+    await androidGoogleServicesJsonFile.writeAsString(
+      firebaseOptions.optionsSourceContent,
+    );
+
+    // DETECT <app>/android/build.gradle
+    var shouldPromptUpdateAndroidBuildGradle = false;
+    final androidBuildGradleFile = File(
+      path.join(flutterApp.androidDirectory.path, 'build.gradle'),
+    );
+    final androidBuildGradleFileContents =
+        await androidBuildGradleFile.readAsString();
+    if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
+      final hasMatch =
+          _androidBuildGradleRegex.hasMatch(androidBuildGradleFileContents);
+      if (!hasMatch) {
+        // TODO some unrecoverable error here
+        return;
+      }
+      shouldPromptUpdateAndroidBuildGradle = true;
+      // TODO should we check if has google() repositories configured?
+    } else {
+      // TODO already contains google services, should we upgrade version?
+    }
+
+    // DETECT <app>/android/app/build.gradle
+    var shouldPromptUpdateAndroidAppBuildGradle = false;
+    final androidAppBuildGradleFile = File(
+      path.join(flutterApp.androidDirectory.path, 'app', 'build.gradle'),
+    );
+    final androidAppBuildGradleFileContents =
+        await androidAppBuildGradleFile.readAsString();
+    if (!androidAppBuildGradleFileContents
+        .contains(_googleServicesPluginClass)) {
+      final hasMatch = _androidAppBuildGradleRegex
+          .hasMatch(androidAppBuildGradleFileContents);
+      if (!hasMatch) {
+        // TODO some unrecoverable error here?
+        return;
+      }
+      shouldPromptUpdateAndroidAppBuildGradle = true;
+    }
+
+    if ((shouldPromptUpdateAndroidBuildGradle ||
+            shouldPromptUpdateAndroidAppBuildGradle) &&
+        !force) {
+      final updateAndroidGradleFiles = promptBool(
+        'The files ${AnsiStyles.cyan('android/build.gradle')} & ${AnsiStyles.cyan('android/app/build.gradle')} will be updated to apply the Firebase configuration. '
+        'Do you want to continue?',
+      );
+      if (!updateAndroidGradleFiles) {
+        logger.stdout(
+          'Skipping applying Firebase Google Services gradle plugin for Android. This may cause issues with some Firebase services on Android in your application.',
+        );
+        return;
+      }
+    }
+
+    // WRITE <app>/android/build.gradle
+    if (shouldPromptUpdateAndroidBuildGradle) {
+      final updatedAndroidBuildGradleFileContents =
+          androidBuildGradleFileContents
+              .replaceFirstMapped(_androidBuildGradleRegex, (match) {
+        final indentation = match.group(1);
+        return '${match.group(0)}\n$indentation$_googleServicesConfigStart\n$indentation$_googleServicesPlugin\n$indentation$_googleServicesConfigEnd';
+      });
+      await androidBuildGradleFile
+          .writeAsString(updatedAndroidBuildGradleFileContents);
+    }
+    // WRITE <app>/android/app/build.gradle
+    if (shouldPromptUpdateAndroidAppBuildGradle) {
+      final updatedAndroidAppBuildGradleFileContents =
+          androidAppBuildGradleFileContents
+              .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
+        return "${match.group(0)}\n$_googleServicesConfigStart\napply plugin: '$_googleServicesPluginName'\n$_googleServicesConfigEnd";
+      });
+      await androidAppBuildGradleFile
+          .writeAsString(updatedAndroidAppBuildGradleFileContents);
+    }
   }
 
   Future<FirebaseProject> _selectFirebaseProject() async {
@@ -356,12 +495,13 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (androidOptions != null) {
-      final appIDFile = FirebaseAppIDFile(
-        androidAppIDOutputFilePrefix,
-        options: androidOptions,
-        force: isCI || yes,
+      futures.add(
+        conditionallySetupAndroidGoogleServices(
+          firebaseOptions: androidOptions,
+          flutterApp: flutterApp!,
+          force: isCI || yes,
+        ),
       );
-      futures.add(appIDFile.write());
     }
 
     await Future.wait<void>(futures);

@@ -15,9 +15,13 @@
  *
  */
 
+import 'dart:convert';
+
 /// Mirrored from FlutterFire
 class FirebaseOptions {
   const FirebaseOptions({
+    required this.optionsSourceContent,
+    required this.optionsSourceFileName,
     required this.apiKey,
     required this.appId,
     required this.messagingSenderId,
@@ -60,7 +64,9 @@ class FirebaseOptions {
         androidClientId = map['androidClientId'] as String?,
         iosClientId = map['iosClientId'] as String?,
         iosBundleId = map['iosBundleId'] as String?,
-        appGroupId = map['appGroupId'] as String?;
+        appGroupId = map['appGroupId'] as String?,
+        optionsSourceContent = const JsonEncoder().convert(map),
+        optionsSourceFileName = 'firebase-options.json';
 
   /// An API key used for authenticating requests from your app, for example
   /// "AIxxxxxxxxxxxxxxxxxxxxxxDk", used to identify your app to
@@ -127,6 +133,14 @@ class FirebaseOptions {
   ///
   /// This property is used on iOS only.
   final String? appGroupId;
+
+  /// The source content that the options were retreived from, e.g.
+  /// for Android this is content of the `google-services.json` file.
+  final String optionsSourceContent;
+
+  /// The source content file name that the options were retreived from, e.g.
+  /// for Android this is `google-services.json`.
+  final String optionsSourceFileName;
 
   /// The current instance as a [Map].
   Map<String, String?> get asMap {
