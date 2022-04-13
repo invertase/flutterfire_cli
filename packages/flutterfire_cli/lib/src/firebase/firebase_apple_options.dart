@@ -49,13 +49,16 @@ extension FirebaseAppleOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
     );
-    final appSdkConfigString = await firebase.getAppSdkConfig(
+    final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: platformIdentifier,
       account: firebaseAccount,
     );
-    final appSdkConfigMap = parsePlist(appSdkConfigString);
+    final appSdkConfigMap = parsePlist(appSdkConfig.fileContents);
     return FirebaseOptions(
+      optionsSourceContent: appSdkConfig.fileContents,
+      optionsSourceFileName: appSdkConfig.fileName,
+
       apiKey: pick(appSdkConfigMap, 'API_KEY').asStringOrThrow(),
       appId: firebaseApp.appId,
       projectId: firebaseProjectId,

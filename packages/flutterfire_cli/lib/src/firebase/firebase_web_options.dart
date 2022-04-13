@@ -34,7 +34,7 @@ extension FirebaseWebOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
     );
-    final appSdkConfigString = await firebase.getAppSdkConfig(
+    final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: kWeb,
       account: firebaseAccount,
@@ -43,7 +43,7 @@ extension FirebaseWebOptions on FirebaseOptions {
       r'''firebase\.initializeApp\({(?<jsonBody>[\S\s]*)}\);''',
       multiLine: true,
     );
-    final match = jsonBodyRegex.firstMatch(appSdkConfigString);
+    final match = jsonBodyRegex.firstMatch(appSdkConfig.fileContents);
     var jsonBody = '';
     if (match != null) {
       jsonBody = match.namedGroup('jsonBody')!;

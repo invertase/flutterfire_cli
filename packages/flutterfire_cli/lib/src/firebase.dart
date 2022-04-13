@@ -165,8 +165,17 @@ Future<List<FirebaseApp>> getApps({
       .toList();
 }
 
+class FirebaseAppSdkConfig {
+  FirebaseAppSdkConfig({
+    required this.fileName,
+    required this.fileContents,
+  });
+  final String fileName;
+  final String fileContents;
+}
+
 /// Get registered Firebase apps for a project.
-Future<String> getAppSdkConfig({
+Future<FirebaseAppSdkConfig> getAppSdkConfig({
   required String appId,
   required String platform,
   String? account,
@@ -178,7 +187,12 @@ Future<String> getAppSdkConfig({
     account: account,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
-  return result['fileContents'] as String;
+  final fileContents = result['fileContents'] as String;
+  final fileName = result['fileName'] as String;
+  return FirebaseAppSdkConfig(
+    fileName: fileName,
+    fileContents: fileContents,
+  );
 }
 
 void _assertFirebaseSupportedPlatform(String platformIdentifier) {
