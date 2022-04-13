@@ -15,11 +15,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`flutterfire_cli` - `v0.1.4-dev.0`](#flutterfire_cli---v014-dev0)
+ - [`flutterfire_cli` - `v0.2.0`](#flutterfire_cli---v020)
 
 ---
 
-#### `flutterfire_cli` - `v0.1.4-dev.0`
+#### `flutterfire_cli` - `v0.2.0`
 
  - **REFACTOR**: deprecate `android-application-id` in favour of `android-package-name` (#52). ([a6d398b5](https://github.com/invertase/flutterfire_cli/commit/a6d398b5bf15cfb0be30bc30682804f7041ed9e7))
  - **REFACTOR**: change messaging of already exists. ([c5ea85e1](https://github.com/invertase/flutterfire_cli/commit/c5ea85e1074a1acf8152a932bf9c74e6a84f6c85))
