@@ -103,6 +103,14 @@ class ConfigCommand extends FlutterFireCommand {
           'If no package name is provided then an attempt will be made to '
           'automatically detect it from your "android" folder (if it exists).',
     );
+    argParser.addFlag(
+      'apply-gradle-plugin',
+      defaultsTo: true,
+      abbr: 'g',
+      help:
+          "Whether to add the Firebase Gradle plugin to your Android app's build.gradle files "
+          'and create the google-services.json file in your ./android/app folder. ',
+    );
   }
 
   @override
@@ -121,6 +129,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get yes {
     return argResults!['yes'] as bool || false;
+  }
+
+  bool get applyGradlePlugin {
+    return argResults!['apply-gradle-plugin'] as bool;
   }
 
   String? get androidApplicationId {
@@ -236,7 +248,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (shouldPromptOverwriteGoogleServicesJson && !force) {
       final overwriteGoogleServicesJson = promptBool(
         'The ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} file already exists but for a different Firebase project (${AnsiStyles.grey(existingProjectId)}). '
-        'Do you want to replace it with new Firebase project ${AnsiStyles.green(firebaseOptions.projectId)}?',
+        'Do you want to replace it with Firebase project ${AnsiStyles.green(firebaseOptions.projectId)}?',
       );
       if (!overwriteGoogleServicesJson) {
         logger.stdout(
@@ -494,7 +506,7 @@ class ConfigCommand extends FlutterFireCommand {
       futures.add(appIDFile.write());
     }
 
-    if (androidOptions != null) {
+    if (androidOptions != null && applyGradlePlugin) {
       futures.add(
         conditionallySetupAndroidGoogleServices(
           firebaseOptions: androidOptions,
