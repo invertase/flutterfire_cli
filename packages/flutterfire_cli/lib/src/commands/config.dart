@@ -111,6 +111,15 @@ class ConfigCommand extends FlutterFireCommand {
           "Whether to add the Firebase Gradle plugin to your Android app's build.gradle files "
           'and create the google-services.json file in your ./android/app folder. ',
     );
+
+    argParser.addFlag(
+      'app-id-json',
+      defaultsTo: true,
+      hide: true,
+      abbr: 'j',
+      help:
+          'Whether to generate the firebase_app_id.json files used by native iOS and Android builds. ',
+    );
   }
 
   @override
@@ -133,6 +142,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get applyGradlePlugin {
     return argResults!['apply-gradle-plugin'] as bool;
+  }
+
+  bool get generateAppIdJson {
+    return argResults!['app-id-json'] as bool;
   }
 
   String? get androidApplicationId {
@@ -488,22 +501,28 @@ class ConfigCommand extends FlutterFireCommand {
     );
     futures.add(configFile.write());
 
-    if (iosOptions != null) {
-      final appIDFile = FirebaseAppIDFile(
-        iosAppIDOutputFilePrefix,
-        options: iosOptions,
-        force: isCI || yes,
-      );
-      futures.add(appIDFile.write());
-    }
+    if (generateAppIdJson) {
+      if (iosOptions != null) {
+        final appIDFile = FirebaseAppIDFile(
+          iosAppIDOutputFilePrefix,
+          options: iosOptions,
+          force: isCI || yes,
+        );
+        futures.add(appIDFile.write());
+      }
 
-    if (macosOptions != null) {
-      final appIDFile = FirebaseAppIDFile(
-        macosAppIDOutputFilePrefix,
-        options: macosOptions,
-        force: isCI || yes,
+      if (macosOptions != null) {
+        final appIDFile = FirebaseAppIDFile(
+          macosAppIDOutputFilePrefix,
+          options: macosOptions,
+          force: isCI || yes,
+        );
+        futures.add(appIDFile.write());
+      }
+    } else {
+      logger.stdout(
+        'Skipping `firebase_app_id_file.json` generation. Note: this is not recommended as it can cause configuration issues with some FlutterFire plugins such as Crashlytics.',
       );
-      futures.add(appIDFile.write());
     }
 
     if (androidOptions != null && applyGradlePlugin) {
