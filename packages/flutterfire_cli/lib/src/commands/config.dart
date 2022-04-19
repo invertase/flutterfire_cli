@@ -15,15 +15,13 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:path/path.dart' as path;
 
 import '../common/exception.dart';
 import '../common/platform.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
+import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
 import '../firebase/firebase_app_id_file.dart';
 import '../firebase/firebase_apple_options.dart';
@@ -34,22 +32,6 @@ import '../firebase/firebase_web_options.dart';
 import '../flutter_app.dart';
 
 import 'base.dart';
-
-final _androidBuildGradleRegex = RegExp(
-  r'''(?:\s*?dependencies\s?{$\n(?<indentation>[\s\S\w]*?)classpath\s?['"]{1}com.android.tools.build:gradle:.*?['"]{1}\s*?$)''',
-  multiLine: true,
-);
-final _androidAppBuildGradleRegex = RegExp(
-  r'''(?:^[\s]+apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})''',
-  multiLine: true,
-);
-const _googleServicesPluginClass = 'com.google.gms:google-services';
-const _googleServicesPluginName = 'com.google.gms.google-services';
-const _googleServicesPluginVersion = '4.3.10';
-const _googleServicesPlugin =
-    "classpath '$_googleServicesPluginClass:$_googleServicesPluginVersion'";
-const _googleServicesConfigStart = '// START: FlutterFire Configuration';
-const _googleServicesConfigEnd = '// END: FlutterFire Configuration';
 
 class ConfigCommand extends FlutterFireCommand {
   ConfigCommand(FlutterApp? flutterApp) : super(flutterApp) {
@@ -104,21 +86,21 @@ class ConfigCommand extends FlutterFireCommand {
           'automatically detect it from your "android" folder (if it exists).',
     );
     argParser.addFlag(
-      'apply-gradle-plugin',
+      'apply-gradle-plugins',
       defaultsTo: true,
+      hide: true,
       abbr: 'g',
       help:
-          "Whether to add the Firebase Gradle plugin to your Android app's build.gradle files "
-          'and create the google-services.json file in your ./android/app folder. ',
+          "Whether to add the Firebase related Gradle plugins (such as Crashlytics and Performance) to your Android app's build.gradle files "
+          'and create the google-services.json file in your ./android/app folder.',
     );
-
     argParser.addFlag(
       'app-id-json',
       defaultsTo: true,
       hide: true,
       abbr: 'j',
       help:
-          'Whether to generate the firebase_app_id.json files used by native iOS and Android builds. ',
+          'Whether to generate the firebase_app_id.json files used by native iOS and Android builds.',
     );
   }
 
@@ -140,8 +122,8 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['yes'] as bool || false;
   }
 
-  bool get applyGradlePlugin {
-    return argResults!['apply-gradle-plugin'] as bool;
+  bool get applyGradlePlugins {
+    return argResults!['apply-gradle-plugins'] as bool;
   }
 
   bool get generateAppIdJson {
@@ -226,128 +208,6 @@ class ConfigCommand extends FlutterFireCommand {
     );
     creatingProjectSpinner.done();
     return newProject;
-  }
-
-  Future<void> conditionallySetupAndroidGoogleServices({
-    required FlutterApp flutterApp,
-    required FirebaseOptions firebaseOptions,
-    bool force = false,
-  }) async {
-    if (!flutterApp.android) {
-      // Flutter application is not configured to target Android.
-      return;
-    }
-
-    // <app>/android/app/google-services.json
-    var existingProjectId = '';
-    var shouldPromptOverwriteGoogleServicesJson = false;
-    final androidGoogleServicesJsonFile = File(
-      path.join(
-        flutterApp.androidDirectory.path,
-        'app',
-        firebaseOptions.optionsSourceFileName,
-      ),
-    );
-    if (androidGoogleServicesJsonFile.existsSync()) {
-      final existingGoogleServicesJsonContents =
-          await androidGoogleServicesJsonFile.readAsString();
-      existingProjectId = FirebaseAndroidOptions.projectIdFromFileContents(
-        existingGoogleServicesJsonContents,
-      );
-      if (existingProjectId != firebaseOptions.projectId) {
-        shouldPromptOverwriteGoogleServicesJson = true;
-      }
-    }
-    if (shouldPromptOverwriteGoogleServicesJson && !force) {
-      final overwriteGoogleServicesJson = promptBool(
-        'The ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} file already exists but for a different Firebase project (${AnsiStyles.grey(existingProjectId)}). '
-        'Do you want to replace it with Firebase project ${AnsiStyles.green(firebaseOptions.projectId)}?',
-      );
-      if (!overwriteGoogleServicesJson) {
-        logger.stdout(
-          'Skipping ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} setup. This may cause issues with some Firebase services on Android in your application.',
-        );
-        return;
-      }
-    }
-    await androidGoogleServicesJsonFile.writeAsString(
-      firebaseOptions.optionsSourceContent,
-    );
-
-    // DETECT <app>/android/build.gradle
-    var shouldPromptUpdateAndroidBuildGradle = false;
-    final androidBuildGradleFile = File(
-      path.join(flutterApp.androidDirectory.path, 'build.gradle'),
-    );
-    final androidBuildGradleFileContents =
-        await androidBuildGradleFile.readAsString();
-    if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
-      final hasMatch =
-          _androidBuildGradleRegex.hasMatch(androidBuildGradleFileContents);
-      if (!hasMatch) {
-        // TODO some unrecoverable error here
-        return;
-      }
-      shouldPromptUpdateAndroidBuildGradle = true;
-      // TODO should we check if has google() repositories configured?
-    } else {
-      // TODO already contains google services, should we upgrade version?
-    }
-
-    // DETECT <app>/android/app/build.gradle
-    var shouldPromptUpdateAndroidAppBuildGradle = false;
-    final androidAppBuildGradleFile = File(
-      path.join(flutterApp.androidDirectory.path, 'app', 'build.gradle'),
-    );
-    final androidAppBuildGradleFileContents =
-        await androidAppBuildGradleFile.readAsString();
-    if (!androidAppBuildGradleFileContents
-        .contains(_googleServicesPluginClass)) {
-      final hasMatch = _androidAppBuildGradleRegex
-          .hasMatch(androidAppBuildGradleFileContents);
-      if (!hasMatch) {
-        // TODO some unrecoverable error here?
-        return;
-      }
-      shouldPromptUpdateAndroidAppBuildGradle = true;
-    }
-
-    if ((shouldPromptUpdateAndroidBuildGradle ||
-            shouldPromptUpdateAndroidAppBuildGradle) &&
-        !force) {
-      final updateAndroidGradleFiles = promptBool(
-        'The files ${AnsiStyles.cyan('android/build.gradle')} & ${AnsiStyles.cyan('android/app/build.gradle')} will be updated to apply the Firebase configuration. '
-        'Do you want to continue?',
-      );
-      if (!updateAndroidGradleFiles) {
-        logger.stdout(
-          'Skipping applying Firebase Google Services gradle plugin for Android. This may cause issues with some Firebase services on Android in your application.',
-        );
-        return;
-      }
-    }
-
-    // WRITE <app>/android/build.gradle
-    if (shouldPromptUpdateAndroidBuildGradle) {
-      final updatedAndroidBuildGradleFileContents =
-          androidBuildGradleFileContents
-              .replaceFirstMapped(_androidBuildGradleRegex, (match) {
-        final indentation = match.group(1);
-        return '${match.group(0)}\n$indentation$_googleServicesConfigStart\n$indentation$_googleServicesPlugin\n$indentation$_googleServicesConfigEnd';
-      });
-      await androidBuildGradleFile
-          .writeAsString(updatedAndroidBuildGradleFileContents);
-    }
-    // WRITE <app>/android/app/build.gradle
-    if (shouldPromptUpdateAndroidAppBuildGradle) {
-      final updatedAndroidAppBuildGradleFileContents =
-          androidAppBuildGradleFileContents
-              .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
-        return "${match.group(0)}\n$_googleServicesConfigStart\napply plugin: '$_googleServicesPluginName'\n$_googleServicesConfigEnd";
-      });
-      await androidAppBuildGradleFile
-          .writeAsString(updatedAndroidAppBuildGradleFileContents);
-    }
   }
 
   Future<FirebaseProject> _selectFirebaseProject() async {
@@ -525,13 +385,13 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    if (androidOptions != null && applyGradlePlugin) {
+    if (androidOptions != null && applyGradlePlugins) {
       futures.add(
-        conditionallySetupAndroidGoogleServices(
-          firebaseOptions: androidOptions,
-          flutterApp: flutterApp!,
-          force: isCI || yes,
-        ),
+        FirebaseAndroidGradlePlugins(
+          flutterApp!,
+          androidOptions,
+          logger,
+        ).apply(force: isCI || yes),
       );
     }
 
