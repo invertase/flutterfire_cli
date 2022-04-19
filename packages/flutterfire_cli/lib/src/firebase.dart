@@ -227,7 +227,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         );
       }
       return AnsiStyles.bold(
-        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} is already registered.',
+        'Firebase ${AnsiStyles.cyan(platform)} app ${AnsiStyles.cyan(loggingAppName)} registered.',
       );
     },
   );

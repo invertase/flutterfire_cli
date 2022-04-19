@@ -60,7 +60,8 @@ class FirebaseConfigurationFile {
     if (outputFile.existsSync() && !force) {
       final existingFileContents = await outputFile.readAsString();
       // Only prompt overwrite if contents have changed.
-      if (existingFileContents != newFileContents) {
+      // Trimming since some IDEs/git auto apply a trailing newline.
+      if (existingFileContents.trim() != newFileContents.trim()) {
         final shouldOverwrite = promptBool(
           'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
         );
