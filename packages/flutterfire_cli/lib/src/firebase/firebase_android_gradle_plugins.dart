@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:ansi_styles/ansi_styles.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'firebase_android_options.dart';
@@ -107,12 +107,15 @@ class FirebaseAndroidGradlePlugins {
     }
     if (shouldPromptOverwriteGoogleServicesJson && !force) {
       final overwriteGoogleServicesJson = promptBool(
-        'The ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} file already exists but for a different Firebase project (${AnsiStyles.grey(existingProjectId)}). '
-        'Do you want to replace it with Firebase project ${AnsiStyles.green(firebaseOptions.projectId)}?',
+        logPromptReplaceGoogleServicesJson(
+          firebaseOptions.optionsSourceFileName,
+          existingProjectId,
+          firebaseOptions.projectId,
+        ),
       );
       if (!overwriteGoogleServicesJson) {
         logger.stdout(
-          'Skipping ${AnsiStyles.cyan(firebaseOptions.optionsSourceFileName)} setup. This may cause issues with some Firebase services on Android in your application.',
+          logSkippingGoogleServicesJson(firebaseOptions.optionsSourceFileName),
         );
         return;
       }
@@ -249,12 +252,11 @@ class FirebaseAndroidGradlePlugins {
             shouldPromptUpdateAndroidAppBuildGradle) &&
         !force) {
       final updateAndroidGradleFiles = promptBool(
-        'The files ${AnsiStyles.cyan('android/build.gradle')} & ${AnsiStyles.cyan('android/app/build.gradle')} will be updated to apply Firebase configuration and build plugins. '
-        'Do you want to continue?',
+        logPromptMakeChangesToGradleFiles,
       );
       if (!updateAndroidGradleFiles) {
         logger.stdout(
-          'Skipping applying Firebase gradle plugins for Android. This may cause issues with some Firebase services on Android in your application.',
+          logSkippingGradleFilesUpdate,
         );
         return;
       }

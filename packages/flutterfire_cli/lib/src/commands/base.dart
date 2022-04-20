@@ -19,7 +19,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 
-import '../common/exception.dart';
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 

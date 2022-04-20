@@ -17,7 +17,7 @@
 
 import 'dart:io';
 import 'package:pubspec/pubspec.dart';
-import 'exception.dart';
+import 'strings.dart';
 import 'utils.dart';
 
 /// Enum representing what type of package this is.

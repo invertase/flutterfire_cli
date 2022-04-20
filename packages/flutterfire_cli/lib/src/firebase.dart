@@ -20,7 +20,7 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 
-import 'common/exception.dart';
+import 'common/strings.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
 import 'firebase/firebase_project.dart';
@@ -72,8 +72,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   if (!cliExists) {
     throw FirebaseCommandException(
       '--version',
-      'The FlutterFire CLI currently requires the official Firebase CLI to also be installed, '
-          'see https://firebase.google.com/docs/cli#install_the_firebase_cli for how to install it.',
+      logMissingFirebaseCli,
     );
   }
   final workingDirectoryPath = Directory.current.path;

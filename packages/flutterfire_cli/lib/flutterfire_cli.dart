@@ -15,4 +15,4 @@
  *
  */
 
-export 'src/common/exception.dart' show FlutterFireException;
+export 'src/common/strings.dart' show FlutterFireException;
