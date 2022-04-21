@@ -72,9 +72,9 @@ class FlutterApp {
 
   String? _readBundleIdForPlatform(String platform) {
     final xcodeProjFile =
-        xcodeProjectFileInDirectory(Directory(package.path), kMacos);
+        xcodeProjectFileInDirectory(Directory(package.path), platform);
     final xcodeAppInfoConfigFile =
-        xcodeAppInfoConfigFileInDirectory(Directory(package.path), kMacos);
+        xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
     final bundleIdRegex = RegExp(
       r'''^[\s]*PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+)[;]*$''',
       multiLine: true,
