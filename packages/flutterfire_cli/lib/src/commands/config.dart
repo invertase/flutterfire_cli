@@ -17,8 +17,8 @@
 
 import 'package:ansi_styles/ansi_styles.dart';
 
-import '../common/exception.dart';
 import '../common/platform.dart';
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
@@ -381,7 +381,7 @@ class ConfigCommand extends FlutterFireCommand {
       }
     } else {
       logger.stdout(
-        'Skipping `firebase_app_id_file.json` generation. Note: this is not recommended as it can cause configuration issues with some FlutterFire plugins such as Crashlytics.',
+        logSkippingAppIdJson,
       );
     }
 
@@ -399,7 +399,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     logger.stdout('');
     logger.stdout(
-      'Firebase configuration file ${AnsiStyles.cyan(outputFilePath)} generated successfully with the following Firebase apps:',
+      logFirebaseConfigGenerated(outputFilePath),
     );
     logger.stdout('');
     logger.stdout(
@@ -416,8 +416,7 @@ class ConfigCommand extends FlutterFireCommand {
     );
     logger.stdout('');
     logger.stdout(
-      'Learn more about using this file in the FlutterFire documentation:\n'
-      ' > https://firebase.flutter.dev/docs/cli',
+      logLearnMoreAboutCli,
     );
   }
 }

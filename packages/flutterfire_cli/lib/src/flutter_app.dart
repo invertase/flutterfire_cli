@@ -17,9 +17,9 @@
 
 import 'dart:io';
 
-import 'common/exception.dart';
 import 'common/package.dart';
 import 'common/platform.dart';
+import 'common/strings.dart';
 import 'common/utils.dart';
 
 class FlutterApp {

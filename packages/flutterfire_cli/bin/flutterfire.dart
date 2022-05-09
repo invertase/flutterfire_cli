@@ -19,7 +19,7 @@
 import 'dart:io';
 
 import 'package:flutterfire_cli/src/command_runner.dart';
-import 'package:flutterfire_cli/src/common/exception.dart';
+import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:flutterfire_cli/version.g.dart';
@@ -41,11 +41,11 @@ Future<void> main(List<String> arguments) async {
     if (!isUpToDate) {
       final latestVersion = await pubUpdater.getLatestVersion(packageName);
       final shouldUpdate = utils.promptBool(
-        'There is a new version of $packageName available ($latestVersion). Would you like to update?',
+        logPromptNewCliVersionAvailable(packageName, latestVersion),
       );
       if (shouldUpdate) {
         await pubUpdater.update(packageName: packageName);
-        print('$packageName has been updated to version $latestVersion.');
+        print(logCliUpdated(packageName, latestVersion));
       }
     }
 
