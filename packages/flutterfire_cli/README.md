@@ -6,7 +6,6 @@
 </p>
 
 <p align="center">
-  <a href="https://flutterfirecli.invertase.dev">Documentation</a> &bull; 
   <a href="https://github.com/invertase/flutterfire_cli/blob/main/LICENSE">License</a>
 </p>
 
