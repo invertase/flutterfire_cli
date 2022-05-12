@@ -27,10 +27,11 @@ extension FirebaseWebOptions on FirebaseOptions {
     FlutterApp flutterApp, {
     required String firebaseProjectId,
     String? firebaseAccount,
+    String platform = kWeb,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       displayName: flutterApp.package.pubSpec.name ?? 'flutterfire_app',
-      platform: kWeb,
+      platform: platform,
       project: firebaseProjectId,
       account: firebaseAccount,
     );

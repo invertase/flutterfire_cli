@@ -277,6 +277,10 @@ class ConfigCommand extends FlutterFireCommand {
       kIos: flutterApp!.ios,
       kMacos: flutterApp!.macos,
       kWeb: flutterApp!.web,
+      kWindows: flutterApp!.windows &&
+          flutterApp!.dependsOnPackage('firebase_core_desktop'),
+      kLinux: flutterApp!.linux &&
+          flutterApp!.dependsOnPackage('firebase_core_desktop'),
     };
     if (isCI || yes) {
       return selectedPlatforms;
@@ -349,6 +353,26 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
+    FirebaseOptions? windowsOptions;
+    if (selectedPlatforms[kWindows]!) {
+      windowsOptions = await FirebaseWebOptions.forFlutterApp(
+        flutterApp!,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
+        platform: kWindows,
+      );
+    }
+
+    FirebaseOptions? linuxOptions;
+    if (selectedPlatforms[kLinux]!) {
+      linuxOptions = await FirebaseWebOptions.forFlutterApp(
+        flutterApp!,
+        firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseAccount: accountEmail,
+        platform: kLinux,
+      );
+    }
+
     final futures = <Future>[];
 
     final configFile = FirebaseConfigurationFile(
@@ -357,6 +381,8 @@ class ConfigCommand extends FlutterFireCommand {
       iosOptions: iosOptions,
       macosOptions: macosOptions,
       webOptions: webOptions,
+      windowsOptions: windowsOptions,
+      linuxOptions: linuxOptions,
       force: isCI || yes,
     );
     futures.add(configFile.write());
@@ -410,6 +436,8 @@ class ConfigCommand extends FlutterFireCommand {
           if (androidOptions != null) [kAndroid, androidOptions.appId],
           if (iosOptions != null) [kIos, iosOptions.appId],
           if (macosOptions != null) [kMacos, macosOptions.appId],
+          if (linuxOptions != null) [kLinux, linuxOptions.appId],
+          if (windowsOptions != null) [kWindows, windowsOptions.appId],
         ],
         paddingSize: 2,
       ),
