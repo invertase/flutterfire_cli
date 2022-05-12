@@ -16,6 +16,8 @@
  */
 
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:path/path.dart' as path;
+import 'dart:io';
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -199,7 +201,7 @@ class ConfigCommand extends FlutterFireCommand {
         if (!done) {
           return 'Creating new Firebase project ${AnsiStyles.cyan(newProjectId)}...';
         }
-        return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created succesfully.';
+        return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created successfully.';
       },
     );
     final newProject = await firebase.createProject(
@@ -393,6 +395,34 @@ class ConfigCommand extends FlutterFireCommand {
           logger,
         ).apply(force: isCI || yes),
       );
+    }
+
+    if (iosOptions != null) {
+      final googleServiceInfoFile = path.join(flutterApp!.iosDirectory.path, 'Runner',
+          iosOptions.optionsSourceFileName);
+
+      final file = File(googleServiceInfoFile);    
+
+      await file.writeAsString(iosOptions.optionsSourceContent);
+      //check exists here. write if not.
+
+      final pathToScript = path.split(Platform.script.toFilePath());
+
+      final sourceDirIndex = pathToScript.indexOf('.dart_tool');
+
+      final listToPbxScriptDir = pathToScript.sublist(0, sourceDirIndex);
+
+      final pathToPbxScript = path.joinAll([...listToPbxScriptDir, 'scripts', 'set_ios_pbxproj_file.rb']);
+
+      final xcodeProjFilePath = path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+
+
+      //TODO -check if google file already exists in project.pbxproj (update if not) & check if google file exists (update if not). 
+      if (Platform.isMacOS) {
+        final result = await Process.run('ruby', [ pathToPbxScript,'--googleFile=$googleServiceInfoFile','--xcodeFile=$xcodeProjFilePath']);
+        print('stdout: ${result.stdout}');
+        print('stderr: ${result.stderr}');
+      }
     }
 
     await Future.wait<void>(futures);
