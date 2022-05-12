@@ -209,7 +209,11 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
 }) async {
   var foundFirebaseApp = false;
   final displayNameWithPlatform = '$displayName ($platform)';
-  final platformFirebase = platform == kMacos ? kIos : platform;
+  var platformFirebase = platform;
+  if (platformFirebase == kMacos) platformFirebase = kIos;
+  if (platformFirebase == kWindows) platformFirebase = kWeb;
+  if (platformFirebase == kLinux) platformFirebase = kWeb;
+
   _assertFirebaseSupportedPlatform(platformFirebase);
   final fetchingAppsSpinner = spinner(
     (done) {
@@ -235,19 +239,29 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     account: account,
     platform: platformFirebase,
   );
-  final filteredFirebaseApps = unfilteredFirebaseApps.where(
+  var filteredFirebaseApps = unfilteredFirebaseApps.where(
     (firebaseApp) {
       if (packageNameOrBundleIdentifier != null) {
         return firebaseApp.packageNameOrBundleIdentifier ==
                 packageNameOrBundleIdentifier &&
             firebaseApp.platform == platformFirebase;
       }
-      // Web has no package name or bundle identifier so we match on
-      // our generated display names instead or any Web app.
-      return firebaseApp.displayName == displayNameWithPlatform ||
-          firebaseApp.platform == platformFirebase;
+      // Web has no package name or bundle identifier so we try match on
+      // our generated display name.
+      return firebaseApp.displayName == displayNameWithPlatform;
     },
   );
+
+  // Try find any web app for web only. For Windows and Linux we
+  // explicitly search via name only above so that named web app instances are
+  // created for these platforms.
+  if (platform == kWeb && filteredFirebaseApps.isEmpty) {
+    filteredFirebaseApps = unfilteredFirebaseApps.where(
+      (firebaseApp) {
+        return firebaseApp.platform == kWeb;
+      },
+    );
+  }
   foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
   fetchingAppsSpinner.done();
   // TODO in the case of web, if more than one found app then
