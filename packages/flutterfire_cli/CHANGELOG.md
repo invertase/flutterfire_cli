@@ -1,3 +1,10 @@
+## 0.2.2
+
+ - **REFACTOR**: move strings to own file for easier review ([#61](https://github.com/invertase/flutterfire_cli/issues/61)). ([723f9797](https://github.com/invertase/flutterfire_cli/commit/723f9797c41db4a008804116a1cb0ea069aaa238))
+ - **FEAT**: add new `--platforms` flag to specify platforms to generate Firebase options for without prompts (Closes [#68](https://github.com/invertase/flutterfire_cli/issues/68)) ([#72](https://github.com/invertase/flutterfire_cli/issues/72)). ([e7b309e6](https://github.com/invertase/flutterfire_cli/commit/e7b309e682eabd0d7f048e3b30e4ee84ab4995e4))
+ - **FEAT**: add support for Windows & Linux platforms via Firebase Web apps. ([#71](https://github.com/invertase/flutterfire_cli/issues/71)). ([ed3b8f2c](https://github.com/invertase/flutterfire_cli/commit/ed3b8f2c1f6ee4617742320856837b42f26cce05))
+ - **DOCS**: remove broken link. ([acd07c85](https://github.com/invertase/flutterfire_cli/commit/acd07c85647d970a44bf5b6d29593f87c99ce8e7))
+
 ## 0.2.1+1
 
  - **FIX**: use correct platform name when detecting ios bundle ids. ([135a1050](https://github.com/invertase/flutterfire_cli/commit/135a1050f0f1a65125aae308411149032c83391e))
