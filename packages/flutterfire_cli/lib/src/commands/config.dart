@@ -52,6 +52,14 @@ class ConfigCommand extends FlutterFireCommand {
           'Skip the Y/n confirmation prompts and accept default options (such as detected platforms).',
     );
     argParser.addOption(
+      'platforms',
+      valueHelp: 'platforms',
+      mandatory: isCI,
+      help:
+          'Optionally specify the platforms to generate configuration options for '
+          'as a comma separated list. For example "android,ios,macos,web,linux,windows".',
+    );
+    argParser.addOption(
       'ios-bundle-id',
       valueHelp: 'bundleIdentifier',
       mandatory: isCI,
@@ -120,6 +128,26 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get yes {
     return argResults!['yes'] as bool || false;
+  }
+
+  List<String> get platforms {
+    final platformsString = argResults!['platforms'] as String?;
+    if (platformsString == null || platformsString.isEmpty) {
+      return <String>[];
+    }
+    return platformsString
+        .split(',')
+        .map((String platform) => platform.trim().toLowerCase())
+        .where(
+          (element) =>
+              element == 'ios' ||
+              element == 'android' ||
+              element == 'macos' ||
+              element == 'web' ||
+              element == 'linux' ||
+              element == 'windows',
+        )
+        .toList();
   }
 
   bool get applyGradlePlugins {
@@ -273,16 +301,32 @@ class ConfigCommand extends FlutterFireCommand {
 
   Map<String, bool> _selectPlatforms() {
     final selectedPlatforms = <String, bool>{
-      kAndroid: flutterApp!.android,
-      kIos: flutterApp!.ios,
-      kMacos: flutterApp!.macos,
-      kWeb: flutterApp!.web,
-      kWindows: flutterApp!.windows &&
-          flutterApp!.dependsOnPackage('firebase_core_desktop'),
-      kLinux: flutterApp!.linux &&
-          flutterApp!.dependsOnPackage('firebase_core_desktop'),
+      kAndroid: platforms.contains(kAndroid) ||
+          platforms.isEmpty && flutterApp!.android,
+      kIos: platforms.contains(kIos) || platforms.isEmpty && flutterApp!.ios,
+      kMacos:
+          platforms.contains(kMacos) || platforms.isEmpty && flutterApp!.macos,
+      kWeb: platforms.contains(kWeb) || platforms.isEmpty && flutterApp!.web,
+      kWindows: platforms.contains(kWindows) ||
+          platforms.isEmpty &&
+              flutterApp!.windows &&
+              flutterApp!.dependsOnPackage('firebase_core_desktop'),
+      kLinux: platforms.contains(kLinux) ||
+          platforms.isEmpty &&
+              flutterApp!.linux &&
+              flutterApp!.dependsOnPackage('firebase_core_desktop'),
     };
-    if (isCI || yes) {
+    if (platforms.isNotEmpty || isCI || yes) {
+      final selectedPlatformsString = selectedPlatforms.entries
+          .where((e) => e.value)
+          .map((e) => e.key)
+          .toList()
+          .join(',');
+      logger.stdout(
+        AnsiStyles.bold(
+          '${AnsiStyles.blue('i')} Selected platforms: ${AnsiStyles.green(selectedPlatformsString)}',
+        ),
+      );
       return selectedPlatforms;
     }
     final answers = promptMultiSelect(
