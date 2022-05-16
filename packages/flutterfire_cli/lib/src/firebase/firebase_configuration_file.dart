@@ -76,6 +76,8 @@ class FirebaseConfigurationFile {
         }
       }
     }
+
+    outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(_stringBuffer.toString());
   }
 
