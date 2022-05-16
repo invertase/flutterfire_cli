@@ -403,8 +403,9 @@ class ConfigCommand extends FlutterFireCommand {
 
       final file = File(googleServiceInfoFile);    
 
-      await file.writeAsString(iosOptions.optionsSourceContent);
-      //check exists here. write if not.
+      if (!file.existsSync()) {
+        await file.writeAsString(iosOptions.optionsSourceContent);  
+      }
 
       final pathToScript = path.split(Platform.script.toFilePath());
 
@@ -416,12 +417,8 @@ class ConfigCommand extends FlutterFireCommand {
 
       final xcodeProjFilePath = path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
-
-      //TODO -check if google file already exists in project.pbxproj (update if not) & check if google file exists (update if not). 
       if (Platform.isMacOS) {
         final result = await Process.run('ruby', [ pathToPbxScript,'--googleFile=$googleServiceInfoFile','--xcodeFile=$xcodeProjFilePath']);
-        print('stdout: ${result.stdout}');
-        print('stderr: ${result.stderr}');
       }
     }
 

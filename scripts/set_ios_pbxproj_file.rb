@@ -20,9 +20,18 @@ end.parse!
 project_path = options[:xcodeFile]
 # open the xcode project
 project = Xcodeproj::Project.open(project_path)
-# add GoogleService-Info.plist to your xcode project
-file = project.new_file(options[:googleFile])
-# save it
-project.save
 
-puts "Updated project.pbxproj file for Xcode project with GoogleService-Info.plist."
+# check id GoogleService-Info.plist config is part of xcode project
+googleConfigExists = false
+project.files.each do |file|
+  if file.path == "Runner/GoogleService-Info.plist"
+    googleConfigExists = true
+    exit
+  end
+end
+
+# Write only if config doesn't exist
+if googleConfigExists == false
+  project.new_file(options[:googleFile])
+  project.save
+end
