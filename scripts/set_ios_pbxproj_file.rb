@@ -21,7 +21,7 @@ project_path = options[:xcodeFile]
 # open the xcode project
 project = Xcodeproj::Project.open(project_path)
 
-# check id GoogleService-Info.plist config is part of xcode project
+# check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.
 googleConfigExists = false
 project.files.each do |file|
   if file.path == "Runner/GoogleService-Info.plist"
