@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-05-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.2.2+1`](#flutterfire_cli---v0221)
+
+---
+
+#### `flutterfire_cli` - `v0.2.2+1`
+
+ - **FIX**: create output file directory if it does not exist (fixes [#75](https://github.com/invertase/flutterfire_cli/issues/75)). ([fe1370c3](https://github.com/invertase/flutterfire_cli/commit/fe1370c3259884cbd2a1a103626b375b420d621a))
+ - **FIX**: only show Windows/Linux options if desktop packages are installed in Flutter app. ([2da944c4](https://github.com/invertase/flutterfire_cli/commit/2da944c45b0c9e1308eecb8ea1ff21295eabeafa))
+
+
 ## 2022-05-12
 
 ### Changes
