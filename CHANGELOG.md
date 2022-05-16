@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`flutterfire_cli` - `v0.2.2+2`](#flutterfire_cli---v0222)
+
+---
+
+#### `flutterfire_cli` - `v0.2.2+2`
+
+ - **FIX**: null issue with Windows & Linux platform selectors (fixes [#76](https://github.com/invertase/flutterfire_cli/issues/76)). ([9c2a2dc5](https://github.com/invertase/flutterfire_cli/commit/9c2a2dc5b9fc95f4051da06832d5e5e917906449))
+
+
+## 2022-05-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`flutterfire_cli` - `v0.2.2+1`](#flutterfire_cli---v0221)
 
 ---

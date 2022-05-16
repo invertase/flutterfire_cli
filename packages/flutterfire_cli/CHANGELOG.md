@@ -1,3 +1,7 @@
+## 0.2.2+2
+
+ - **FIX**: null issue with Windows & Linux platform selectors (fixes [#76](https://github.com/invertase/flutterfire_cli/issues/76)). ([9c2a2dc5](https://github.com/invertase/flutterfire_cli/commit/9c2a2dc5b9fc95f4051da06832d5e5e917906449))
+
 ## 0.2.2+1
 
  - **FIX**: create output file directory if it does not exist (fixes [#75](https://github.com/invertase/flutterfire_cli/issues/75)). ([fe1370c3](https://github.com/invertase/flutterfire_cli/commit/fe1370c3259884cbd2a1a103626b375b420d621a))
