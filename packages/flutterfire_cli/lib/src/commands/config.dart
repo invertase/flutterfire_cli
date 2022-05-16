@@ -307,14 +307,12 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos:
           platforms.contains(kMacos) || platforms.isEmpty && flutterApp!.macos,
       kWeb: platforms.contains(kWeb) || platforms.isEmpty && flutterApp!.web,
-      kWindows: platforms.contains(kWindows) ||
-          platforms.isEmpty &&
-              flutterApp!.windows &&
-              flutterApp!.dependsOnPackage('firebase_core_desktop'),
-      kLinux: platforms.contains(kLinux) ||
-          platforms.isEmpty &&
-              flutterApp!.linux &&
-              flutterApp!.dependsOnPackage('firebase_core_desktop'),
+      if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
+        kWindows: platforms.contains(kWindows) ||
+            platforms.isEmpty && flutterApp!.windows,
+      if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
+        kLinux: platforms.contains(kLinux) ||
+            platforms.isEmpty && flutterApp!.linux,
     };
     if (platforms.isNotEmpty || isCI || yes) {
       final selectedPlatformsString = selectedPlatforms.entries
