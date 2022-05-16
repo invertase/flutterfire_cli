@@ -15,9 +15,9 @@
  *
  */
 
+import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
-import 'dart:io';
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -398,8 +398,11 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (iosOptions != null) {
-      final googleServiceInfoFile = path.join(flutterApp!.iosDirectory.path,
-          'Runner', iosOptions.optionsSourceFileName);
+      final googleServiceInfoFile = path.join(
+        flutterApp!.iosDirectory.path,
+        'Runner',
+        iosOptions.optionsSourceFileName,
+      );
 
       final file = File(googleServiceInfoFile);
 
@@ -414,13 +417,18 @@ class ConfigCommand extends FlutterFireCommand {
       final listToPbxScriptDir = pathToScript.sublist(0, sourceDirIndex);
 
       final pathToPbxScript = path.joinAll(
-          [...listToPbxScriptDir, 'scripts', 'set_ios_pbxproj_file.rb']);
+        [
+          ...listToPbxScriptDir,
+          'scripts',
+          'set_ios_pbxproj_file.rb',
+        ],
+      );
 
       final xcodeProjFilePath =
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
       if (Platform.isMacOS) {
-        final result = await Process.run('ruby', [
+        await Process.run('ruby', [
           pathToPbxScript,
           '--googleFile=$googleServiceInfoFile',
           '--xcodeFile=$xcodeProjFilePath'
