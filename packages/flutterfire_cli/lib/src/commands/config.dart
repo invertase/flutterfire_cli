@@ -398,13 +398,13 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (iosOptions != null) {
-      final googleServiceInfoFile = path.join(flutterApp!.iosDirectory.path, 'Runner',
-          iosOptions.optionsSourceFileName);
+      final googleServiceInfoFile = path.join(flutterApp!.iosDirectory.path,
+          'Runner', iosOptions.optionsSourceFileName);
 
-      final file = File(googleServiceInfoFile);    
+      final file = File(googleServiceInfoFile);
 
       if (!file.existsSync()) {
-        await file.writeAsString(iosOptions.optionsSourceContent);  
+        await file.writeAsString(iosOptions.optionsSourceContent);
       }
 
       final pathToScript = path.split(Platform.script.toFilePath());
@@ -413,12 +413,18 @@ class ConfigCommand extends FlutterFireCommand {
 
       final listToPbxScriptDir = pathToScript.sublist(0, sourceDirIndex);
 
-      final pathToPbxScript = path.joinAll([...listToPbxScriptDir, 'scripts', 'set_ios_pbxproj_file.rb']);
+      final pathToPbxScript = path.joinAll(
+          [...listToPbxScriptDir, 'scripts', 'set_ios_pbxproj_file.rb']);
 
-      final xcodeProjFilePath = path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+      final xcodeProjFilePath =
+          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
       if (Platform.isMacOS) {
-        final result = await Process.run('ruby', [ pathToPbxScript,'--googleFile=$googleServiceInfoFile','--xcodeFile=$xcodeProjFilePath']);
+        final result = await Process.run('ruby', [
+          pathToPbxScript,
+          '--googleFile=$googleServiceInfoFile',
+          '--xcodeFile=$xcodeProjFilePath'
+        ]);
       }
     }
 
