@@ -396,7 +396,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     FirebaseOptions? windowsOptions;
-    if (selectedPlatforms[kWindows]!) {
+    if (selectedPlatforms[kWindows] != null && selectedPlatforms[kWindows]!) {
       windowsOptions = await FirebaseWebOptions.forFlutterApp(
         flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
@@ -406,7 +406,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     FirebaseOptions? linuxOptions;
-    if (selectedPlatforms[kLinux]!) {
+    if (selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!) {
       linuxOptions = await FirebaseWebOptions.forFlutterApp(
         flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
