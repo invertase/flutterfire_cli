@@ -28,17 +28,20 @@ extension FirebaseWebOptions on FirebaseOptions {
     required String firebaseProjectId,
     String? firebaseAccount,
     String platform = kWeb,
+    required String? token,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       displayName: flutterApp.package.pubSpec.name ?? 'flutterfire_app',
       platform: platform,
       project: firebaseProjectId,
       account: firebaseAccount,
+      token: token,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: kWeb,
       account: firebaseAccount,
+      token: token,
     );
     final jsonBodyRegex = RegExp(
       r'''firebase\.initializeApp\({(?<jsonBody>[\S\s]*)}\);''',
