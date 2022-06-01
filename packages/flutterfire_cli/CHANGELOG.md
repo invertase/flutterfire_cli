@@ -1,3 +1,7 @@
+## 0.2.3
+
+- **FEAT**: add `--token` option (Closed [#78](https://github.com/invertase/flutterfire_cli/issues/78))
+
 ## 0.2.2+2
 
  - **FIX**: null issue with Windows & Linux platform selectors (fixes [#76](https://github.com/invertase/flutterfire_cli/issues/76)). ([9c2a2dc5](https://github.com/invertase/flutterfire_cli/commit/9c2a2dc5b9fc95f4051da06832d5e5e917906449))
