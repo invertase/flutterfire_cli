@@ -278,6 +278,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         project: project,
         displayName: displayNameWithPlatform,
         packageName: packageNameOrBundleIdentifier!,
+        account: account,
       );
       break;
     case kIos:
@@ -285,12 +286,14 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         project: project,
         displayName: displayNameWithPlatform,
         bundleId: packageNameOrBundleIdentifier!,
+        account: account,
       );
       break;
     case kWeb:
       createFirebaseAppFuture = createWebApp(
         project: project,
         displayName: displayNameWithPlatform,
+        account: account,
       );
       break;
     default:
