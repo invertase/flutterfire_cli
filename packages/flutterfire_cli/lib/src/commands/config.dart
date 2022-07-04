@@ -16,6 +16,7 @@
  */
 
 import 'dart:io';
+import 'dart:isolate';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
@@ -478,11 +479,15 @@ class ConfigCommand extends FlutterFireCommand {
         await file.writeAsString(iosOptions.optionsSourceContent);
       }
 
-      final pathToScript = path.split(Platform.script.toFilePath());
+      final melosPackageFileUri =
+          await Isolate.resolvePackageUri(Platform.script);
 
-      final sourceDirIndex = pathToScript.indexOf('.dart_tool');
+      final packagePath =
+          path.split(path.normalize('${melosPackageFileUri!.toFilePath()}'));
 
-      final listToPbxScriptDir = pathToScript.sublist(0, sourceDirIndex);
+      final sourceDirIndex = packagePath.indexOf('.dart_tool');
+
+      final listToPbxScriptDir = packagePath.sublist(0, sourceDirIndex);
 
       final pathToPbxScript = path.joinAll(
         [
