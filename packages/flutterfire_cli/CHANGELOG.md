@@ -1,3 +1,7 @@
+## 0.3.0-dev.0
+
+  - **TEST**: this is a preview version for testing out adding iOS "GoogleService-Info.plist" to runner and updating "project.pbxproj" file.
+
 ## 0.2.2+2
 
  - **FIX**: null issue with Windows & Linux platform selectors (fixes [#76](https://github.com/invertase/flutterfire_cli/issues/76)). ([9c2a2dc5](https://github.com/invertase/flutterfire_cli/commit/9c2a2dc5b9fc95f4051da06832d5e5e917906449))
