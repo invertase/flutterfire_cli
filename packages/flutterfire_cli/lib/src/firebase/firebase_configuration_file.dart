@@ -31,6 +31,8 @@ class FirebaseConfigurationFile {
     this.iosOptions,
     this.macosOptions,
     this.webOptions,
+    this.windowsOptions,
+    this.linuxOptions,
     this.force = false,
   });
 
@@ -48,6 +50,10 @@ class FirebaseConfigurationFile {
   FirebaseOptions? androidOptions;
 
   FirebaseOptions? iosOptions;
+
+  FirebaseOptions? windowsOptions;
+
+  FirebaseOptions? linuxOptions;
 
   Future<void> write() async {
     final outputFile = File(joinAll([Directory.current.path, outputFilePath]));
@@ -70,6 +76,8 @@ class FirebaseConfigurationFile {
         }
       }
     }
+
+    outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(_stringBuffer.toString());
   }
 
@@ -112,6 +120,8 @@ class FirebaseConfigurationFile {
     _writeCurrentPlatformSwitchAndroid();
     _writeCurrentPlatformSwitchIos();
     _writeCurrentPlatformSwitchMacos();
+    _writeCurrentPlatformSwitchWindows();
+    _writeCurrentPlatformSwitchLinux();
     _stringBuffer.write(
       '''
       default:
@@ -126,6 +136,8 @@ class FirebaseConfigurationFile {
     _writeFirebaseOptionsStatic(kAndroid, androidOptions);
     _writeFirebaseOptionsStatic(kIos, iosOptions);
     _writeFirebaseOptionsStatic(kMacos, macosOptions);
+    _writeFirebaseOptionsStatic(kWindows, windowsOptions);
+    _writeFirebaseOptionsStatic(kLinux, linuxOptions);
     _stringBuffer.writeln('}'); // } DefaultFirebaseOptions
   }
 
@@ -192,6 +204,24 @@ class FirebaseConfigurationFile {
       _stringBuffer.writeln('        return macos;');
     } else {
       _writeThrowUnsupportedForPlatform(kMacos, '        ');
+    }
+  }
+
+  void _writeCurrentPlatformSwitchWindows() {
+    _stringBuffer.writeln('      case TargetPlatform.windows:');
+    if (windowsOptions != null) {
+      _stringBuffer.writeln('        return windows;');
+    } else {
+      _writeThrowUnsupportedForPlatform(kWindows, '        ');
+    }
+  }
+
+  void _writeCurrentPlatformSwitchLinux() {
+    _stringBuffer.writeln('      case TargetPlatform.linux:');
+    if (linuxOptions != null) {
+      _stringBuffer.writeln('        return linux;');
+    } else {
+      _writeThrowUnsupportedForPlatform(kLinux, '        ');
     }
   }
 }

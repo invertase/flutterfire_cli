@@ -153,6 +153,12 @@ class FlutterApp {
     return _androidApplicationId = applicationId;
   }
 
+  /// Returns whether the package depends on the given package.
+  bool dependsOnPackage(String packageName) {
+    return package.dependencies.contains(packageName) ||
+        package.devDependencies.contains(packageName);
+  }
+
   /// Returns whether this Flutter app can run on Android.
   bool get android {
     if (!package.isFlutterApp) return false;

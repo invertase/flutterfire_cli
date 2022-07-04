@@ -201,8 +201,7 @@ class FirebaseAndroidGradlePlugins {
   Future<void> applyCrashlyticsPlugin({
     bool force = false,
   }) async {
-    if (!flutterApp.package.dependencies.contains('firebase_crashlytics') &&
-        !flutterApp.package.devDependencies.contains('firebase_crashlytics')) {
+    if (!flutterApp.dependsOnPackage('firebase_crashlytics')) {
       // Skip since user doesn't have the plugin installed.
       return;
     }
@@ -216,8 +215,7 @@ class FirebaseAndroidGradlePlugins {
   Future<void> applyPerformancePlugin({
     bool force = false,
   }) async {
-    if (!flutterApp.package.dependencies.contains('firebase_performance') &&
-        !flutterApp.package.devDependencies.contains('firebase_performance')) {
+    if (!flutterApp.dependsOnPackage('firebase_performance')) {
       // Skip since user doesn't have the plugin installed.
       return;
     }
