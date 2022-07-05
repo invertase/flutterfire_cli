@@ -483,31 +483,47 @@ class ConfigCommand extends FlutterFireCommand {
           await Isolate.resolvePackageUri(Platform.script);
 
       List<String> splitPackage;
-      var package = path.join(
-        path.normalize('${melosPackageFileUri!.toFilePath()}'),
-        'scripts',
-      );
 
-      final packageFile = File(package);
+
+      var package = path.normalize('${melosPackageFileUri!.toFilePath()}/../../../../../packages/flutterfire_cli/scripts');
+
+      final packageFile = Directory(package);
 
       if (packageFile.existsSync()) {
         splitPackage = path.split(package);
+        print('TTTTTT');
       } else {
-        package = path.join(
-          path.normalize('${melosPackageFileUri.toFilePath()}'),
-          'scripts',
-        );
+        package =
+          path.normalize('${melosPackageFileUri.toFilePath()}/../../scripts');
+
+        final testFile = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../..'));
+        await for (final entity in
+        testFile.list(followLinks: false)) {
+          print('00000000:' + entity.path);
+        }
+
+        final testFile2 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/..'));
+        await for (final entity in
+        testFile2.list(followLinks: false)) {
+          print('1111111:' + entity.path);
+        }
+
+        final testFile1 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../../scripts'));
+        await for (final entity in
+        testFile1.list(followLinks: false)) {
+          print('2222222:' + entity.path);
+        }
+
+
+
 
         splitPackage = path.split(package);
       }
 
-      // ignore: avoid_print
-      print('PPPP: $splitPackage');
-
       final pathToPbxScript = path.joinAll(
         [
           ...splitPackage,
-          'set_ios_pbxproj_file.rb',
+          'set_ios_pbxproj_file.rb'
         ],
       );
 

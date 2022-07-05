@@ -1,3 +1,7 @@
+## 0.3.0-dev.8
+
+  - **TEST**: testing.
+
 ## 0.3.0-dev.7
 
   - **TEST**: testing.
