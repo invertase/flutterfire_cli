@@ -1,3 +1,7 @@
+## 0.3.0-dev.1
+
+  - **TEST**: this is a preview version for testing out adding iOS "GoogleService-Info.plist" with path to script updated.
+
 ## 0.3.0-dev.0
 
   - **TEST**: this is a preview version for testing out adding iOS "GoogleService-Info.plist" to runner and updating "project.pbxproj" file.
