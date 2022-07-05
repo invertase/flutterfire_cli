@@ -494,7 +494,7 @@ class ConfigCommand extends FlutterFireCommand {
         splitPackage = path.split(package);
       } else {
         package = path.join(
-          path.normalize('${melosPackageFileUri.toFilePath()}/../../../../..'),
+          path.normalize('${melosPackageFileUri.toFilePath()}/..'),
           'scripts',
         );
         splitPackage = path.split(package);
@@ -503,7 +503,7 @@ class ConfigCommand extends FlutterFireCommand {
       // ignore: avoid_print
       print('PPPP: $splitPackage');
 
-      print('PPPP 1111 ${path.normalize(melosPackageFileUri.toFilePath())}');
+      print('PPPP 1111 ${path.normalize('${melosPackageFileUri.toFilePath()}/..')}');
       final pathToPbxScript = path.joinAll(
         [
           ...splitPackage,
