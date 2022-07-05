@@ -484,7 +484,7 @@ class ConfigCommand extends FlutterFireCommand {
 
       List<String> splitPackage;
       var package = path.join(
-        path.normalize('${melosPackageFileUri!.toFilePath()}/../..'),
+        path.normalize('${melosPackageFileUri!.toFilePath()}'),
         'scripts',
       );
 
@@ -494,10 +494,10 @@ class ConfigCommand extends FlutterFireCommand {
         splitPackage = path.split(package);
       } else {
         package = path.join(
-          path.normalize('${melosPackageFileUri.toFilePath()}/../..'),
+          path.normalize('${melosPackageFileUri.toFilePath()}'),
           'scripts',
         );
-        print('PPPP 1111 $package');
+
         splitPackage = path.split(package);
       }
 
