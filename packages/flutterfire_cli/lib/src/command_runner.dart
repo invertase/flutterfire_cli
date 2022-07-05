@@ -16,7 +16,9 @@
  */
 
 import 'package:args/command_runner.dart';
+
 import 'commands/config.dart';
+import 'commands/create.dart';
 import 'common/utils.dart';
 import 'flutter_app.dart';
 
@@ -48,6 +50,7 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
       help: 'Print the current CLI version.',
     );
 
+    addCommand(CreateCommand(flutterApp));
     addCommand(ConfigCommand(flutterApp));
   }
 }
