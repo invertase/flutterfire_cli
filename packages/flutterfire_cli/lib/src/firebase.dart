@@ -91,7 +91,6 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   );
 
   final jsonString = process.stdout.toString();
-  print(process.stderr.toString());
   final commandResult = Map<String, dynamic>.from(
     const JsonDecoder().convert(jsonString) as Map,
   );
