@@ -485,7 +485,7 @@ class ConfigCommand extends FlutterFireCommand {
       List<String> splitPackage;
 
 
-      var package = path.normalize('${melosPackageFileUri!.toFilePath()}/../../../../../packages/flutterfire_cli/scripts');
+      var package = path.normalize('${melosPackageFileUri!.toFilePath()}/../../../../../packages/flutterfire_cli/tool');
 
       final packageFile = Directory(package);
 
@@ -494,7 +494,7 @@ class ConfigCommand extends FlutterFireCommand {
         print('TTTTTT');
       } else {
         package =
-          path.normalize('${melosPackageFileUri.toFilePath()}/../../scripts');
+          path.normalize('${melosPackageFileUri.toFilePath()}/../../tool');
 
         final testFile = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../..'));
         await for (final entity in
@@ -502,17 +502,17 @@ class ConfigCommand extends FlutterFireCommand {
           print('00000000:' + entity.path);
         }
 
-        final testFile2 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/..'));
+        final testFile2 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../..tool'));
         await for (final entity in
         testFile2.list(followLinks: false)) {
           print('1111111:' + entity.path);
         }
 
-        final testFile1 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../../scripts'));
-        await for (final entity in
-        testFile1.list(followLinks: false)) {
-          print('2222222:' + entity.path);
-        }
+        // final testFile1 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../../.dart_tool'));
+        // await for (final entity in
+        // testFile1.list(followLinks: false)) {
+        //   print('2222222:' + entity.path);
+        // }
 
 
 
