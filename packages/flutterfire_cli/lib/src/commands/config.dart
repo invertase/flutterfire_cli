@@ -484,6 +484,8 @@ class ConfigCommand extends FlutterFireCommand {
 
       final packagePath = path.split(path
           .normalize('${melosPackageFileUri!.toFilePath()}/../../../../..'));
+      // ignore: avoid_print
+      print('PPPP: $packagePath');
 
       final pathToPbxScript = path.joinAll(
         [

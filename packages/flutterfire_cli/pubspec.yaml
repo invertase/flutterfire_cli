@@ -1,6 +1,6 @@
 name: flutterfire_cli
 description: A command-line application for FlutterFire.
-version: 0.3.0-dev.1
+version: 0.3.0-dev.2
 homepage: "https://github.com/invertase/flutterfire_cli"
 
 environment:
