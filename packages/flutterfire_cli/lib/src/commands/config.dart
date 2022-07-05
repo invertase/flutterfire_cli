@@ -482,15 +482,30 @@ class ConfigCommand extends FlutterFireCommand {
       final melosPackageFileUri =
           await Isolate.resolvePackageUri(Platform.script);
 
-      final packagePath = path.split(path
-          .normalize('${melosPackageFileUri!.toFilePath()}/../../../../..'));
+      List<String> splitPackage;
+      var package = path.join(
+        path.normalize('${melosPackageFileUri!.toFilePath()}/../..'),
+        'scripts',
+      );
+
+      final packageFile = File(package);
+
+      if (packageFile.existsSync()) {
+        splitPackage = path.split(package);
+      } else {
+        package = path.join(
+          path.normalize('${melosPackageFileUri.toFilePath()}/../../../../..'),
+          'scripts',
+        );
+        splitPackage = path.split(package);
+      }
+
       // ignore: avoid_print
-      print('PPPP: $packagePath');
+      print('PPPP: $splitPackage');
 
       final pathToPbxScript = path.joinAll(
         [
-          ...packagePath,
-          'scripts',
+          ...splitPackage,
           'set_ios_pbxproj_file.rb',
         ],
       );
