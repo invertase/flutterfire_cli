@@ -15,7 +15,9 @@
  *
  */
 
+import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -227,7 +229,7 @@ class ConfigCommand extends FlutterFireCommand {
         if (!done) {
           return 'Creating new Firebase project ${AnsiStyles.cyan(newProjectId)}...';
         }
-        return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created succesfully.';
+        return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created successfully.';
       },
     );
     final newProject = await firebase.createProject(
@@ -461,6 +463,59 @@ class ConfigCommand extends FlutterFireCommand {
           logger,
         ).apply(force: isCI || yes),
       );
+    }
+
+    if (iosOptions != null) {
+      final googleServiceInfoFile = path.join(
+        flutterApp!.iosDirectory.path,
+        'Runner',
+        iosOptions.optionsSourceFileName,
+      );
+
+      final file = File(googleServiceInfoFile);
+
+      if (!file.existsSync()) {
+        await file.writeAsString(iosOptions.optionsSourceContent);
+      }
+
+      final xcodeProjFilePath =
+          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+
+      final rubyScript =
+          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+
+      if (Platform.isMacOS) {
+        await Process.run('ruby', [
+          '-e',
+          rubyScript,
+        ]);
+      }
+    }
+
+    if (macosOptions != null) {
+      final googleServiceInfoFile = path.join(
+        flutterApp!.macosDirectory.path,
+        'Runner',
+        macosOptions.optionsSourceFileName,
+      );
+      final file = File(googleServiceInfoFile);
+
+      if (!file.existsSync()) {
+        await file.writeAsString(macosOptions.optionsSourceContent);
+      }
+
+      final xcodeProjFilePath =
+          path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
+
+      final rubyScript =
+          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+
+      if (Platform.isMacOS) {
+        await Process.run('ruby', [
+          '-e',
+          rubyScript,
+        ]);
+      }
     }
 
     await Future.wait<void>(futures);
