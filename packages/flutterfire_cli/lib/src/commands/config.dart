@@ -479,60 +479,16 @@ class ConfigCommand extends FlutterFireCommand {
         await file.writeAsString(iosOptions.optionsSourceContent);
       }
 
-      final melosPackageFileUri =
-          await Isolate.resolvePackageUri(Platform.script);
-
-      List<String> splitPackage;
-
-
-      var package = path.normalize('${melosPackageFileUri!.toFilePath()}/../../../../../packages/flutterfire_cli/lib/scripts');
-
-      final packageFile = Directory(package);
-
-      if (packageFile.existsSync()) {
-        splitPackage = path.split(package);
-        print('TTTTTT');
-      } else {
-        package =
-          path.normalize('${melosPackageFileUri.toFilePath()}/../../lib/scripts');
-
-        final testFile = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../..'));
-        await for (final entity in
-        testFile.list(followLinks: false)) {
-          print('00000000:' + entity.path);
-        }
-
-        // final testFile2 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../..tool'));
-        // await for (final entity in
-        // testFile2.list(followLinks: false)) {
-        //   print('1111111:' + entity.path);
-        // }
-
-        // final testFile1 = Directory(path.normalize('${melosPackageFileUri.toFilePath()}/../../.dart_tool'));
-        // await for (final entity in
-        // testFile1.list(followLinks: false)) {
-        //   print('2222222:' + entity.path);
-        // }
-
-
-        splitPackage = path.split(package);
-      }
-
-      final pathToPbxScript = path.joinAll(
-        [
-          ...splitPackage,
-          'set_ios_pbxproj_file.rb'
-        ],
-      );
-
       final xcodeProjFilePath =
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
+      final rubyScript =
+          "require 'xcodeproj'\n\n googleFile='$googleServiceInfoFile' \n\n xcodeFile='$xcodeProjFilePath' \n\n # define the path to your .xcodeproj file\nproject_path = xcodeFile\n# open the xcode project\nproject = Xcodeproj::Project.open(project_path)\n\n# check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.\ngoogleConfigExists = false\nproject.files.each do |file|\n  if file.path == \"Runner/GoogleService-Info.plist\"\n    googleConfigExists = true\n    exit\n  end\nend\n\n# Write only if config doesn't exist\nif googleConfigExists == false\n  project.new_file(googleFile)\n  project.save\nend";
+
       if (Platform.isMacOS) {
         await Process.run('ruby', [
-          pathToPbxScript,
-          '--googleFile=$googleServiceInfoFile',
-          '--xcodeFile=$xcodeProjFilePath'
+          '-e',
+          rubyScript,
         ]);
       }
     }
