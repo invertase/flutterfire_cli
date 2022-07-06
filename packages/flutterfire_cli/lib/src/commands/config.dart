@@ -16,7 +16,6 @@
  */
 
 import 'dart:io';
-import 'dart:isolate';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
