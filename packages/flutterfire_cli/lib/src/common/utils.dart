@@ -210,6 +210,8 @@ String relativePath(String path, String from) {
 }
 
 String generateRubyScript(
-    String googleServiceInfoFile, String xcodeProjFilePath) {
+  String googleServiceInfoFile,
+  String xcodeProjFilePath,
+) {
   return "require 'xcodeproj'\n\n googleFile='$googleServiceInfoFile' \n\n xcodeFile='$xcodeProjFilePath' \n\n # define the path to your .xcodeproj file\nproject_path = xcodeFile\n# open the xcode project\nproject = Xcodeproj::Project.open(project_path)\n\n# check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.\ngoogleConfigExists = false\nproject.files.each do |file|\n  if file.path == \"Runner/GoogleService-Info.plist\"\n    googleConfigExists = true\n    exit\n  end\nend\n\n# Write only if config doesn't exist\nif googleConfigExists == false\n  project.new_file(googleFile)\n  project.save\nend";
 }
