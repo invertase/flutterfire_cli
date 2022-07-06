@@ -226,7 +226,7 @@ project = Xcodeproj::Project.open(project_path)
 # check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.
 googleConfigExists = false
 project.files.each do |file|
-  if file.path == \"Runner/GoogleService-Info.plist\"
+  if file.path == "Runner/GoogleService-Info.plist"
     googleConfigExists = true
     exit
   end
