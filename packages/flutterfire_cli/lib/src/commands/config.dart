@@ -30,7 +30,6 @@ import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
 import '../flutter_app.dart';
-
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
@@ -432,7 +431,8 @@ class ConfigCommand extends FlutterFireCommand {
     if (generateAppIdJson) {
       if (iosOptions != null) {
         final appIDFile = FirebaseAppIDFile(
-          iosAppIDOutputFilePrefix,
+          // In order to generate if we're not in the folder of the flutterApp
+          flutterApp?.iosDirectory.path ?? iosAppIDOutputFilePrefix,
           options: iosOptions,
           force: isCI || yes,
         );
@@ -441,7 +441,8 @@ class ConfigCommand extends FlutterFireCommand {
 
       if (macosOptions != null) {
         final appIDFile = FirebaseAppIDFile(
-          macosAppIDOutputFilePrefix,
+          // In order to generate if we're not in the folder of the flutterApp
+          flutterApp?.macosDirectory.path ?? macosAppIDOutputFilePrefix,
           options: macosOptions,
           force: isCI || yes,
         );

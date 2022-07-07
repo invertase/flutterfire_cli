@@ -29,7 +29,7 @@ import 'flutter_app.dart';
 /// ```dart
 /// final flutterFire = FlutterFireCommandRunner();
 ///
-/// await FlutterFireCommandRunner.run(['config']);
+/// await flutterFire.run(['config']);
 /// ```
 class FlutterFireCommandRunner extends CommandRunner<void> {
   FlutterFireCommandRunner(FlutterApp? flutterApp)

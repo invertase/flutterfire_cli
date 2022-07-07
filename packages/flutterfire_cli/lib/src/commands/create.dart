@@ -340,13 +340,30 @@ class CreateCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    final config = ConfigCommand(flutterApp);
     final generator =
         await MasonGenerator.fromBundle(flutterfireTemplateBundle);
 
-    await generator.generate(
-      DirectoryGeneratorTarget(Directory(outputFilePath)),
+    final vars = <String, String>{
+      'name': 'coucou',
+      'org': 'com.example',
+      'description': 'coucou'
+    };
+
+    await generator.hooks.preGen(
+      vars: vars,
     );
+    await generator.generate(
+      DirectoryGeneratorTarget(Directory('$outputFilePath/coucou')),
+      vars: vars,
+    );
+    await generator.hooks.postGen(
+      vars: vars,
+    );
+
+    final config = ConfigCommand(flutterApp);
+
+    await Process.run('cd', ['coucou']);
+
     await config.run();
   }
 }

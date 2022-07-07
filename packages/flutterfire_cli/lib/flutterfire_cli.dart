@@ -15,4 +15,5 @@
  *
  */
 
+export 'src/command_runner.dart' show FlutterFireCommandRunner;
 export 'src/common/strings.dart' show FlutterFireException;
