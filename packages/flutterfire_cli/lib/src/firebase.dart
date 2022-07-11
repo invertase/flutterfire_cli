@@ -299,6 +299,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         project: project,
         displayName: displayNameWithPlatform,
         packageName: packageNameOrBundleIdentifier!,
+        account: account,
         token: token,
       );
       break;
@@ -307,6 +308,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         project: project,
         displayName: displayNameWithPlatform,
         bundleId: packageNameOrBundleIdentifier!,
+        account: account,
         token: token,
       );
       break;
@@ -314,6 +316,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       createFirebaseAppFuture = createWebApp(
         project: project,
         displayName: displayNameWithPlatform,
+        account: account,
         token: token,
       );
       break;
