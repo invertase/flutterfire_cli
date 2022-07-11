@@ -36,6 +36,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     String? androidApplicationId,
     required String firebaseProjectId,
     String? firebaseAccount,
+    required String? token,
   }) async {
     var selectedAndroidApplicationId =
         androidApplicationId ?? flutterApp.androidApplicationId;
@@ -49,11 +50,13 @@ extension FirebaseAndroidOptions on FirebaseOptions {
       platform: kAndroid,
       project: firebaseProjectId,
       account: firebaseAccount,
+      token: token,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: kAndroid,
       account: firebaseAccount,
+      token: token,
     );
     final appSdkConfigMap = const JsonDecoder()
         .convert(appSdkConfig.fileContents) as Map<String, dynamic>;

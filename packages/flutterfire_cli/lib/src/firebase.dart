@@ -109,9 +109,15 @@ Future<Map<String, dynamic>> runFirebaseCommand(
 /// or for the account provided.
 Future<List<FirebaseProject>> getProjects({
   String? account,
+  String? token,
 }) async {
-  final response =
-      await runFirebaseCommand(['projects:list'], account: account);
+  final response = await runFirebaseCommand(
+    [
+      'projects:list',
+      if (token != null) '--token=$token',
+    ],
+    account: account,
+  );
   final result = List<Map<String, dynamic>>.from(response['result'] as List);
   return result
       .map<FirebaseProject>(
@@ -127,12 +133,14 @@ Future<FirebaseProject> createProject({
   required String projectId,
   String? displayName,
   String? account,
+  String? token,
 }) async {
   final response = await runFirebaseCommand(
     [
       'projects:create',
       projectId,
       if (displayName != null) displayName,
+      if (token != null) '--token=$token',
     ],
     account: account,
   );
@@ -148,10 +156,15 @@ Future<List<FirebaseApp>> getApps({
   required String project,
   String? account,
   String? platform,
+  String? token,
 }) async {
   if (platform != null) _assertFirebaseSupportedPlatform(platform);
   final response = await runFirebaseCommand(
-    ['apps:list', if (platform != null) platform],
+    [
+      'apps:list',
+      if (platform != null) platform,
+      if (token != null) '--token=$token',
+    ],
     project: project,
     account: account,
   );
@@ -178,11 +191,17 @@ Future<FirebaseAppSdkConfig> getAppSdkConfig({
   required String appId,
   required String platform,
   String? account,
+  String? token,
 }) async {
   final platformFirebase = platform == kMacos ? kIos : platform;
   _assertFirebaseSupportedPlatform(platformFirebase);
   final response = await runFirebaseCommand(
-    ['apps:sdkconfig', platformFirebase, appId],
+    [
+      'apps:sdkconfig',
+      platformFirebase,
+      appId,
+      if (token != null) '--token=$token',
+    ],
     account: account,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
@@ -206,6 +225,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   required String project,
   String? packageNameOrBundleIdentifier,
   String? account,
+  String? token,
 }) async {
   var foundFirebaseApp = false;
   final displayNameWithPlatform = '$displayName ($platform)';
@@ -238,6 +258,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     project: project,
     account: account,
     platform: platformFirebase,
+    token: token,
   );
   var filteredFirebaseApps = unfilteredFirebaseApps.where(
     (firebaseApp) {
@@ -279,6 +300,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         displayName: displayNameWithPlatform,
         packageName: packageNameOrBundleIdentifier!,
         account: account,
+        token: token,
       );
       break;
     case kIos:
@@ -287,6 +309,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         displayName: displayNameWithPlatform,
         bundleId: packageNameOrBundleIdentifier!,
         account: account,
+        token: token,
       );
       break;
     case kWeb:
@@ -294,6 +317,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         project: project,
         displayName: displayNameWithPlatform,
         account: account,
+        token: token,
       );
       break;
     default:
@@ -322,13 +346,10 @@ Future<FirebaseApp> createWebApp({
   required String project,
   required String displayName,
   String? account,
+  String? token,
 }) async {
   final response = await runFirebaseCommand(
-    [
-      'apps:create',
-      'web',
-      displayName,
-    ],
+    ['apps:create', 'web', displayName, if (token != null) '--token=$token'],
     project: project,
     account: account,
   );
@@ -345,6 +366,7 @@ Future<FirebaseApp> createAndroidApp({
   required String displayName,
   required String packageName,
   String? account,
+  String? token,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -352,6 +374,7 @@ Future<FirebaseApp> createAndroidApp({
       'android',
       displayName,
       '--package-name=$packageName',
+      if (token != null) '--token=$token',
     ],
     project: project,
     account: account,
@@ -369,6 +392,7 @@ Future<FirebaseApp> createAppleApp({
   required String displayName,
   required String bundleId,
   String? account,
+  String? token,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -376,6 +400,7 @@ Future<FirebaseApp> createAppleApp({
       'ios',
       displayName,
       '--bundle-id=$bundleId',
+      if (token != null) '--token=$token'
     ],
     project: project,
     account: account,

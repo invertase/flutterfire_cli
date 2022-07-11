@@ -29,6 +29,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     bool macos = false,
     required String firebaseProjectId,
     String? firebaseAccount,
+    required String? token,
   }) async {
     final platformIdentifier = macos ? kMacos : kIos;
     var selectedAppleBundleId = appleBundleIdentifier ??
@@ -48,11 +49,13 @@ extension FirebaseAppleOptions on FirebaseOptions {
       platform: platformIdentifier,
       project: firebaseProjectId,
       account: firebaseAccount,
+      token: token,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: platformIdentifier,
       account: firebaseAccount,
+      token: token,
     );
     final appSdkConfigMap = parsePlist(appSdkConfig.fileContents);
     return FirebaseOptions(
