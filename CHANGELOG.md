@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-07-13 (Re-release due to incorrect versioning)
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.2.4`](#flutterfire_cli---v024)
+
+---
+
+#### `flutterfire_cli` - `v0.2.4`
+
+ - **CHORE**: Release `flutterfire_cli` again due to incorrect versioning for `0.2.3` release.
+
+
 ## 2022-07-13
 
 ### Changes

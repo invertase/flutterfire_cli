@@ -1,3 +1,7 @@
+## 0.2.4
+
+ - **CHORE**: Release `flutterfire_cli` again due to incorrect versioning for `0.2.3` release.
+
 ## 0.2.3
 
  - **FIX**: switch to inline ruby script. ([3dab9b2f](https://github.com/invertase/flutterfire_cli/commit/3dab9b2fbbfdc0b9225224a625b8f89074d5ea3f))
