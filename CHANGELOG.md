@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-07-13
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.2.3`](#flutterfire_cli---v023)
+
+---
+
+#### `flutterfire_cli` - `v0.2.3`
+
+ - **FIX**: switch to inline ruby script. ([3dab9b2f](https://github.com/invertase/flutterfire_cli/commit/3dab9b2fbbfdc0b9225224a625b8f89074d5ea3f))
+ - **FIX**: path to ruby script. ([eb0427e6](https://github.com/invertase/flutterfire_cli/commit/eb0427e604c1bf7fe46bf15c387077a077f22571))
+ - **FIX**: use "resolvePackageUri" to get package. ([e72a2a54](https://github.com/invertase/flutterfire_cli/commit/e72a2a549e197594e1d659164819e289f88bb317))
+ - **FIX**: add missing `account` argument specification for create*App. ([4987250a](https://github.com/invertase/flutterfire_cli/commit/4987250a197dfb4731f625e988f3059e3e550b1e))
+ - **FEAT**: update macOS with google services file & pbxproj file. ([b5ca92ce](https://github.com/invertase/flutterfire_cli/commit/b5ca92ced93de46a9d029f9272a5c9ace2793516))
+ - **FEAT**: only update config and write plist file if they don't exist. ([ccfa3510](https://github.com/invertase/flutterfire_cli/commit/ccfa3510f7b4fae135a1e041c1774bd9717fc131))
+ - **FEAT**: add GoogleServices file and update pbxproj file. ([1a3e945a](https://github.com/invertase/flutterfire_cli/commit/1a3e945a3e3ab3501bef32bbc930d72af61df820))
+
+
 ## 2022-05-16
 
 ### Changes
