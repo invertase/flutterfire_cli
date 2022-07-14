@@ -110,6 +110,7 @@ class FirebaseConfigurationFile {
     _stringBuffer.writeAll(
       <String>[
         'class DefaultFirebaseOptions {',
+        '  const DefaultFirebaseOptions();',
         '  static FirebaseOptions get currentPlatform {',
         ''
       ],
