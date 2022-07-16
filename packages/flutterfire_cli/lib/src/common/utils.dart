@@ -240,9 +240,7 @@ end
 if googleConfigExists == false
   if flavor == "null"
     # create a new file
-    file = project.new_file(googleFile)
-    main_target = project.targets.first
-    main_target.add_file_references([file])
+    project.new_file(googleFile)
   else
     # create a new group
     currentGroup = project.new_group(flavor)
