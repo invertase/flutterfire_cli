@@ -33,6 +33,7 @@ const _keyGcmSenderId = 'GCM_SENDER_ID';
 class FirebaseAppIDFile {
   FirebaseAppIDFile(
     this.outputDirectoryPath, {
+    this.flavor,
     required this.options,
     this.fileName = _defaultAppIdFileName,
     this.force = false,
@@ -40,6 +41,7 @@ class FirebaseAppIDFile {
 
   final StringBuffer _stringBuffer = StringBuffer();
 
+  final String? flavor;
   final String outputDirectoryPath;
 
   /// Whether to skip prompts and force write output file.
@@ -54,7 +56,9 @@ class FirebaseAppIDFile {
       throw PlatformDirectoryDoesNotExistException(outputDirectoryPath);
     }
 
-    final appIDFilePath = joinAll([outputDirectoryPath, fileName]);
+    final mFileName =
+        flavor != null ? 'firebase_app_id_file_$flavor.json' : fileName;
+    final appIDFilePath = joinAll([outputDirectoryPath, mFileName]);
     final outputFile = File(joinAll([Directory.current.path, appIDFilePath]));
 
     _writeHeaderAndAppID(outputFile.path);

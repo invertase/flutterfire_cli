@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
+
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
@@ -57,17 +58,21 @@ class FirebaseAndroidGradlePlugins {
   FirebaseAndroidGradlePlugins(
     this.flutterApp,
     this.firebaseOptions,
-    this.logger,
-  );
+    this.logger, {
+    this.flavor,
+  });
 
   final FlutterApp flutterApp;
   final FirebaseOptions firebaseOptions;
   final Logger logger;
+  final String? flavor;
 
   File get androidGoogleServicesJsonFile => File(
         path.join(
           flutterApp.androidDirectory.path,
           'app',
+          flavor != null ? 'src' : '',
+          flavor ?? '',
           firebaseOptions.optionsSourceFileName,
         ),
       );

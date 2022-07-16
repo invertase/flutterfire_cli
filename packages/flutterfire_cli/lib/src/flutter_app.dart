@@ -242,4 +242,141 @@ class FlutterApp {
   bool _supportsPlatform(String platform) {
     return _platformDirectory(platform).existsSync();
   }
+
+  bool get hasFlavors =>
+      (androidFlavors?.isNotEmpty ?? false) ||
+      (iosFlavors?.isNotEmpty ?? false);
+
+  Map<String, String?>? get androidFlavors => _getAndroidFlavors();
+
+  Map<String, String?>? get iosFlavors => _getIosFlavors(kIos);
+
+  Map<String, String?>? _getAndroidFlavors() {
+    final appGradleFile = File(
+      androidAppBuildGradlePathForAppDirectory(
+        Directory(package.path),
+      ),
+    );
+    if (appGradleFile.existsSync()) {
+      final fileContents = appGradleFile.readAsStringSync();
+
+      final trimmedFileContents = fileContents.replaceAll(RegExp(r'\s+'), '');
+
+      final flavorsRegex = RegExp(
+        r'''productFlavors{(?<productFlavors>([^\d]*)(]}|"}))''',
+      );
+      final match = flavorsRegex.firstMatch(trimmedFileContents);
+      final productFlavors = match?.namedGroup('productFlavors');
+      if (productFlavors == null) return null;
+      final splitResults = productFlavors.split('}');
+      final flavors = <String, String?>{};
+      for (final result in splitResults) {
+        final flavorNameRegex = RegExp(
+          '''(?<productFlavorName>([^{]*))''',
+        );
+        final flavorNameMatch = flavorNameRegex.firstMatch(result);
+        final productFlavorName =
+            flavorNameMatch?.namedGroup('productFlavorName');
+        if (productFlavorName == null || productFlavorName.isEmpty) continue;
+
+        final flavorApplicationIdSuffixRegex = RegExp(
+          r'''applicationIdSuffix"(?<applicationIdSuffix>([^\d|"]*)")''',
+        );
+        final flavorApplicationIdSuffixMatch =
+            flavorApplicationIdSuffixRegex.firstMatch(result);
+        var applicationIdSuffix = flavorApplicationIdSuffixMatch
+            ?.namedGroup('applicationIdSuffix')
+            ?.replaceAll('"', '');
+        applicationIdSuffix = (applicationIdSuffix?.isEmpty ?? true)
+            ? androidApplicationId
+            : '$androidApplicationId$applicationIdSuffix';
+        flavors[productFlavorName.trim()] = applicationIdSuffix;
+      }
+      return flavors;
+    }
+    return null;
+  }
+
+  Map<String, String?>? _getIosFlavors(String platform) {
+    final xcodeProjFile =
+        xcodeProjectFileInDirectory(Directory(package.path), platform);
+    final xcodeAppInfoConfigFile =
+        xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
+
+    final buildConfigurationsRegex = RegExp(
+      r'''buildConfigurations\s=\s\(\s(?<buildConfigurations>([^"]*)\);)''',
+      multiLine: true,
+    );
+
+    if (xcodeProjFile.existsSync()) {
+      final fileContents = xcodeProjFile.readAsStringSync();
+      final match = buildConfigurationsRegex.allMatches(fileContents).last;
+      final buildConfigurations = match.namedGroup('buildConfigurations');
+      if (buildConfigurations == null) return null;
+      final splitResult = buildConfigurations.split(',');
+      if (splitResult.isEmpty) return null;
+      // last split result is ");" so remove it.
+      splitResult.removeLast();
+      final flavors = <String, String?>{};
+      for (final result in splitResult) {
+        final flavorSplit = result.split('/*');
+        if (flavorSplit.length < 2) continue;
+        final flavorName = flavorSplit[1]
+            .trim()
+            .replaceFirst('*/', '')
+            .replaceFirst('Debug-', '')
+            .replaceFirst('Profile-', '')
+            .replaceFirst('Release-', '');
+
+        final buildConfigurationId = flavorSplit[0].trim();
+        final bundleId = _extractBundleId(xcodeProjFile, buildConfigurationId);
+        flavors[flavorName.trim()] = bundleId;
+      }
+      return flavors;
+    }
+
+    if (xcodeAppInfoConfigFile.existsSync()) {
+      final fileContents = xcodeAppInfoConfigFile.readAsStringSync();
+      final match = buildConfigurationsRegex.allMatches(fileContents).last;
+      final buildConfigurations = match.namedGroup('buildConfigurations');
+      if (buildConfigurations == null) return null;
+      final splitResult = buildConfigurations.split(',');
+      if (splitResult.isEmpty) return null;
+      // last split result is ");" so remove it.
+      splitResult.removeLast();
+      final flavors = <String, String?>{};
+      for (final result in splitResult) {
+        final flavorSplit = result.split('/*');
+        if (flavorSplit.length < 2) continue;
+        final flavorName = flavorSplit[1]
+            .trim()
+            .replaceFirst('*/', '')
+            .replaceFirst('Debug-', '')
+            .replaceFirst('Profile-', '')
+            .replaceFirst('Release-', '');
+
+        final buildConfigurationId = flavorSplit[0].trim();
+        final bundleId =
+            _extractBundleId(xcodeAppInfoConfigFile, buildConfigurationId);
+        flavors[flavorName.trim()] = bundleId;
+      }
+      return flavors;
+    }
+
+    return null;
+  }
+
+  String? _extractBundleId(File file, String buildConfigurationId) {
+    var startSearch = false;
+    for (final line in file.readAsStringSync().split('\n')) {
+      if (startSearch) {
+        if (line.contains('PRODUCT_BUNDLE_IDENTIFIER')) {
+          return line.split('=')[1].trim().replaceFirst(';', '');
+        }
+      } else if (line.contains(buildConfigurationId)) {
+        startSearch = true;
+      }
+    }
+    return null;
+  }
 }
