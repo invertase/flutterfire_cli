@@ -16,10 +16,12 @@
  */
 
 import 'dart:io';
+
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
+
 import 'platform.dart';
 
 /// Key for windows platform.
@@ -211,13 +213,15 @@ String relativePath(String path, String from) {
 
 String generateRubyScript(
   String googleServiceInfoFile,
-  String xcodeProjFilePath,
-) {
+  String xcodeProjFilePath, {
+  String? flavor,
+}) {
+  final flavorDirectory = flavor == null ? '' : '/$flavor';
   return '''
 require 'xcodeproj'
 googleFile='$googleServiceInfoFile'
 xcodeFile='$xcodeProjFilePath'
-
+flavor='$flavor'
 # define the path to your .xcodeproj file
 project_path = xcodeFile
 # open the xcode project
@@ -226,7 +230,7 @@ project = Xcodeproj::Project.open(project_path)
 # check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.
 googleConfigExists = false
 project.files.each do |file|
-  if file.path == "Runner/GoogleService-Info.plist"
+  if file.path == "Runner$flavorDirectory/GoogleService-Info.plist"
     googleConfigExists = true
     exit
   end
@@ -234,10 +238,39 @@ end
 
 # Write only if config doesn't exist
 if googleConfigExists == false
+  if flavor == "null"
+    # create a new file
     file = project.new_file(googleFile)
     main_target = project.targets.first
     main_target.add_file_references([file])
+  else
+    # create a new group
+    currentGroup = project.new_group(flavor)
+    # create a new file
+    currentGroup.new_file(googleFile)
+  end
   project.save
 end
 ''';
+}
+
+String buildSettingsRubyScript(String xcodeProjFilePath) {
+  const shellScript =
+      r'''"GOOGLE_SERVICE_INFO_PLIST_FROM=\"${PROJECT_DIR}/Runner/${FLAVOR}/GoogleService-Info.plist\"\nBUILD_APP_DIR=\"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}\"\nGOOGLE_SERVICE_INFO_PLIST_TO=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\ncp \"${GOOGLE_SERVICE_INFO_PLIST_FROM}\" \"${GOOGLE_SERVICE_INFO_PLIST_TO}\""''';
+  return '''
+require 'xcodeproj'
+  xcodeFile='$xcodeProjFilePath'
+  project_path = xcodeFile
+  # open the xcode project
+  project = Xcodeproj::Project.open(project_path)
+  for target in project.targets
+      phase = target.new_shell_script_build_phase("google service info run phase")
+      phase.shell_script = $shellScript
+      target.build_configurations.each do |config|
+        configName = config.name.sub("Debug-", "").sub("Profile-", "").sub("Release-", "")
+        config.build_settings['FLAVOR'] = configName
+      end
+  end
+ project.save()
+   ''';
 }

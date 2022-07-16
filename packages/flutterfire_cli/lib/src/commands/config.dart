@@ -16,6 +16,7 @@
  */
 
 import 'dart:io';
+
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
@@ -32,7 +33,6 @@ import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
 import '../flutter_app.dart';
-
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
@@ -224,9 +224,12 @@ class ConfigCommand extends FlutterFireCommand {
     return 'android';
   }
 
-  Future<FirebaseProject> _promptCreateFirebaseProject() async {
+  Future<FirebaseProject> _promptCreateFirebaseProject({String? flavor}) async {
+    final forFlavorKeyword = flavor != null ? 'for $flavor' : '';
+    final flavorKeyword = flavor != null ? '-$flavor' : '';
+
     final newProjectId = promptInput(
-      'Enter a project id for your new Firebase project (e.g. ${AnsiStyles.cyan('my-cool-project')})',
+      'Enter a project id for your new Firebase project (e.g. ${AnsiStyles.cyan('my-cool-project$flavorKeyword')})',
       validator: (String x) {
         if (RegExp(r'^[a-zA-Z0-9\-]+$').hasMatch(x)) {
           return true;
@@ -238,7 +241,7 @@ class ConfigCommand extends FlutterFireCommand {
     final creatingProjectSpinner = spinner(
       (done) {
         if (!done) {
-          return 'Creating new Firebase project ${AnsiStyles.cyan(newProjectId)}...';
+          return 'Creating new Firebase project ${AnsiStyles.cyan(newProjectId)} $forFlavorKeyword...';
         }
         return 'New Firebase project ${AnsiStyles.cyan(newProjectId)} created successfully.';
       },
@@ -252,7 +255,7 @@ class ConfigCommand extends FlutterFireCommand {
     return newProject;
   }
 
-  Future<FirebaseProject> _selectFirebaseProject() async {
+  Future<FirebaseProject> _selectFirebaseProject({String? flavor}) async {
     var selectedProjectId = projectId;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
@@ -261,6 +264,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     List<FirebaseProject>? firebaseProjects;
+    final flavorKeyword = flavor != null ? 'for $flavor' : '';
 
     final fetchingProjectsSpinner = spinner(
       (done) {
@@ -270,7 +274,7 @@ class ConfigCommand extends FlutterFireCommand {
         final baseMessage =
             'Found ${AnsiStyles.cyan('${firebaseProjects?.length ?? 0}')} Firebase projects.';
         if (selectedProjectId != null) {
-          return '$baseMessage Selecting project ${AnsiStyles.cyan(selectedProjectId)}.';
+          return '$baseMessage Selecting project ${AnsiStyles.cyan(selectedProjectId)} $flavorKeyword.';
         }
         return baseMessage;
       },
@@ -304,13 +308,13 @@ class ConfigCommand extends FlutterFireCommand {
     ];
 
     final selectedChoiceIndex = promptSelect(
-      'Select a Firebase project to configure your Flutter application with',
+      'Select a Firebase project to configure your Flutter application with, $flavorKeyword',
       choices,
     );
 
     // Last choice is to create a new project.
     if (selectedChoiceIndex == choices.length - 1) {
-      return _promptCreateFirebaseProject();
+      return _promptCreateFirebaseProject(flavor: flavor);
     }
 
     return firebaseProjects[selectedChoiceIndex];
@@ -365,7 +369,67 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     commandRequiresFlutterApp();
 
-    final selectedFirebaseProject = await _selectFirebaseProject();
+    var supportFlavors = false;
+    if (flutterApp!.hasFlavors) {
+      supportFlavors = promptBool(
+        'Do you want create firebase project for each flavor?',
+        defaultValue: supportFlavors,
+      );
+    }
+
+    // since user choose to support flavor then
+    // user can select a different firebase project for each flavor.
+
+    if (supportFlavors) {
+      // the only things allows to be different
+      // is ios bundle id and android app id.
+      assert(
+        flutterApp!.iosFlavors?.length == flutterApp!.androidFlavors?.length,
+        'ios and android flavors must be same length',
+      );
+      assert(
+        flutterApp!.iosFlavors?.keys.join() ==
+            flutterApp!.androidFlavors?.keys.join(),
+        'ios and android flavors must be same',
+      );
+      final flavors = flutterApp?.iosFlavors?.keys ?? [];
+      final androidFlavors = flutterApp?.androidFlavors;
+      final iosFlavors = flutterApp?.iosFlavors;
+      // or android flavors since they are same.
+
+      for (final key in flavors) {
+        await start(
+          flavor: key,
+          androidApplicationId: androidFlavors?[key],
+          iosBundleId: iosFlavors?[key],
+        );
+      }
+
+      // add shell script to xcode project to switch google-service-info.plist file based on current flavor.
+      final xcodeProjFilePath =
+          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+      final rubyScript = buildSettingsRubyScript(xcodeProjFilePath);
+      if (Platform.isMacOS) {
+        await Process.run('ruby', ['-e', rubyScript]);
+      }
+    } else {
+      // if user doesn't want to support flavor then
+      // we can use the same firebase project for all flavors.
+      await start();
+    }
+    logger.stdout('');
+    logger.stdout(
+      logLearnMoreAboutCli,
+    );
+  }
+
+  Future<void> start({
+    String? flavor,
+    String? androidApplicationId,
+    String? iosBundleId,
+  }) async {
+    final selectedFirebaseProject =
+        await _selectFirebaseProject(flavor: flavor);
     final selectedPlatforms = _selectPlatforms();
 
     if (!selectedPlatforms.containsValue(true)) {
@@ -376,7 +440,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (selectedPlatforms[kAndroid]!) {
       androidOptions = await FirebaseAndroidOptions.forFlutterApp(
         flutterApp!,
-        androidApplicationId: androidApplicationId,
+        androidApplicationId: androidApplicationId ?? this.androidApplicationId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
         token: token,
@@ -387,7 +451,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (selectedPlatforms[kIos]!) {
       iosOptions = await FirebaseAppleOptions.forFlutterApp(
         flutterApp!,
-        appleBundleIdentifier: iosBundleId,
+        appleBundleIdentifier: iosBundleId ?? this.iosBundleId,
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
         token: token,
@@ -440,8 +504,11 @@ class ConfigCommand extends FlutterFireCommand {
 
     final futures = <Future>[];
 
+    final mOutputFilePath = flavor != null
+        ? '${outputFilePath.replaceFirst('.dart', '')}_$flavor.dart'
+        : outputFilePath;
     final configFile = FirebaseConfigurationFile(
-      outputFilePath,
+      mOutputFilePath,
       androidOptions: androidOptions,
       iosOptions: iosOptions,
       macosOptions: macosOptions,
@@ -456,6 +523,7 @@ class ConfigCommand extends FlutterFireCommand {
       if (iosOptions != null) {
         final appIDFile = FirebaseAppIDFile(
           iosAppIDOutputFilePrefix,
+          flavor: flavor,
           options: iosOptions,
           force: isCI || yes,
         );
@@ -482,6 +550,7 @@ class ConfigCommand extends FlutterFireCommand {
           flutterApp!,
           androidOptions,
           logger,
+          flavor: flavor,
         ).apply(force: isCI || yes),
       );
     }
@@ -490,26 +559,27 @@ class ConfigCommand extends FlutterFireCommand {
       final googleServiceInfoFile = path.join(
         flutterApp!.iosDirectory.path,
         'Runner',
+        flavor ?? '',
         iosOptions.optionsSourceFileName,
       );
 
       final file = File(googleServiceInfoFile);
-
       if (!file.existsSync()) {
+        await file.create(recursive: true);
         await file.writeAsString(iosOptions.optionsSourceContent);
       }
 
       final xcodeProjFilePath =
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+      final rubyScript = generateRubyScript(
+        googleServiceInfoFile,
+        xcodeProjFilePath,
+        flavor: flavor,
+      );
 
       if (Platform.isMacOS) {
-        await Process.run('ruby', [
-          '-e',
-          rubyScript,
-        ]);
+        await Process.run('ruby', ['-e', rubyScript]);
       }
     }
 
@@ -559,10 +629,6 @@ class ConfigCommand extends FlutterFireCommand {
         ],
         paddingSize: 2,
       ),
-    );
-    logger.stdout('');
-    logger.stdout(
-      logLearnMoreAboutCli,
     );
   }
 }
