@@ -362,8 +362,6 @@ class CreateCommand extends FlutterFireCommand {
 
     final config = ConfigCommand(flutterApp);
 
-    await Process.run('cd', ['coucou']);
-
     await config.run();
   }
 }
