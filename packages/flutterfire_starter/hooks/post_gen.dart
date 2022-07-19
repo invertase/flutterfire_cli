@@ -48,19 +48,26 @@ Future<void> _copyGeneratedFilesToLib(HookContext context) async {
     './{{name}}/lib/',
   ]);
 
-  await Process.run('mkdir', [
-    './{{name}}/lib/',
+  final results = await Future.wait<ProcessResult>([
+    Process.run('mv', [
+      'lib',
+      './{{name}}/',
+    ]),
+    Process.run('mv', [
+      'macos/Podfile',
+      './{{name}}/macos',
+    ])
   ]);
 
-  final result = await Process.run('mv', [
-    'src',
-    'main.dart',
-    './{{name}}/lib/',
-  ]);
-  if (result.exitCode == 0) {
+  // Cleaning empty folders
+  await Process.run('rm', ['-rf', 'macos']);
+
+  if (results.every((element) => element.exitCode == 0)) {
     done.complete('Files copied successfully');
   } else {
-    done.fail(result.stderr.toString());
+    done.fail(
+      results.firstWhere((element) => element.exitCode != 0).stderr.toString(),
+    );
   }
 }
 
