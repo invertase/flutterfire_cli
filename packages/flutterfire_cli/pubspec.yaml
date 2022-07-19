@@ -19,7 +19,7 @@ dependencies:
   platform: ^3.0.2
   pub_updater: ^0.2.2
   pubspec: ^2.1.0
-  xml: ^5.3.1
+  xml: ^6.1.0
 
 dev_dependencies:
   test: ^1.16.0
