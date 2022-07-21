@@ -13,8 +13,7 @@ Future<void> run(HookContext context) async {
 }
 
 Future<void> _removeFiles(HookContext context, String name) async {
-  final removingFilesDone =
-      context.logger.progress('removing .gitkeep files ...');
+  final removingFilesDone = context.logger.progress('removing $name files ...');
   final dir = Directory('.');
   dir
       .list(recursive: true)
@@ -23,7 +22,7 @@ Future<void> _removeFiles(HookContext context, String name) async {
     (element) {
       element.delete();
     },
-    onDone: () => removingFilesDone.complete('.gitkeep files removed!'),
+    onDone: () => removingFilesDone.complete('$name files removed!'),
   );
 }
 
