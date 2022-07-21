@@ -1,0 +1,26 @@
+name: flutterfire_starter
+description: A template to have a quickstart with FlutterFire
+
+version: 0.1.0
+
+environment:
+  mason: ">=0.1.0-dev.26 <0.1.0"
+
+vars:
+  name:
+    type: string
+    description: Project name
+    default: my_app
+    prompt: What is the project name?
+
+  description:
+    type: string
+    description: Project description
+    default: FlutterFire starter
+    prompt: What is the description of the project?
+
+  org:
+    type: string
+    description: Organization name
+    default: com.example
+    prompt: What is your organization name?

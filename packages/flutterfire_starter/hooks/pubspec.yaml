@@ -1,0 +1,8 @@
+name: flutterfire_starter_hooks
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutterfire_cli: ^0.2.4
+  mason: ^0.1.0-dev

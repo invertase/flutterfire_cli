@@ -16,6 +16,7 @@
  */
 
 import 'package:args/command_runner.dart';
+
 import 'commands/config.dart';
 import 'common/utils.dart';
 import 'flutter_app.dart';
@@ -27,7 +28,7 @@ import 'flutter_app.dart';
 /// ```dart
 /// final flutterFire = FlutterFireCommandRunner();
 ///
-/// await FlutterFireCommandRunner.run(['config']);
+/// await flutterFire.run(['config']);
 /// ```
 class FlutterFireCommandRunner extends CommandRunner<void> {
   FlutterFireCommandRunner(FlutterApp? flutterApp)
