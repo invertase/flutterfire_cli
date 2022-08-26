@@ -234,7 +234,9 @@ end
 
 # Write only if config doesn't exist
 if googleConfigExists == false
-  project.new_file(googleFile)
+  file = project.new_file(googleFile)
+  main_target = project.targets.find { |target| target.name == 'Runner' }
+  main_target.add_file_references([file])
   project.save
 end
 ''';
