@@ -322,15 +322,17 @@ class FlutterApp {
         final flavorSplit = result.split('/*');
         if (flavorSplit.length < 2) continue;
         final flavorName = flavorSplit[1]
-            .trim()
             .replaceFirst('*/', '')
-            .replaceFirst('Debug-', '')
-            .replaceFirst('Profile-', '')
-            .replaceFirst('Release-', '');
+            .replaceFirst('-', '')
+            .replaceFirst('Debug', '')
+            .replaceFirst('Profile', '')
+            .replaceFirst('Release', '')
+            .trim()
+            .toLowerCase();
 
         final buildConfigurationId = flavorSplit[0].trim();
         final bundleId = _extractBundleId(xcodeProjFile, buildConfigurationId);
-        flavors[flavorName.trim()] = bundleId;
+        flavors[flavorName] = bundleId;
       }
       return flavors;
     }
@@ -349,16 +351,18 @@ class FlutterApp {
         final flavorSplit = result.split('/*');
         if (flavorSplit.length < 2) continue;
         final flavorName = flavorSplit[1]
-            .trim()
             .replaceFirst('*/', '')
-            .replaceFirst('Debug-', '')
-            .replaceFirst('Profile-', '')
-            .replaceFirst('Release-', '');
+            .replaceFirst('-', '')
+            .replaceFirst('Debug', '')
+            .replaceFirst('Profile', '')
+            .replaceFirst('Release', '')
+            .trim()
+            .toLowerCase();
 
         final buildConfigurationId = flavorSplit[0].trim();
         final bundleId =
             _extractBundleId(xcodeAppInfoConfigFile, buildConfigurationId);
-        flavors[flavorName.trim()] = bundleId;
+        flavors[flavorName] = bundleId;
       }
       return flavors;
     }

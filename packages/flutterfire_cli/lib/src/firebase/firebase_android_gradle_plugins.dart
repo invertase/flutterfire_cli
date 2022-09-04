@@ -80,8 +80,10 @@ class FirebaseAndroidGradlePlugins {
   File get androidBuildGradleFile =>
       File(path.join(flutterApp.androidDirectory.path, 'build.gradle'));
   String? _androidBuildGradleFileContents;
+
   set androidBuildGradleFileContents(String contents) =>
       _androidBuildGradleFileContents = contents;
+
   String get androidBuildGradleFileContents =>
       _androidBuildGradleFileContents ??=
           androidBuildGradleFile.readAsStringSync();
@@ -89,8 +91,10 @@ class FirebaseAndroidGradlePlugins {
   File get androidAppBuildGradleFile =>
       File(path.join(flutterApp.androidDirectory.path, 'app', 'build.gradle'));
   String? _androidAppBuildGradleFileContents;
+
   set androidAppBuildGradleFileContents(String contents) =>
       _androidAppBuildGradleFileContents = contents;
+
   String get androidAppBuildGradleFileContents =>
       _androidAppBuildGradleFileContents ??=
           androidAppBuildGradleFile.readAsStringSync();
@@ -125,10 +129,13 @@ class FirebaseAndroidGradlePlugins {
         return;
       }
     }
+    if (!androidGoogleServicesJsonFile.parent.existsSync()) {
+      await androidGoogleServicesJsonFile.parent.create();
+    }
+
     await androidGoogleServicesJsonFile.writeAsString(
       firebaseOptions.optionsSourceContent,
     );
-
     if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
       final hasMatch =
           _androidBuildGradleRegex.hasMatch(androidBuildGradleFileContents);
