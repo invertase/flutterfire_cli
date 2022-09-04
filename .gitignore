@@ -22,3 +22,5 @@ doc/api/
 *.iml
 .idea
 .vscode
+
+test_generation/

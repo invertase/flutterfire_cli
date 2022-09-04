@@ -522,7 +522,7 @@ class ConfigCommand extends FlutterFireCommand {
     if (generateAppIdJson) {
       if (iosOptions != null) {
         final appIDFile = FirebaseAppIDFile(
-          iosAppIDOutputFilePrefix,
+          flutterApp?.iosDirectory.path ?? iosAppIDOutputFilePrefix,
           flavor: flavor,
           options: iosOptions,
           force: isCI || yes,
@@ -532,7 +532,8 @@ class ConfigCommand extends FlutterFireCommand {
 
       if (macosOptions != null) {
         final appIDFile = FirebaseAppIDFile(
-          macosAppIDOutputFilePrefix,
+          // In order to generate if we're not in the folder of the flutterApp
+          flutterApp?.macosDirectory.path ?? macosAppIDOutputFilePrefix,
           options: macosOptions,
           force: isCI || yes,
         );
