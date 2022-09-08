@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-09-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.2.5`](#flutterfire_cli---v025)
+
+---
+
+#### `flutterfire_cli` - `v0.2.5`
+
+ - **FIX**: throw exception if target is not called Runner. ([64ad3318](https://github.com/invertase/flutterfire_cli/commit/64ad3318f86061e560035b18a280164c0377e952))
+ - **FIX**: file not found by firebase unless added to target. ([74a6fdac](https://github.com/invertase/flutterfire_cli/commit/74a6fdaccaa11f9b9f1cb31e34d9b04c149b36eb))
+ - **FEAT**: add mason template. ([958e92c5](https://github.com/invertase/flutterfire_cli/commit/958e92c5f134af838c236fd4980d922ff966ef6e))
+
+
 ## 2022-07-13 (Re-release due to incorrect versioning)
 
 ### Changes
