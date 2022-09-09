@@ -580,7 +580,14 @@ class ConfigCommand extends FlutterFireCommand {
       );
 
       if (Platform.isMacOS) {
-        await Process.run('ruby', ['-e', rubyScript]);
+        final result = await Process.run('ruby', [
+          '-e',
+          rubyScript,
+        ]);
+
+        if (result.exitCode != 0) {
+          throw Exception(result.stderr);
+        }
       }
     }
 
@@ -603,10 +610,14 @@ class ConfigCommand extends FlutterFireCommand {
           generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
 
       if (Platform.isMacOS) {
-        await Process.run('ruby', [
+        final result = await Process.run('ruby', [
           '-e',
           rubyScript,
         ]);
+
+        if (result.exitCode != 0) {
+          throw Exception(result.stderr);
+        }
       }
     }
 

@@ -240,14 +240,27 @@ end
 if googleConfigExists == false
   if flavor == "null"
     # create a new file
-    project.new_file(googleFile)
+      file = project.new_file(googleFile)
+      main_target = project.targets.find { |target| target.name == 'Runner' }
+      if(main_target)
+        main_target.add_file_references([file])
+        project.save
+      else
+        abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
+      end  
   else
     # create a new group
     currentGroup = project.new_group(flavor)
     # create a new file
-    currentGroup.new_file(googleFile)
+    file = currentGroup.new_file(googleFile)
+    main_target = project.targets.find { |target| target.name == 'Runner' }
+    if(main_target)
+      main_target.add_file_references([file])
+      project.save
+    else
+       abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
+    end  
   end
-  project.save
 end
 ''';
 }
