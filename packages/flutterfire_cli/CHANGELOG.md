@@ -1,3 +1,9 @@
+## 0.2.5
+
+ - **FIX**: throw exception if target is not called Runner. ([64ad3318](https://github.com/invertase/flutterfire_cli/commit/64ad3318f86061e560035b18a280164c0377e952))
+ - **FIX**: file not found by firebase unless added to target. ([74a6fdac](https://github.com/invertase/flutterfire_cli/commit/74a6fdaccaa11f9b9f1cb31e34d9b04c149b36eb))
+ - **FEAT**: add mason template. ([958e92c5](https://github.com/invertase/flutterfire_cli/commit/958e92c5f134af838c236fd4980d922ff966ef6e))
+
 ## 0.2.4
 
  - **CHORE**: Release `flutterfire_cli` again due to incorrect versioning for `0.2.3` release.
