@@ -28,10 +28,11 @@ Future<void> _removeFiles(HookContext context, String name) async {
 
 Future<void> _installDependencies(HookContext context) async {
   final installDone = context.logger.progress('Installing dependencies...');
+  final appName = context.vars['name'] as String;
   final result = await Process.run(
     'flutter',
     ['pub', 'add', 'firebase_core'],
-    workingDirectory: './{{name}}',
+    workingDirectory: './$appName',
   );
   if (result.exitCode == 0) {
     installDone.complete('Dependencies installed!');
@@ -42,19 +43,20 @@ Future<void> _installDependencies(HookContext context) async {
 
 Future<void> _copyGeneratedFilesToLib(HookContext context) async {
   final done = context.logger.progress('Copying files to lib...');
+  final appName = context.vars['name'] as String;
   await Process.run('rm', [
     '-rf',
-    './{{name}}/lib/',
+    './$appName/lib/',
   ]);
 
   final results = await Future.wait<ProcessResult>([
     Process.run('mv', [
       'lib',
-      './{{name}}/',
+      './$appName/',
     ]),
     Process.run('mv', [
       'macos/Podfile',
-      './{{name}}/macos',
+      './$appName/macos',
     ])
   ]);
 
@@ -72,7 +74,8 @@ Future<void> _copyGeneratedFilesToLib(HookContext context) async {
 
 Future<void> _runFlutterFireConfigure(HookContext context) async {
   context.logger.info('Running FlutterFire configure...');
-  final app = await FlutterApp.load(Directory('./{{name}}'));
+  final appName = context.vars['name'] as String;
+  final app = await FlutterApp.load(Directory('./$appName'));
   final flutterFire = FlutterFireCommandRunner(app);
 
   await flutterFire.run(['config']);
@@ -80,10 +83,10 @@ Future<void> _runFlutterFireConfigure(HookContext context) async {
 
 Future<void> _copyConfigFile(HookContext context) async {
   final done = context.logger.progress('Copying generated config to lib...');
-
+  final appName = context.vars['name'] as String;
   final result = await Process.run('mv', [
     'lib/firebase_options.dart',
-    './{{name}}/lib/',
+    './$appName/lib/',
   ]);
 
   await Process.run('rm', [
