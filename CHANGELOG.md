@@ -15,6 +15,29 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`flutterfire_cli` - `v0.2.6`](#flutterfire_cli---v026)
+
+---
+
+#### `flutterfire_cli` - `v0.2.6`
+
+ - **FIX**: GoogleService-Info.plist file not found by Firebase SDK unless added to target ([b7b307b](https://github.com/invertase/flutterfire_cli/commit/b7b307b78af35d5313eea1dab29cf25864bd6955))
+ - **REFACTOR**: remove deprecated templating ([c5e34f1](https://github.com/invertase/flutterfire_cli/commit/c5e34f1b6c546bd58a58a060a10bad5b6c7b2149))
+ - **FIX**: reuse projectId when displayName is null on configure ([5919d4e](https://github.com/invertase/flutterfire_cli/commit/5919d4ee85033e97948021637e027a50a4c3f297))
+
+
+## 2022-09-8
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`flutterfire_cli` - `v0.2.5`](#flutterfire_cli---v025)
 
 ---
