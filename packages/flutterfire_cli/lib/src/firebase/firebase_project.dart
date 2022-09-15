@@ -54,7 +54,8 @@ class FirebaseProject {
       : this(
           projectId: json['projectId'] as String,
           projectNumber: json['projectNumber'] as String,
-          displayName: json['displayName'] as String,
+          displayName:
+              json['displayName'] as String? ?? json['projectId'] as String,
           name: json['name'] as String,
           state: json['state'] as String,
           resources: FirebaseProjectResources.fromJson(
@@ -64,7 +65,7 @@ class FirebaseProject {
 
   final String projectId;
 
-  final String displayName;
+  final String? displayName;
 
   final String name;
 
