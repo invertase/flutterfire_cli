@@ -372,7 +372,7 @@ class ConfigCommand extends FlutterFireCommand {
     var supportFlavors = false;
     if (flutterApp!.hasFlavors) {
       supportFlavors = promptBool(
-        'Do you want  to create a firebase project for each flavor?',
+        'Do you want to create a Firebase project for each flavor?',
         defaultValue: supportFlavors,
       );
     }
