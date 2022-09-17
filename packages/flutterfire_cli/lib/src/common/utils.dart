@@ -155,6 +155,7 @@ String promptInput(
 }
 
 interact.SpinnerState? activeSpinnerState;
+
 interact.SpinnerState spinner(String Function(bool) rightPrompt) {
   activeSpinnerState = interact.Spinner(
     icon: AnsiStyles.blue('i'),
@@ -278,8 +279,8 @@ require 'xcodeproj'
       phase = target.new_shell_script_build_phase("google service info run phase")
       phase.shell_script = $shellScript
       target.build_configurations.each do |config|
-        configName = config.name.sub("Debug-", "").sub("Profile-", "").sub("Release-", "")
-        config.build_settings['FLAVOR'] = configName
+        flavorName = config.name.sub("Debug", "").sub("Profile", "").sub("Release", "").sub("-", "").sub("_", "").sub(" ", "")
+        config.build_settings['FLAVOR'] = flavorName
       end
   end
  project.save()
