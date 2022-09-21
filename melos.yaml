@@ -21,6 +21,10 @@ scripts:
       ignore:
         - "*monorepo*"
 
+  format-check:
+    run: melos exec flutter format . --set-exit-if-changed
+    description: Run `flutter format` checks for all packages.
+
   test:
     description: Run tests in a specific package.
     run: melos exec --concurrency=1 -- "dart pub get && dart pub run test --reporter expanded"
