@@ -30,9 +30,25 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 {{#uses_firestore}}
+require 'yaml'
+
+pubspec = YAML.load_file(File.join('..', 'pubspec.yaml'))
+library_version = pubspec['version'].gsub('+', '-')
+
+if defined?($FirebaseSDKVersion)
+  Pod::UI.puts "#{pubspec['name']}: Using user specified Firebase SDK version '#{$FirebaseSDKVersion}'"
+  firebase_sdk_version = $FirebaseSDKVersion
+else
+  firebase_core_script = File.join(File.expand_path('..', File.expand_path('..', File.dirname(__FILE__))), 'firebase_core/ios/firebase_sdk_version.rb')
+  if File.exist?(firebase_core_script)
+    require firebase_core_script
+    firebase_sdk_version = firebase_sdk_version!
+    Pod::UI.puts "#{pubspec['name']}: Using Firebase SDK version '#{firebase_sdk_version}' defined in 'firebase_core'"
+  end
+end
   # Currently, the Firestore iOS SDK depends on some 500k lines of mostly C++ code which can take upwards of 5 minutes to build in Xcode. 
   # To reduce build times significantly, you can use this pre-compiled version by keeping this line in.
-  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '9.6.0'
+  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '#{firebase_sdk_version}'
 {{/uses_firestore}}
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
