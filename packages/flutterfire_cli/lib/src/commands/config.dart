@@ -64,7 +64,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'ios-bundle-id',
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'i',
       help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -73,7 +72,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       'macos-bundle-id',
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'm',
       help: 'The bundle identifier of your macOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -158,6 +156,46 @@ class ConfigCommand extends FlutterFireCommand {
         .toList();
   }
 
+  String? _getPlatformIdArgument(
+    String name, {
+    String? deprecatedName,
+  }) {
+    final currentValue = argResults![name] as String?;
+    final deprecatedValue =
+        deprecatedName != null ? argResults![deprecatedName] as String? : null;
+
+    final currentOption = argParser.findByNameOrAlias(name);
+    final deprecatedOption = argParser.findByNameOrAlias(deprecatedName ?? '');
+
+    if (currentValue != null) return currentValue;
+
+    final currentMessage = currentOption?.abbr != null
+        ? '${currentOption?.name} (-${currentOption?.abbr})'
+        : currentOption?.name;
+
+    if (deprecatedValue != null) {
+      final deprecatedMessage = deprecatedOption?.abbr != null
+          ? '${deprecatedOption?.name} (-${deprecatedOption?.abbr})'
+          : deprecatedOption?.name;
+
+      logger.stdout(
+        AnsiStyles.yellow(
+          'Warning - $deprecatedMessage is deprecated. Consider using $currentMessage instead.',
+        ),
+      );
+      return deprecatedValue;
+    }
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for ${AnsiStyles.cyan(currentMessage)}, or remove the related platform from '
+            'the ${AnsiStyles.cyan('--platform')} option.',
+      );
+    }
+    return null;
+  }
+
   bool get applyGradlePlugins {
     return argResults!['apply-gradle-plugins'] as bool;
   }
@@ -166,42 +204,13 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['app-id-json'] as bool;
   }
 
-  String? get androidApplicationId {
-    final value = argResults!['android-package-name'] as String?;
-    final deprecatedValue = argResults!['android-app-id'] as String?;
-
-    // TODO validate packagename is valid if provided.
-
-    if (value != null) {
-      return value;
-    }
-    if (deprecatedValue != null) {
-      logger.stdout(
-        'Warning - android-app-id (-a) is deprecated. Consider using android-package-name (-p) instead.',
+  String? get androidApplicationId => _getPlatformIdArgument(
+        'android-package-name',
+        deprecatedName: 'android-app-id',
       );
-      return deprecatedValue;
-    }
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for android-package-name.',
-      );
-    }
-    return null;
-  }
-
-  String? get iosBundleId {
-    final value = argResults!['ios-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    return value;
-  }
-
-  String? get macosBundleId {
-    final value = argResults!['macos-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    return value;
-  }
+  String? get iosBundleId => _getPlatformIdArgument('ios-bundle-id');
+  String? get macosBundleId => _getPlatformIdArgument('macos-bundle-id');
 
   String? get token {
     final value = argResults!['token'] as String?;
