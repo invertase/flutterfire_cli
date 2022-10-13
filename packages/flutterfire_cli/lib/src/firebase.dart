@@ -226,6 +226,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   String? packageNameOrBundleIdentifier,
   String? account,
   String? token,
+  String? webAppId,
 }) async {
   var foundFirebaseApp = false;
   final displayNameWithPlatform = '$displayName ($platform)';
@@ -238,7 +239,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   final fetchingAppsSpinner = spinner(
     (done) {
       final loggingAppName =
-          packageNameOrBundleIdentifier ?? displayNameWithPlatform;
+          packageNameOrBundleIdentifier ?? webAppId ?? displayNameWithPlatform;
       if (!done) {
         return AnsiStyles.bold(
           'Fetching registered ${AnsiStyles.cyan(platform)} Firebase apps for project ${AnsiStyles.cyan(project)}',
@@ -279,14 +280,16 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   if (platform == kWeb && filteredFirebaseApps.isEmpty) {
     filteredFirebaseApps = unfilteredFirebaseApps.where(
       (firebaseApp) {
+        if (webAppId != null) {
+          return firebaseApp.appId == webAppId && firebaseApp.platform == kWeb;
+        }
+
         return firebaseApp.platform == kWeb;
       },
     );
   }
   foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
   fetchingAppsSpinner.done();
-  // TODO in the case of web, if more than one found app then
-  // TODO we should maybe prompt to choose one.
   if (foundFirebaseApp) {
     return filteredFirebaseApps.first;
   }
