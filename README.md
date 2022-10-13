@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://firebase.flutter.dev/docs/cli">Documentation</a> &bull; 
+  <a href="https://firebase.google.com/docs/flutter/setup">Documentation</a> &bull; 
   <a href="https://github.com/invertase/flutterfire_cli/blob/main/LICENSE">License</a>
 </p>
 
