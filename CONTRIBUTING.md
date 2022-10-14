@@ -43,7 +43,7 @@ _See also: [Invertases's code of conduct](https://github.com/invertase/meta/blob
 ### Forking & cloning the repository
 
 - Ensure all the dependencies described in the previous section are installed.
-- Fork `https://github.com/Perumallpardhiv/flutterfire_cli` into your own GitHub account. If
+- Fork `https://github.com/invertase/flutterfire_cli` into your own GitHub account. If
   you already have a fork, and are now installing a development environment on
   a new machine, make sure you've updated your fork so that you don't use stale
   configuration options from long ago.
