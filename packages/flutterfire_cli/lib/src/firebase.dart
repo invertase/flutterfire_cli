@@ -91,18 +91,25 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   );
 
   final jsonString = process.stdout.toString();
-  final commandResult = Map<String, dynamic>.from(
-    const JsonDecoder().convert(jsonString) as Map,
-  );
-
-  if (process.exitCode > 0 || commandResult['status'] == 'error') {
-    throw FirebaseCommandException(
-      execArgs.join(' '),
-      commandResult['error'] as String,
+  try {
+    final commandResult = Map<String, dynamic>.from(
+      const JsonDecoder().convert(jsonString) as Map,
     );
-  }
 
-  return commandResult;
+    if (process.exitCode > 0 || commandResult['status'] == 'error') {
+      throw FirebaseCommandException(
+        execArgs.join(' '),
+        commandResult['error'] as String,
+      );
+    }
+
+    return commandResult;
+  } on FormatException {
+    throw FirebaseCommandException(
+        execArgs.join(' '),
+        'Format exception: You can try to check your `google-services.json` file or download it again.',
+      );
+  }
 }
 
 /// Get all available Firebase projects for the authenticated CLI user
