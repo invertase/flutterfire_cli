@@ -33,12 +33,6 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 
 ## How To Contribute
 
-### Requirements
-
-- Linux, Mac OS X, or Windows.
-- [git](https://git-scm.com) (used for source version control).
-- An IDE such as [Android Studio](https://developer.android.com/studio) or [Visual Studio Code](https://code.visualstudio.com/).
-
 ### Forking & cloning the repository
 
 - Ensure all the dependencies described in the previous section are installed.
@@ -48,8 +42,7 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
   configuration options from long ago.
 - `git clone git@github.com:<your_name_here>/flutterfire_cli.git`
 - `git remote add upstream git@github.com:invertase/flutterfire_cli.git` (So that you
-  fetch from the master repository, not your clone, when running `git fetch`
-  et al.)
+  pull from the master repository, not your clone, when running `git pull`.)
 
 ### Performing changes
 
@@ -72,5 +65,5 @@ Please make sure all your check-ins have detailed commit messages explaining the
 When naming the title of your pull request, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/)
 guide. 
 
-Please also enable **“Allow edits by maintainers”**, this will help to speed-up the review
+Please also enable **“Allow edits by maintainers”**, this will help to speed up the review
 process as well.
