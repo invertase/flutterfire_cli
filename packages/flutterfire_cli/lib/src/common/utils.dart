@@ -238,7 +238,7 @@ if googleConfigExists == false
   main_target = project.targets.find { |target| target.name == 'Runner' }
   
   if(main_target)
-    main_target.add_file_references([file])
+    main_target.add_resources([file])
     project.save
   else
     abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
