@@ -1,3 +1,7 @@
+## 0.2.6+1
+
+ - **FIX**: add GoogleService-Info.plist as bundle resource not compile source. ([e5561e04](https://github.com/invertase/flutterfire_cli/commit/e5561e04374f4c6d0a2076bed5a3f91378382b16))
+
 ## 0.2.6
 
 - **FIX**: GoogleService-Info.plist file not found by Firebase SDK unless added to target ([b7b307b](https://github.com/invertase/flutterfire_cli/commit/b7b307b78af35d5313eea1dab29cf25864bd6955))
