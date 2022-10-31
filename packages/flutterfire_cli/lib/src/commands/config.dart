@@ -96,6 +96,14 @@ class ConfigCommand extends FlutterFireCommand {
           'automatically detect it from your "android" folder (if it exists).',
     );
     argParser.addOption(
+      'web-app-id',
+      valueHelp: 'appId',
+      abbr: 'w',
+      help: 'The app id of your Web application, e.g. "1:XXX:web:YYY". '
+          'If no package name is provided then an attempt will be made to '
+          'automatically pick the first available web app id from remote.',
+    );
+    argParser.addOption(
       'token',
       valueHelp: 'firebaseToken',
       abbr: 't',
@@ -195,6 +203,20 @@ class ConfigCommand extends FlutterFireCommand {
     final value = argResults!['ios-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
     return value;
+  }
+
+  String? get webAppId {
+    final value = argResults!['web-app-id'] as String?;
+
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for web-app-id.',
+      );
+    }
+    return null;
   }
 
   String? get macosBundleId {
@@ -413,6 +435,7 @@ class ConfigCommand extends FlutterFireCommand {
         firebaseProjectId: selectedFirebaseProject.projectId,
         firebaseAccount: accountEmail,
         token: token,
+        webAppId: webAppId,
       );
     }
 

@@ -27,6 +27,7 @@ extension FirebaseWebOptions on FirebaseOptions {
     FlutterApp flutterApp, {
     required String firebaseProjectId,
     String? firebaseAccount,
+    String? webAppId,
     String platform = kWeb,
     required String? token,
   }) async {
@@ -36,6 +37,7 @@ extension FirebaseWebOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
       token: token,
+      webAppId: webAppId,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
