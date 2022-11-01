@@ -14,6 +14,7 @@ dependencies:
   deep_pick: ^0.10.0
   file: ^6.1.2
   interact: ^2.1.1
+  issue: ^0.0.3
   meta: ^1.7.0
   path: ^1.8.0
   platform: ^3.0.2
