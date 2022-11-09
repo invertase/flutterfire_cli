@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-11-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.2.7`](#flutterfire_cli---v027)
+
+---
+
+#### `flutterfire_cli` - `v0.2.7`
+
+ - **FEAT**: remove package the user should not depend on. ([9faa9e13](https://github.com/invertase/flutterfire_cli/commit/9faa9e13ed73673f9c46262fb2a5b2622ce684fd))
+ - **FEAT**: add a flutterfire update command. ([0257d4d9](https://github.com/invertase/flutterfire_cli/commit/0257d4d96401cf3dee21c1da4a5a7c5831bdcd4e))
+ - **FEAT**: Allow selecting web app id. ([413e61b7](https://github.com/invertase/flutterfire_cli/commit/413e61b7aa5fa93f6c12d202e26390f8f2fa67f5))
+
+
 ## 2022-10-26
 
 ### Changes

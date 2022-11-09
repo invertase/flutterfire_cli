@@ -1,3 +1,9 @@
+## 0.2.7
+
+ - **FEAT**: remove package the user should not depend on. ([9faa9e13](https://github.com/invertase/flutterfire_cli/commit/9faa9e13ed73673f9c46262fb2a5b2622ce684fd))
+ - **FEAT**: add a flutterfire update command. ([0257d4d9](https://github.com/invertase/flutterfire_cli/commit/0257d4d96401cf3dee21c1da4a5a7c5831bdcd4e))
+ - **FEAT**: Allow selecting web app id. ([413e61b7](https://github.com/invertase/flutterfire_cli/commit/413e61b7aa5fa93f6c12d202e26390f8f2fa67f5))
+
 ## 0.2.6+1
 
  - **FIX**: add GoogleService-Info.plist as bundle resource not compile source. ([e5561e04](https://github.com/invertase/flutterfire_cli/commit/e5561e04374f4c6d0a2076bed5a3f91378382b16))
