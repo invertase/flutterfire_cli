@@ -22,7 +22,6 @@ import 'base.dart';
 
 /// List of firebase packages that are supported by the CLI.
 final flutterfirePackages = [
-  '_flutterfire_internals',
   'firebase_app_check',
   'firebase_dynamic_links',
   'firebase_performance',
@@ -43,7 +42,6 @@ final flutterfirePackages = [
   'firebase_ml_custom',
   'firebase_ui_auth',
   'firebase_ui_oauth_facebook',
-  'firebase_admob',
   'firebase_crashlytics',
   'firebase_ml_model_downloader',
   'firebase_ui_database',
