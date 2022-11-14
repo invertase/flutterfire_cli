@@ -1,7 +1,8 @@
 name: flutterfire_starter
 description: A template to have a quickstart with FlutterFire
+repository: https://github.com/invertase/flutterfire_cli/tree/main/packages/flutterfire_starter
 
-version: 0.1.0
+version: 0.1.1
 
 environment:
   mason: ">=0.1.0-dev.26 <0.1.0"
