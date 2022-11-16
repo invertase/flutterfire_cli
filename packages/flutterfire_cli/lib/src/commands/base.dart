@@ -23,7 +23,7 @@ import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 
-/// A base class for all FlutterFire commandss.
+/// A base class for all FlutterFire commands.
 abstract class FlutterFireCommand extends Command<void> {
   FlutterFireCommand(this.flutterApp);
 
