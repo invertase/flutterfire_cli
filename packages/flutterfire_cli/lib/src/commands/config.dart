@@ -552,9 +552,9 @@ class ConfigCommand extends FlutterFireCommand {
         iosOptions.optionsSourceFileName,
       );
 
-      final file;
+      File file;
       if (iosServiceFilePath != null) {
-        String updatedPath =
+        final updatedPath =
             '${flutterApp!.package.path}${iosServiceFilePath!}';
         file = File(updatedPath);
       } else {
@@ -590,9 +590,9 @@ class ConfigCommand extends FlutterFireCommand {
         macosOptions.optionsSourceFileName,
       );
 
-      final file;
+      File file;
       if (macosServiceFilePath != null) {
-        String updatedPath =
+        final updatedPath =
             '${flutterApp!.package.path}${macosServiceFilePath!}';
         file = File(updatedPath);
       } else {
