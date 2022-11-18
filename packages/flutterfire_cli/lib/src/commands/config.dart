@@ -126,6 +126,27 @@ class ConfigCommand extends FlutterFireCommand {
       help:
           'Whether to generate the firebase_app_id.json files used by native iOS and Android builds.',
     );
+
+    argParser.addOption(
+      'ios-out',
+      valueHelp: 'pathForIosConfig',
+      help:
+          'Where would you like your `Google-Service-Info.plist` file to be written for iOS platform. Useful for different flavors',
+    );
+
+    argParser.addOption(
+      'macos-out',
+      valueHelp: 'pathForMacosConfig',
+      help:
+          'Where would you like your `Google-Service-Info.plist` file to be written for macOS platform. Useful for different flavors',
+    );
+
+    argParser.addOption(
+      'android-out',
+      valueHelp: 'pathForAndroidConfig',
+      help:
+          'Where would you like your `google-services.json` file to be written for android platform. Useful for different flavors',
+    );
   }
 
   @override
@@ -172,6 +193,18 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get generateAppIdJson {
     return argResults!['app-id-json'] as bool;
+  }
+
+  String? get macosServiceFilePath {
+    return argResults!['macos-out'] as String?;
+  }
+
+  String? get iosServiceFilePath {
+    return argResults!['ios-out'] as String?;
+  }
+
+  String? get androidServiceFilePath {
+    return argResults!['android-out'] as String?;
   }
 
   String? get androidApplicationId {
@@ -507,6 +540,7 @@ class ConfigCommand extends FlutterFireCommand {
           flutterApp!,
           androidOptions,
           logger,
+          androidServiceFilePath,
         ).apply(force: isCI || yes),
       );
     }
@@ -518,7 +552,14 @@ class ConfigCommand extends FlutterFireCommand {
         iosOptions.optionsSourceFileName,
       );
 
-      final file = File(googleServiceInfoFile);
+      final file;
+      if (iosServiceFilePath != null) {
+        String updatedPath =
+            '${flutterApp!.package.path}${iosServiceFilePath!}';
+        file = File(updatedPath);
+      } else {
+        file = File(googleServiceInfoFile);
+      }
 
       if (!file.existsSync()) {
         await file.writeAsString(iosOptions.optionsSourceContent);
@@ -548,7 +589,15 @@ class ConfigCommand extends FlutterFireCommand {
         'Runner',
         macosOptions.optionsSourceFileName,
       );
-      final file = File(googleServiceInfoFile);
+
+      final file;
+      if (macosServiceFilePath != null) {
+        String updatedPath =
+            '${flutterApp!.package.path}${macosServiceFilePath!}';
+        file = File(updatedPath);
+      } else {
+        file = File(googleServiceInfoFile);
+      }
 
       if (!file.existsSync()) {
         await file.writeAsString(macosOptions.optionsSourceContent);
