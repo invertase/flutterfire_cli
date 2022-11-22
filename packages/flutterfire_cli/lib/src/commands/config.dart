@@ -554,9 +554,8 @@ class ConfigCommand extends FlutterFireCommand {
 
       File file;
       if (iosServiceFilePath != null) {
-        final updatedPath =
-            '${flutterApp!.package.path}${iosServiceFilePath!}';
-        file = File(updatedPath);
+        final updatedPath = '${flutterApp!.package.path}${iosServiceFilePath!}';
+        file = await File(updatedPath).create(recursive: true);
       } else {
         file = File(googleServiceInfoFile);
       }
@@ -594,7 +593,7 @@ class ConfigCommand extends FlutterFireCommand {
       if (macosServiceFilePath != null) {
         final updatedPath =
             '${flutterApp!.package.path}${macosServiceFilePath!}';
-        file = File(updatedPath);
+        file = await File(updatedPath).create(recursive: true);
       } else {
         file = File(googleServiceInfoFile);
       }

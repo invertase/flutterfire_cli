@@ -80,6 +80,14 @@ class FirebaseAndroidGradlePlugins {
     }
   }
 
+  Future<void> createAndroidGoogleServicesJsonFile() async {
+    if (androidServiceFilePath != null) {
+      final updatedPath =
+          '${flutterApp.package.path}${androidServiceFilePath!}';
+      await File(updatedPath).create(recursive: true);
+    }
+  }
+
   File get androidBuildGradleFile =>
       File(path.join(flutterApp.androidDirectory.path, 'build.gradle'));
   String? _androidBuildGradleFileContents;
@@ -128,6 +136,9 @@ class FirebaseAndroidGradlePlugins {
         return;
       }
     }
+
+    await createAndroidGoogleServicesJsonFile();
+
     await androidGoogleServicesJsonFile.writeAsString(
       firebaseOptions.optionsSourceContent,
     );
