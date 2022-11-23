@@ -42,7 +42,7 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
   configuration options from long ago.
 - `git clone git@github.com:<your_name_here>/flutterfire_cli.git`
 - `git remote add upstream git@github.com:invertase/flutterfire_cli.git` (So that you
-  pull from the master repository, not your clone, when running `git pull`.)
+  pull from the main repository, not your clone, when running `git pull`.)
 
 ### Performing changes
 
