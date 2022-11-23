@@ -246,3 +246,69 @@ if googleConfigExists == false
 end
 ''';
 }
+
+String generateRubySchemeScript(
+  String xcodeProjFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+
+schemes = Xcodeproj::Project.schemes(xcodeProject)
+
+response = Array.new
+
+schemes.each do |scheme|
+  response << scheme.to_s
+end
+
+if response.length == 0
+  abort("There are no schemes in your Xcode workspace. Please create a scheme and try again.")
+end
+
+\$stdout.write response.join(' ')
+''';
+}
+
+String addServiceFileToSchemeScript(
+  String xcodeProjFilePath,
+  String scheme,
+  String runScriptName,
+  String googleServiceFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeFile='$xcodeProjFilePath'
+runScriptName='$runScriptName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+# multi line argument for bash script
+bashScript = %q(
+ #!/bin/bash
+
+PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
+GOOGLESERVICE_INFO_PATH=$googleServiceFilePath
+
+# Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
+# This is why we use *"scheme"*
+if [[ "\${CONFIGURATION}" == *"$scheme"* ]];
+then
+    echo "Copying \${GOOGLESERVICE_INFO_PATH} to \${PLIST_DESTINATION}"
+    cp "\${GOOGLESERVICE_INFO_PATH}" "\${PLIST_DESTINATION}"
+fi     
+)
+
+for target in project.targets 
+    puts "Target -> " + target.name
+    phase = target.shell_script_build_phases().find {|item| item.name == runScriptName}
+    if (phase.nil?)
+        phase = target.new_shell_script_build_phase(runScriptName)
+        phase.shell_script = bashScript
+        project.save() 
+    else
+        \$stdout.write "Shell script already exists for $scheme, skipping..."
+        exit(0)
+    end
+end
+''';
+}

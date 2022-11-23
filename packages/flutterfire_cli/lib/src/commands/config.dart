@@ -200,8 +200,13 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get iosServiceFilePath {
+    if (updatedIOSServiceFilePath != null) {
+      return updatedIOSServiceFilePath;
+    }
     return argResults!['ios-out'] as String?;
   }
+  // This allows us to update to the required "GoogleService-Info.plist" file name if required
+  String? updatedIOSServiceFilePath;
 
   String? get androidServiceFilePath {
     return argResults!['android-out'] as String?;
@@ -551,11 +556,34 @@ class ConfigCommand extends FlutterFireCommand {
         'Runner',
         iosOptions.optionsSourceFileName,
       );
+      var fullIOSServicePath =
+          '${flutterApp!.package.path}${iosServiceFilePath!}';
 
       File file;
+      // If "iosServiceFilePath" exists, we use a different configuration setup
       if (iosServiceFilePath != null) {
-        final updatedPath = '${flutterApp!.package.path}${iosServiceFilePath!}';
-        file = await File(updatedPath).create(recursive: true);
+        final fileName = path.basename(iosServiceFilePath!);
+
+        if (fileName != 'GoogleService-Info.plist') {
+          final response = promptBool(
+              'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?');
+
+          // Change filename to "GoogleService-Info.plist" if user wants to, it is needed for target or scheme setup
+          if (response == true) {
+            updatedIOSServiceFilePath = path.join(
+              path.dirname(iosServiceFilePath!),
+              'GoogleService-Info.plist',
+            );
+
+            fullIOSServicePath =
+                '${flutterApp!.package.path}$updatedIOSServiceFilePath';
+          }
+        }
+        // Create new directory for file output if it doesn't currently exist
+        await Directory(path.dirname(fullIOSServicePath))
+            .create(recursive: true);
+
+        file = File(fullIOSServicePath);
       } else {
         file = File(googleServiceInfoFile);
       }
@@ -567,17 +595,84 @@ class ConfigCommand extends FlutterFireCommand {
       final xcodeProjFilePath =
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+      // We need to prompt user whether they want a script adding to manually add service file to scheme, or add to target or simply write file
+      //TODO - need to ensure that it safely exits if it already exists
+      if (iosServiceFilePath != null) {
+        final fileName = path.basename(iosServiceFilePath!);
+        final response = promptSelect(
+          'Would you like your $fileName to be associated with a Scheme or Target (use arrow keys & space to select)?',
+          [
+            'Scheme',
+            'Target',
+            'No, just want to write the file to the path I chose'
+          ],
+        );
 
-      if (Platform.isMacOS) {
-        final result = await Process.run('ruby', [
-          '-e',
-          rubyScript,
-        ]);
+        // Add to scheme
+        if (response == 0) {
+          // Find the schemes available on the project
+          final schemeScript = generateRubySchemeScript(xcodeProjFilePath);
 
-        if (result.exitCode != 0) {
-          throw Exception(result.stderr);
+          final result = await Process.run('ruby', [
+            '-e',
+            schemeScript,
+          ]);
+
+          if (result.exitCode != 0) {
+            throw Exception(result.stderr);
+          }
+          // Retrieve the schemes to prompt the user to select one
+          final schemes = (result.stdout as String).split(' ');
+
+          final response = promptSelect(
+            'Which scheme would you like the $fileName to be included within the app bundle?',
+            schemes,
+          );
+
+          final runScriptName =
+              'Add Firebase configuration to ${schemes[response]} scheme';
+          // Create bash script for adding Google service file to app bundle
+          final addBuildPhaseScript = addServiceFileToSchemeScript(
+            xcodeProjFilePath,
+            schemes[response],
+            runScriptName,
+            fullIOSServicePath,
+          );
+
+          // Add script to Build Phases in Xcode project
+          final resultBuildPhase = await Process.run('ruby', [
+            '-e',
+            addBuildPhaseScript,
+          ]);
+
+          if (resultBuildPhase.exitCode != 0) {
+            throw Exception(resultBuildPhase.stderr);
+          }
+
+          if (resultBuildPhase.stdout != null) {
+            logger.stdout(resultBuildPhase.stdout as String);
+          }
+          // Add to target
+        } else if (response == 1) {
+          // TODO - write script to add to target
+        } else {
+          // TODO - write file to path
+          // Write google service file to desired path without any additional configuration (i.e. adding to app bundle)
+        }
+      } else {
+        // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
+        final rubyScript =
+            generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+
+        if (Platform.isMacOS) {
+          final result = await Process.run('ruby', [
+            '-e',
+            rubyScript,
+          ]);
+
+          if (result.exitCode != 0) {
+            throw Exception(result.stderr);
+          }
         }
       }
     }
