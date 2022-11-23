@@ -247,7 +247,7 @@ end
 ''';
 }
 
-String generateRubySchemeScript(
+String findingSchemesScript(
   String xcodeProjFilePath,
 ) {
   return '''
@@ -267,6 +267,62 @@ if response.length == 0
 end
 
 \$stdout.write response.join(' ')
+''';
+}
+
+String findingTargetsScript(
+  String xcodeProjFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+project = Xcodeproj::Project.open(xcodeProject)
+
+response = Array.new
+
+project.targets.each do |target|
+  response << target.name
+end
+
+if response.length == 0
+  abort("There are no targets in your Xcode workspace. Please create a target and try again.")
+end
+
+\$stdout.write response.join(' ')
+''';
+}
+
+String addServiceFileToTarget(
+  String xcodeProjFilePath,
+  String googleServiceInfoFile,
+  String targetName,
+) {
+  return '''
+require 'xcodeproj'
+googleFile='$googleServiceInfoFile'
+xcodeFile='$xcodeProjFilePath'
+targetName='$targetName'
+
+project = Xcodeproj::Project.open(xcodeFile)
+
+file = project.new_file(googleFile)
+target = project.targets.find { |target| target.name == targetName }
+
+if(target)
+  exists = target.resources_build_phase.files.find do |file|
+    if defined? file && file.file_ref && file.file_ref.path
+      if file.file_ref.path.is_a? String
+        file.file_ref.path.include? 'GoogleService-Info.plist'
+      end
+    end
+  end  
+  if !exists
+    target.add_resources([file])
+    project.save
+  end
+else
+  abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
+end  
 ''';
 }
 

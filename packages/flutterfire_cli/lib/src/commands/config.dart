@@ -205,6 +205,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
     return argResults!['ios-out'] as String?;
   }
+
   // This allows us to update to the required "GoogleService-Info.plist" file name if required
   String? updatedIOSServiceFilePath;
 
@@ -562,9 +563,9 @@ class ConfigCommand extends FlutterFireCommand {
       File file;
       // If "iosServiceFilePath" exists, we use a different configuration setup
       if (iosServiceFilePath != null) {
-        final fileName = path.basename(iosServiceFilePath!);
+        final googleServiceFileName = path.basename(iosServiceFilePath!);
 
-        if (fileName != 'GoogleService-Info.plist') {
+        if (googleServiceFileName != 'GoogleService-Info.plist') {
           final response = promptBool(
               'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?');
 
@@ -611,7 +612,7 @@ class ConfigCommand extends FlutterFireCommand {
         // Add to scheme
         if (response == 0) {
           // Find the schemes available on the project
-          final schemeScript = generateRubySchemeScript(xcodeProjFilePath);
+          final schemeScript = findingSchemesScript(xcodeProjFilePath);
 
           final result = await Process.run('ruby', [
             '-e',
@@ -654,7 +655,35 @@ class ConfigCommand extends FlutterFireCommand {
           }
           // Add to target
         } else if (response == 1) {
-          // TODO - write script to add to target
+          final targetScript = findingTargetsScript(xcodeProjFilePath);
+
+          final result = await Process.run('ruby', [
+            '-e',
+            targetScript,
+          ]);
+
+          if (result.exitCode != 0) {
+            throw Exception(result.stderr);
+          }
+          // Retrieve the targets to prompt the user to select one
+          final targets = (result.stdout as String).split(' ');
+
+          final response = promptSelect(
+            'Which target would you like the $fileName to be included within the app bundle?',
+            targets,
+          );
+
+          final addServiceFileToTargetScript = addServiceFileToTarget(
+              xcodeProjFilePath, fullIOSServicePath, targets[response]);
+
+          final resultServiceFileToTarget = await Process.run('ruby', [
+            '-e',
+            addServiceFileToTargetScript,
+          ]);
+
+          if (resultServiceFileToTarget.exitCode != 0) {
+            throw Exception(resultServiceFileToTarget.stderr);
+          }
         } else {
           // TODO - write file to path
           // Write google service file to desired path without any additional configuration (i.e. adding to app bundle)
