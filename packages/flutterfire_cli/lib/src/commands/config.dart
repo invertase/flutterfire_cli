@@ -684,10 +684,7 @@ class ConfigCommand extends FlutterFireCommand {
           if (resultServiceFileToTarget.exitCode != 0) {
             throw Exception(resultServiceFileToTarget.stderr);
           }
-        } else {
-          // TODO - write file to path
-          // Write google service file to desired path without any additional configuration (i.e. adding to app bundle)
-        }
+        } 
       } else {
         // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
         final rubyScript =
