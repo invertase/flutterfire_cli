@@ -355,7 +355,6 @@ fi
 )
 
 for target in project.targets 
-    puts "Target -> " + target.name
     phase = target.shell_script_build_phases().find {|item| item.name == runScriptName}
     if (phase.nil?)
         phase = target.new_shell_script_build_phase(runScriptName)

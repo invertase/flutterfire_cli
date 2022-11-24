@@ -206,7 +206,7 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['ios-out'] as String?;
   }
 
-  // This allows us to update to the required "GoogleService-Info.plist" file name if required
+  // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
   String? updatedIOSServiceFilePath;
 
   String? get androidServiceFilePath {
@@ -561,7 +561,7 @@ class ConfigCommand extends FlutterFireCommand {
           '${flutterApp!.package.path}${iosServiceFilePath!}';
 
       File file;
-      // If "iosServiceFilePath" exists, we use a different configuration setup
+      // If "iosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
       if (iosServiceFilePath != null) {
         final googleServiceFileName = path.basename(iosServiceFilePath!);
 
@@ -569,7 +569,7 @@ class ConfigCommand extends FlutterFireCommand {
           final response = promptBool(
               'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?');
 
-          // Change filename to "GoogleService-Info.plist" if user wants to, it is needed for target or scheme setup
+          // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
           if (response == true) {
             updatedIOSServiceFilePath = path.join(
               path.dirname(iosServiceFilePath!),
@@ -596,7 +596,7 @@ class ConfigCommand extends FlutterFireCommand {
       final xcodeProjFilePath =
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
-      // We need to prompt user whether they want a script adding to manually add service file to scheme, or add to target or simply write file
+      // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
       //TODO - need to ensure that it safely exits if it already exists
       if (iosServiceFilePath != null) {
         final fileName = path.basename(iosServiceFilePath!);
