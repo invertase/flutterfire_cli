@@ -597,7 +597,6 @@ class ConfigCommand extends FlutterFireCommand {
           path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
 
       // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
-      //TODO - need to ensure that it safely exits if it already exists
       if (iosServiceFilePath != null) {
         final fileName = path.basename(iosServiceFilePath!);
         final response = promptSelect(
