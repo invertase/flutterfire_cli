@@ -131,7 +131,7 @@ class ConfigCommand extends FlutterFireCommand {
       'ios-out',
       valueHelp: 'pathForIosConfig',
       help:
-          'Where would you like your `Google-Service-Info.plist` file to be written for iOS platform. Useful for different flavors',
+          'Where to write the `Google-Service-Info.plist` file for the iOS platform. Useful for different flavors',
     );
 
     argParser.addOption(
