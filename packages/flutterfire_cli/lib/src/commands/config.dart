@@ -427,7 +427,7 @@ class ConfigCommand extends FlutterFireCommand {
       xcodeProjFilePath,
       appId,
       scheme,
-      '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
+      "[firebase_crashlytics] upload debug symbols script for '$scheme' scheme",
     );
 
     final resultUploadScript = await Process.run('ruby', [
@@ -450,7 +450,7 @@ class ConfigCommand extends FlutterFireCommand {
       xcodeProjFilePath,
       appId,
       target,
-      '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
+      "[firebase_crashlytics] upload debug symbols script for '$target' scheme",
     );
 
     final resultUploadScript = await Process.run('ruby', [
@@ -649,7 +649,7 @@ class ConfigCommand extends FlutterFireCommand {
           );
 
           final runScriptName =
-              'Add Firebase configuration to "${schemes[response]}" scheme';
+              "Add Firebase configuration to '${schemes[response]}' scheme";
           // Create bash script for adding Google service file to app bundle
           final addBuildPhaseScript = addServiceFileToSchemeScript(
             xcodeProjFilePath,
@@ -684,7 +684,10 @@ class ConfigCommand extends FlutterFireCommand {
 
             if (addSymbolScript == true) {
               await _writeDebugScriptForScheme(
-                  xcodeProjFilePath, iosOptions.appId, schemes[response]);
+                xcodeProjFilePath,
+                iosOptions.appId,
+                schemes[response],
+              );
             } else {
               logger.stdout(
                 logSkippingDebugSymbolScript,
@@ -766,28 +769,28 @@ class ConfigCommand extends FlutterFireCommand {
             throw Exception(result.stderr);
           }
 
-        if (generateDebugSymbolScript) {
-          await _writeDebugScriptForTarget(
-            xcodeProjFilePath,
-            iosOptions.appId,
-            'Runner',
-          );
-        } else {
-          final addSymbolScript = promptBool(
-            "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's 'Runner' target?",
-          );
-          if (addSymbolScript == true) {
+          if (generateDebugSymbolScript) {
             await _writeDebugScriptForTarget(
               xcodeProjFilePath,
               iosOptions.appId,
               'Runner',
             );
           } else {
-            logger.stdout(
-              logSkippingDebugSymbolScript,
+            final addSymbolScript = promptBool(
+              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's 'Runner' target?",
             );
+            if (addSymbolScript == true) {
+              await _writeDebugScriptForTarget(
+                xcodeProjFilePath,
+                iosOptions.appId,
+                'Runner',
+              );
+            } else {
+              logger.stdout(
+                logSkippingDebugSymbolScript,
+              );
+            }
           }
-        }
         }
       }
     }
@@ -828,10 +831,10 @@ class ConfigCommand extends FlutterFireCommand {
           throw Exception(result.stderr);
         }
       }
-    
-        // TODO - update macOS with the same flow as iOS
-        // TODO - write debug symbol script to Runner Target for macOS using same prompts as iOS
-      
+
+      // TODO - update macOS with the same flow as iOS
+      // TODO - write debug symbol script to Runner Target for macOS using same prompts as iOS
+
     }
 
     await Future.wait<void>(futures);
