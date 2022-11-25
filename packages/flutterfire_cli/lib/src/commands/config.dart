@@ -200,7 +200,7 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-out'] as String?;
   }
 
-  // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
+  // This allows us to update to the required "GoogleService-Info.plist" file name for macOS target or scheme writes.
   String? updatedMACOSServiceFilePath;
 
   String? get iosServiceFilePath {
