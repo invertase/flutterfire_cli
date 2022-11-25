@@ -26,7 +26,6 @@ import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
-import '../firebase/firebase_app_id_file.dart';
 import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
 import '../firebase/firebase_options.dart';
@@ -422,7 +421,8 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   Future<void> _writeDebugScriptForScheme(
-      String xcodeProjFilePath, String appId, String scheme) async {
+      String xcodeProjFilePath, String appId, String scheme,
+      ) async {
     final adUploadSymbolsScript = addCrashylticsDebugSymbolScriptToScheme(
       xcodeProjFilePath,
       appId,
@@ -445,7 +445,8 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   Future<void> _writeDebugScriptForTarget(
-      String xcodeProjFilePath, String appId, String target) async {
+      String xcodeProjFilePath, String appId, String target,
+      ) async {
     final addUploadSymbolsScript = addCrashylticsDebugSymbolScriptToTarget(
       xcodeProjFilePath,
       appId,
@@ -586,7 +587,8 @@ class ConfigCommand extends FlutterFireCommand {
 
         if (googleServiceFileName != 'GoogleService-Info.plist') {
           final response = promptBool(
-              'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?');
+              'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+              );
 
           // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
           if (response == true) {
@@ -680,7 +682,7 @@ class ConfigCommand extends FlutterFireCommand {
             );
           } else {
             final addSymbolScript = promptBool(
-                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${schemes[response]}' scheme?");
+                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${schemes[response]}' scheme?",);
 
             if (addSymbolScript == true) {
               await _writeDebugScriptForScheme(
