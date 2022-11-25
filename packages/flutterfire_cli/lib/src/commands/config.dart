@@ -435,7 +435,7 @@ class ConfigCommand extends FlutterFireCommand {
       xcodeProjFilePath,
       appId,
       scheme,
-      "[firebase_crashlytics] upload debug symbols script for '$scheme' scheme",
+      '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
     );
 
     final resultUploadScript = await Process.run('ruby', [
@@ -461,7 +461,7 @@ class ConfigCommand extends FlutterFireCommand {
       xcodeProjFilePath,
       appId,
       target,
-      "[firebase_crashlytics] upload debug symbols script for '$target' scheme",
+      '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
     );
 
     final resultUploadScript = await Process.run('ruby', [
@@ -662,7 +662,7 @@ class ConfigCommand extends FlutterFireCommand {
             );
 
             final runScriptName =
-                "Add Firebase configuration to '${schemes[response]}' scheme";
+                '[firebase_core] add Firebase configuration to "${schemes[response]}" scheme';
             // Create bash script for adding Google service file to app bundle
             final addBuildPhaseScript = addServiceFileToSchemeScript(
               xcodeProjFilePath,
@@ -891,7 +891,7 @@ class ConfigCommand extends FlutterFireCommand {
             );
 
             final runScriptName =
-                "Add Firebase configuration to '${schemes[response]}' scheme";
+                '[firebase_core] add Firebase configuration to "${schemes[response]}" scheme';
             // Create bash script for adding Google service file to app bundle
             final addBuildPhaseScript = addServiceFileToSchemeScript(
               xcodeProjFilePath,
