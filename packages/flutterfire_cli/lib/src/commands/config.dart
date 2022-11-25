@@ -119,12 +119,11 @@ class ConfigCommand extends FlutterFireCommand {
           'and create the google-services.json file in your ./android/app folder.',
     );
     argParser.addFlag(
-      'app-id-json',
-      defaultsTo: true,
+      'debug-symbols-script',
       hide: true,
-      abbr: 'j',
+      abbr: 'd',
       help:
-          'Whether to generate the firebase_app_id.json files used by native iOS and Android builds.',
+          "Whether you want an upload Crashlytic's debug symbols script adding to the build phases of your iOS project.",
     );
 
     argParser.addOption(
@@ -191,8 +190,8 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['apply-gradle-plugins'] as bool;
   }
 
-  bool get generateAppIdJson {
-    return argResults!['app-id-json'] as bool;
+  bool get generateDebugSymbolScript {
+    return argResults!['debug-symbols-script'] as bool;
   }
 
   String? get macosServiceFilePath {
@@ -422,6 +421,52 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
+  Future<void> _writeDebugScriptForScheme(
+      String xcodeProjFilePath, String appId, String scheme) async {
+    final adUploadSymbolsScript = addCrashylticsDebugSymbolScriptToScheme(
+      xcodeProjFilePath,
+      appId,
+      scheme,
+      '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
+    );
+
+    final resultUploadScript = await Process.run('ruby', [
+      '-e',
+      adUploadSymbolsScript,
+    ]);
+
+    if (resultUploadScript.exitCode != 0) {
+      throw Exception(resultUploadScript.stderr);
+    }
+
+    if (resultUploadScript.stdout != null) {
+      logger.stdout(resultUploadScript.stdout as String);
+    }
+  }
+
+  Future<void> _writeDebugScriptForTarget(
+      String xcodeProjFilePath, String appId, String target) async {
+    final addUploadSymbolsScript = addCrashylticsDebugSymbolScriptToTarget(
+      xcodeProjFilePath,
+      appId,
+      target,
+      '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
+    );
+
+    final resultUploadScript = await Process.run('ruby', [
+      '-e',
+      addUploadSymbolsScript,
+    ]);
+
+    if (resultUploadScript.exitCode != 0) {
+      throw Exception(resultUploadScript.stderr);
+    }
+
+    if (resultUploadScript.stdout != null) {
+      logger.stdout(resultUploadScript.stdout as String);
+    }
+  }
+
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
@@ -514,32 +559,6 @@ class ConfigCommand extends FlutterFireCommand {
     );
     futures.add(configFile.write());
 
-    if (generateAppIdJson) {
-      if (iosOptions != null) {
-        final appIDFile = FirebaseAppIDFile(
-          // In order to generate if we're not in the folder of the flutterApp
-          flutterApp?.iosDirectory.path ?? iosAppIDOutputFilePrefix,
-          options: iosOptions,
-          force: isCI || yes,
-        );
-        futures.add(appIDFile.write());
-      }
-
-      if (macosOptions != null) {
-        final appIDFile = FirebaseAppIDFile(
-          // In order to generate if we're not in the folder of the flutterApp
-          flutterApp?.macosDirectory.path ?? macosAppIDOutputFilePrefix,
-          options: macosOptions,
-          force: isCI || yes,
-        );
-        futures.add(appIDFile.write());
-      }
-    } else {
-      logger.stdout(
-        logSkippingAppIdJson,
-      );
-    }
-
     if (androidOptions != null && applyGradlePlugins) {
       futures.add(
         FirebaseAndroidGradlePlugins(
@@ -630,7 +649,7 @@ class ConfigCommand extends FlutterFireCommand {
           );
 
           final runScriptName =
-              'Add Firebase configuration to ${schemes[response]} scheme';
+              'Add Firebase configuration to "${schemes[response]}" scheme';
           // Create bash script for adding Google service file to app bundle
           final addBuildPhaseScript = addServiceFileToSchemeScript(
             xcodeProjFilePath,
@@ -652,6 +671,27 @@ class ConfigCommand extends FlutterFireCommand {
           if (resultBuildPhase.stdout != null) {
             logger.stdout(resultBuildPhase.stdout as String);
           }
+
+          if (generateDebugSymbolScript) {
+            await _writeDebugScriptForScheme(
+              xcodeProjFilePath,
+              iosOptions.appId,
+              schemes[response],
+            );
+          } else {
+            final addSymbolScript = promptBool(
+                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${schemes[response]}' scheme?");
+
+            if (addSymbolScript == true) {
+              await _writeDebugScriptForScheme(
+                  xcodeProjFilePath, iosOptions.appId, schemes[response]);
+            } else {
+              logger.stdout(
+                logSkippingDebugSymbolScript,
+              );
+            }
+          }
+
           // Add to target
         } else if (response == 1) {
           final targetScript = findingTargetsScript(xcodeProjFilePath);
@@ -673,7 +713,10 @@ class ConfigCommand extends FlutterFireCommand {
           );
 
           final addServiceFileToTargetScript = addServiceFileToTarget(
-              xcodeProjFilePath, fullIOSServicePath, targets[response]);
+            xcodeProjFilePath,
+            fullIOSServicePath,
+            targets[response],
+          );
 
           final resultServiceFileToTarget = await Process.run('ruby', [
             '-e',
@@ -683,7 +726,31 @@ class ConfigCommand extends FlutterFireCommand {
           if (resultServiceFileToTarget.exitCode != 0) {
             throw Exception(resultServiceFileToTarget.stderr);
           }
-        } 
+
+          if (generateDebugSymbolScript) {
+            await _writeDebugScriptForTarget(
+              xcodeProjFilePath,
+              iosOptions.appId,
+              targets[response],
+            );
+          } else {
+            final addSymbolScript = promptBool(
+              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${targets[response]}' target?",
+            );
+
+            if (addSymbolScript == true) {
+              await _writeDebugScriptForTarget(
+                xcodeProjFilePath,
+                iosOptions.appId,
+                targets[response],
+              );
+            } else {
+              logger.stdout(
+                logSkippingDebugSymbolScript,
+              );
+            }
+          }
+        }
       } else {
         // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
         final rubyScript =
@@ -698,6 +765,29 @@ class ConfigCommand extends FlutterFireCommand {
           if (result.exitCode != 0) {
             throw Exception(result.stderr);
           }
+
+        if (generateDebugSymbolScript) {
+          await _writeDebugScriptForTarget(
+            xcodeProjFilePath,
+            iosOptions.appId,
+            'Runner',
+          );
+        } else {
+          final addSymbolScript = promptBool(
+            "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's 'Runner' target?",
+          );
+          if (addSymbolScript == true) {
+            await _writeDebugScriptForTarget(
+              xcodeProjFilePath,
+              iosOptions.appId,
+              'Runner',
+            );
+          } else {
+            logger.stdout(
+              logSkippingDebugSymbolScript,
+            );
+          }
+        }
         }
       }
     }
@@ -738,6 +828,10 @@ class ConfigCommand extends FlutterFireCommand {
           throw Exception(result.stderr);
         }
       }
+    
+        // TODO - update macOS with the same flow as iOS
+        // TODO - write debug symbol script to Runner Target for macOS using same prompts as iOS
+      
     }
 
     await Future.wait<void>(futures);

@@ -361,9 +361,90 @@ for target in project.targets
         phase.shell_script = bashScript
         project.save() 
     else
-        \$stdout.write "Shell script already exists for $scheme, skipping..."
+        \$stdout.write "Shell script already exists for bundling 'GoogleService-Info.plist' for $scheme scheme, skipping..."
         exit(0)
     end
+end
+''';
+}
+
+String addCrashylticsDebugSymbolScriptToScheme(
+  String xcodeProjFilePath,
+  String appId,
+  String scheme,
+  String runScriptName,
+) {
+  return '''
+require 'xcodeproj'
+bashScript = %q(
+#!/bin/bash
+
+# Run upload symbol script for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
+# This is why we use *"scheme"*
+if [[ "\${CONFIGURATION}" == *"$scheme"* ]];
+then
+    echo "Running $runScriptName"
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase -ai '$appId'
+fi     
+)
+
+input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/\${TARGET_NAME}\\"", "\\"\$(SRCROOT)/\$(BUILT_PRODUCTS_DIR)/\$(INFOPLIST_PATH)\\""]
+
+project = Xcodeproj::Project.open('$xcodeProjFilePath')
+
+for target in project.targets 
+  phase = target.shell_script_build_phases().find {|item| item.name.include? '[firebase_crashlytics] upload debug symbols script'}
+  if (phase.nil?)
+      phase = target.new_shell_script_build_phase('$runScriptName')
+      phase.shell_script = bashScript
+      phase.input_paths = input_paths
+      project.save() 
+  else
+      \$stdout.write "firebase_crashlytics upload debug symbols script script already exists, skipping..."
+      exit(0)
+  end
+end
+''';
+}
+
+String addCrashylticsDebugSymbolScriptToTarget(
+  String xcodeProjFilePath,
+  String appId,
+  String target,
+  String runScriptName,
+) {
+  return '''
+require 'xcodeproj'
+bashScript = %q(
+#!/bin/bash
+
+# Run upload symbol script for appropriate target.
+if [ "\${TARGET_NAME}" == "$target" ];
+then
+    echo "Running $runScriptName"
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase -ai '$appId'
+fi     
+)
+
+input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/\${TARGET_NAME}\\"", "\\"\$(SRCROOT)/\$(BUILT_PRODUCTS_DIR)/\$(INFOPLIST_PATH)\\""]
+
+project = Xcodeproj::Project.open('$xcodeProjFilePath')
+
+for target in project.targets
+  if (target.name == '$target')
+    phase = target.shell_script_build_phases().find {|item| item.name.include? '[firebase_crashlytics] upload debug symbols script'}
+    if (phase.nil?)
+        phase = target.new_shell_script_build_phase('$runScriptName')
+        phase.shell_script = bashScript
+        phase.input_paths = input_paths
+        project.save() 
+    else
+        \$stdout.write "firebase_crashlytics upload debug symbols script script already exists, skipping..."
+        exit(0)
+    end
+  end  
 end
 ''';
 }
