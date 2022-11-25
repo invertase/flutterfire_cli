@@ -597,7 +597,7 @@ class ConfigCommand extends FlutterFireCommand {
 
         if (googleServiceFileName != 'GoogleService-Info.plist') {
           final response = promptBool(
-            'The file name must be "GoogleService-Info.plist" if you\'re bundling with a target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+            'The file name must be "GoogleService-Info.plist" if you\'re bundling with your iOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
           );
 
           // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
@@ -631,7 +631,7 @@ class ConfigCommand extends FlutterFireCommand {
       if (iosServiceFilePath != null) {
         final fileName = path.basename(iosServiceFilePath!);
         final response = promptSelect(
-          'Would you like your $fileName to be associated with a Scheme or Target (use arrow keys & space to select)?',
+          'Would you like your iOS $fileName to be associated with your iOS Scheme or Target (use arrow keys & space to select)?',
           [
             'Scheme',
             'Target',
@@ -656,7 +656,7 @@ class ConfigCommand extends FlutterFireCommand {
           final schemes = (result.stdout as String).split(' ');
 
           final response = promptSelect(
-            'Which scheme would you like the $fileName to be included within the app bundle?',
+            'Which scheme would you like your iOS $fileName to be included within your iOS app bundle?',
             schemes,
           );
 
@@ -724,7 +724,7 @@ class ConfigCommand extends FlutterFireCommand {
           final targets = (result.stdout as String).split(' ');
 
           final response = promptSelect(
-            'Which target would you like the $fileName to be included within the app bundle?',
+            'Which target would you like your iOS $fileName to be included within your iOS app bundle?',
             targets,
           );
 
@@ -884,7 +884,7 @@ class ConfigCommand extends FlutterFireCommand {
           final schemes = (result.stdout as String).split(' ');
 
           final response = promptSelect(
-            'Which scheme would you like you macOS $fileName to be included within the macOS app bundle?',
+            'Which scheme would you like your macOS $fileName to be included within the macOS app bundle?',
             schemes,
           );
 
@@ -952,7 +952,7 @@ class ConfigCommand extends FlutterFireCommand {
           final targets = (result.stdout as String).split(' ');
 
           final response = promptSelect(
-            'Which target would you like iOS $fileName to be included within your iOS app bundle?',
+            'Which target would you like your macOS $fileName to be included within your macOS app bundle?',
             targets,
           );
 
