@@ -661,7 +661,7 @@ class ConfigCommand extends FlutterFireCommand {
               throw Exception(result.stderr);
             }
             // Retrieve the schemes to prompt the user to select one
-            final schemes = (result.stdout as String).split(' ');
+            final schemes = (result.stdout as String).split(',');
 
             final response = promptSelect(
               'Which scheme would you like your iOS $fileName to be included within your iOS app bundle?',
@@ -729,7 +729,7 @@ class ConfigCommand extends FlutterFireCommand {
               throw Exception(result.stderr);
             }
             // Retrieve the targets to prompt the user to select one
-            final targets = (result.stdout as String).split(' ');
+            final targets = (result.stdout as String).split(',');
 
             final response = promptSelect(
               'Which target would you like your iOS $fileName to be included within your iOS app bundle?',
@@ -777,8 +777,8 @@ class ConfigCommand extends FlutterFireCommand {
           }
         } else {
           // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
-          final rubyScript =
-              generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+          final rubyScript = addServiceFileToRunnerScript(
+              googleServiceInfoFile, xcodeProjFilePath);
 
           final result = await Process.run('ruby', [
             '-e',
@@ -884,7 +884,7 @@ class ConfigCommand extends FlutterFireCommand {
               throw Exception(result.stderr);
             }
             // Retrieve the schemes to prompt the user to select one
-            final schemes = (result.stdout as String).split(' ');
+            final schemes = (result.stdout as String).split(',');
 
             final response = promptSelect(
               'Which scheme would you like your macOS $fileName to be included within the macOS app bundle?',
@@ -952,7 +952,7 @@ class ConfigCommand extends FlutterFireCommand {
               throw Exception(result.stderr);
             }
             // Retrieve the targets to prompt the user to select one
-            final targets = (result.stdout as String).split(' ');
+            final targets = (result.stdout as String).split(',');
 
             final response = promptSelect(
               'Which target would you like your macOS $fileName to be included within your macOS app bundle?',
@@ -1000,8 +1000,8 @@ class ConfigCommand extends FlutterFireCommand {
           }
         } else {
           // Continue to write file to Runner/GoogleService-Info.plist if no "macosServiceFilePath" is provided
-          final rubyScript =
-              generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+          final rubyScript = addServiceFileToRunnerScript(
+              googleServiceInfoFile, xcodeProjFilePath);
 
           final result = await Process.run('ruby', [
             '-e',

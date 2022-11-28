@@ -209,7 +209,7 @@ String relativePath(String path, String from) {
   return normalize(relative(path, from: from));
 }
 
-String generateRubyScript(
+String addServiceFileToRunnerScript(
   String googleServiceInfoFile,
   String xcodeProjFilePath,
 ) {
@@ -266,7 +266,7 @@ if response.length == 0
   abort("There are no schemes in your Xcode workspace. Please create a scheme and try again.")
 end
 
-\$stdout.write response.join(' ')
+\$stdout.write response.join(',')
 ''';
 }
 
@@ -288,7 +288,7 @@ if response.length == 0
   abort("There are no targets in your Xcode workspace. Please create a target and try again.")
 end
 
-\$stdout.write response.join(' ')
+\$stdout.write response.join(',')
 ''';
 }
 
@@ -340,7 +340,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 
 # multi line argument for bash script
 bashScript = %q(
- #!/bin/bash
+#!/bin/bash
 
 PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
 GOOGLESERVICE_INFO_PATH=$googleServiceFilePath
