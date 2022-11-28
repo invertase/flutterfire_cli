@@ -373,7 +373,7 @@ end
 ''';
 }
 
-String addCrashylticsDebugSymbolScriptToScheme(
+String addCrashlyticsDebugSymbolScriptToScheme(
   String xcodeProjFilePath,
   String appId,
   String scheme,
