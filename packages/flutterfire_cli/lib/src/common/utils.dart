@@ -355,7 +355,12 @@ fi
 )
 
 for target in project.targets 
-    phase = target.shell_script_build_phases().find {|item| item.name == runScriptName}
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == runScriptName
+      end
+    end
+
     if (phase.nil?)
         phase = target.new_shell_script_build_phase(runScriptName)
         phase.shell_script = bashScript
@@ -394,7 +399,12 @@ input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/
 project = Xcodeproj::Project.open('$xcodeProjFilePath')
 
 for target in project.targets 
-  phase = target.shell_script_build_phases().find {|item| item.name.include? '$runScriptName'}
+  phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == '$runScriptName'
+      end
+    end
+
   if (phase.nil?)
       phase = target.new_shell_script_build_phase('$runScriptName')
       phase.shell_script = bashScript
