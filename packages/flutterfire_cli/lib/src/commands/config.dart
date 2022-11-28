@@ -203,6 +203,13 @@ class ConfigCommand extends FlutterFireCommand {
   // This allows us to update to the required "GoogleService-Info.plist" file name for macOS target or scheme writes.
   String? updatedMACOSServiceFilePath;
 
+  String? get fullMACOSServicePath {
+    if (macosServiceFilePath == null) {
+      return null;
+    }
+    return '${flutterApp!.package.path}${macosServiceFilePath!}';
+  }
+
   String? get iosServiceFilePath {
     if (updatedIOSServiceFilePath != null) {
       return updatedIOSServiceFilePath;
@@ -220,12 +227,7 @@ class ConfigCommand extends FlutterFireCommand {
     return '${flutterApp!.package.path}${iosServiceFilePath!}';
   }
 
-  String? get fullMACOSServicePath {
-    if (macosServiceFilePath == null) {
-      return null;
-    }
-    return '${flutterApp!.package.path}${macosServiceFilePath!}';
-  }
+
 
   String? get androidServiceFilePath {
     return argResults!['android-out'] as String?;
@@ -817,7 +819,7 @@ class ConfigCommand extends FlutterFireCommand {
       }
     }
 
-    if (macosOptions != null && Platform.isMacOS) {
+    if (macosOptions != null) {
       final googleServiceInfoFile = path.join(
         flutterApp!.macosDirectory.path,
         'Runner',
