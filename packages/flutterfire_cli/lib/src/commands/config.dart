@@ -585,14 +585,12 @@ class ConfigCommand extends FlutterFireCommand {
     futures.add(configFile.write());
 
     if (androidOptions != null && applyGradlePlugins) {
-      
-        await FirebaseAndroidGradlePlugins(
-          flutterApp!,
-          androidOptions,
-          logger,
-          androidServiceFilePath,
-        ).apply(force: isCI || yes);
-      
+      await FirebaseAndroidGradlePlugins(
+        flutterApp!,
+        androidOptions,
+        logger,
+        androidServiceFilePath,
+      ).apply(force: isCI || yes);
     }
 
     if (iosOptions != null) {
