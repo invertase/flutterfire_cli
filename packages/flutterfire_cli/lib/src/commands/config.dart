@@ -227,8 +227,6 @@ class ConfigCommand extends FlutterFireCommand {
     return '${flutterApp!.package.path}${iosServiceFilePath!}';
   }
 
-
-
   String? get androidServiceFilePath {
     return argResults!['android-out'] as String?;
   }
@@ -828,40 +826,40 @@ class ConfigCommand extends FlutterFireCommand {
 
       File file;
 
-      if (Platform.isMacOS) {
-        // If "macosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-        if (fullMACOSServicePath != null) {
-          final googleServiceFileName = path.basename(fullMACOSServicePath!);
+      // If "macosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
+      if (fullMACOSServicePath != null) {
+        final googleServiceFileName = path.basename(fullMACOSServicePath!);
 
-          if (googleServiceFileName != 'GoogleService-Info.plist') {
-            final response = promptBool(
-              'The file name must be "GoogleService-Info.plist" if you\'re bundling with your macOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+        if (googleServiceFileName != 'GoogleService-Info.plist') {
+          final response = promptBool(
+            'The file name must be "GoogleService-Info.plist" if you\'re bundling with your macOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+          );
+
+          // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
+          if (response == true) {
+            updatedMACOSServiceFilePath = path.join(
+              path.dirname(macosServiceFilePath!),
+              'GoogleService-Info.plist',
             );
-
-            // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
-            if (response == true) {
-              updatedMACOSServiceFilePath = path.join(
-                path.dirname(macosServiceFilePath!),
-                'GoogleService-Info.plist',
-              );
-            }
           }
-          // Create new directory for file output if it doesn't currently exist
-          await Directory(path.dirname(fullMACOSServicePath!))
-              .create(recursive: true);
-
-          file = File(fullMACOSServicePath!);
-        } else {
-          file = File(googleServiceInfoFile);
         }
+        // Create new directory for file output if it doesn't currently exist
+        await Directory(path.dirname(fullMACOSServicePath!))
+            .create(recursive: true);
 
-        if (!file.existsSync()) {
-          await file.writeAsString(macosOptions.optionsSourceContent);
-        }
+        file = File(fullMACOSServicePath!);
+      } else {
+        file = File(googleServiceInfoFile);
+      }
 
-        final xcodeProjFilePath =
-            path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
+      if (!file.existsSync()) {
+        await file.writeAsString(macosOptions.optionsSourceContent);
+      }
 
+      final xcodeProjFilePath =
+          path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
+
+      if (Platform.isMacOS) {
         // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
         if (fullMACOSServicePath != null) {
           final fileName = path.basename(fullMACOSServicePath!);
