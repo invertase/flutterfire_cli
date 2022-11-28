@@ -403,7 +403,7 @@ for target in project.targets
       if defined? item && item.name
         item.name == '$runScriptName'
       end
-    end
+  end
 
   if (phase.nil?)
       phase = target.new_shell_script_build_phase('$runScriptName')
@@ -418,7 +418,7 @@ end
 ''';
 }
 
-String addCrashylticsDebugSymbolScriptToTarget(
+String addCrashlyticsDebugSymbolScriptToTarget(
   String xcodeProjFilePath,
   String appId,
   String target,
@@ -444,7 +444,12 @@ project = Xcodeproj::Project.open('$xcodeProjFilePath')
 
 for target in project.targets
   if (target.name == '$target')
-    phase = target.shell_script_build_phases().find {|item| item.name.include? '[firebase_crashlytics] upload debug symbols script'}
+    phase = target.shell_script_build_phases().find do |item|
+      if !item.nil? && item.name.is_a?(String)
+        item.name.include? '[firebase_crashlytics] upload debug symbols script'
+      end
+    end
+
     if (phase.nil?)
         phase = target.new_shell_script_build_phase('$runScriptName')
         phase.shell_script = bashScript

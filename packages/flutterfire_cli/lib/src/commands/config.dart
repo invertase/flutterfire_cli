@@ -471,7 +471,7 @@ class ConfigCommand extends FlutterFireCommand {
     String appId,
     String target,
   ) async {
-    final addUploadSymbolsScript = addCrashylticsDebugSymbolScriptToTarget(
+    final addUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToTarget(
       xcodeProjFilePath,
       appId,
       target,
