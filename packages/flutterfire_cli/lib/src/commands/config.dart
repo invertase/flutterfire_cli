@@ -492,6 +492,14 @@ class ConfigCommand extends FlutterFireCommand {
     }
   }
 
+  String removeForwardSlash(String input) {
+    if (input.startsWith('/')) {
+      return input.substring(1);
+    } else {
+      return input;
+    }
+  }
+
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
@@ -675,7 +683,7 @@ class ConfigCommand extends FlutterFireCommand {
               xcodeProjFilePath,
               schemes[response],
               runScriptName,
-              fullIOSServicePath!,
+              removeForwardSlash(iosServiceFilePath!),
             );
 
             // Add script to Build Phases in Xcode project
@@ -898,7 +906,7 @@ class ConfigCommand extends FlutterFireCommand {
               xcodeProjFilePath,
               schemes[response],
               runScriptName,
-              fullMACOSServicePath!,
+              removeForwardSlash(macosServiceFilePath!),
             );
 
             // Add script to Build Phases in Xcode project

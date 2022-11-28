@@ -343,11 +343,14 @@ bashScript = %q(
 #!/bin/bash
 
 PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
-GOOGLESERVICE_INFO_PATH=$googleServiceFilePath
+# Remove the "ios" segment from the SOURCE_ROOT environment variable as it could already be on "googleServiceFilePath"
+GOOGLESERVICE_INFO_PATH=\${SOURCE_ROOT}%/*
+GOOGLESERVICE_INFO_PATH=\${GOOGLESERVICE_INFO_PATH}/$googleServiceFilePath
 
 # Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
 # This is why we use *"scheme"*
-if [[ "\${CONFIGURATION}" == *"$scheme"* ]];
+# If scheme is "Runner", it is the default scheme for a Flutter iOS project so we allow for all configurations
+if [[ "\${CONFIGURATION}" == *"$scheme"* ||  "Runner" = "$scheme" ]];
 then
     echo "Copying \${GOOGLESERVICE_INFO_PATH} to \${PLIST_DESTINATION}"
     cp "\${GOOGLESERVICE_INFO_PATH}" "\${PLIST_DESTINATION}"
