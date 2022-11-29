@@ -651,7 +651,7 @@ class ConfigCommand extends FlutterFireCommand {
             [
               'Scheme',
               'Target',
-              'No, just want to write the file to the path I chose'
+              'No, I want to write the file to the path I chose'
             ],
           );
 
@@ -876,7 +876,7 @@ class ConfigCommand extends FlutterFireCommand {
             [
               'Scheme',
               'Target',
-              'No, just want to write the file to the path I chose'
+              'No, I want to write the file to the path I chose'
             ],
           );
 
