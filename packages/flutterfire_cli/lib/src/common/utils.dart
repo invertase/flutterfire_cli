@@ -344,7 +344,7 @@ bashScript = %q(
 
 PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
 # Remove the "ios" segment from the SOURCE_ROOT environment variable as it could already be on "googleServiceFilePath"
-GOOGLESERVICE_INFO_PATH=\${SOURCE_ROOT}%/*
+GOOGLESERVICE_INFO_PATH=\${SOURCE_ROOT%/*}
 GOOGLESERVICE_INFO_PATH=\${GOOGLESERVICE_INFO_PATH}/$googleServiceFilePath
 
 # Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
@@ -358,6 +358,7 @@ fi
 )
 
 for target in project.targets 
+  if target.name == 'Runner'
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
@@ -372,6 +373,7 @@ for target in project.targets
         \$stdout.write "Shell script already exists for bundling 'GoogleService-Info.plist' for $scheme scheme, skipping..."
         exit(0)
     end
+  end  
 end
 ''';
 }
@@ -401,21 +403,23 @@ input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/
 
 project = Xcodeproj::Project.open('$xcodeProjFilePath')
 
-for target in project.targets 
-  phase = target.shell_script_build_phases().find do |item|
+for target in project.targets
+  if target.name == 'Runner'
+    phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == '$runScriptName'
       end
-  end
-
-  if (phase.nil?)
+    end
+  
+    if (phase.nil?)
       phase = target.new_shell_script_build_phase('$runScriptName')
       phase.shell_script = bashScript
       phase.input_paths = input_paths
       project.save() 
-  else
+    else
       \$stdout.write "firebase_crashlytics upload debug symbols script script already exists, skipping..."
       exit(0)
+    end
   end
 end
 ''';
