@@ -786,7 +786,9 @@ class ConfigCommand extends FlutterFireCommand {
         } else {
           // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
           final rubyScript = addServiceFileToRunnerScript(
-              googleServiceInfoFile, xcodeProjFilePath);
+            googleServiceInfoFile,
+            xcodeProjFilePath,
+          );
 
           final result = await Process.run('ruby', [
             '-e',
@@ -1009,7 +1011,9 @@ class ConfigCommand extends FlutterFireCommand {
         } else {
           // Continue to write file to Runner/GoogleService-Info.plist if no "macosServiceFilePath" is provided
           final rubyScript = addServiceFileToRunnerScript(
-              googleServiceInfoFile, xcodeProjFilePath);
+            googleServiceInfoFile,
+            xcodeProjFilePath,
+          );
 
           final result = await Process.run('ruby', [
             '-e',
