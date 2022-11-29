@@ -15,10 +15,7 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -28,6 +25,8 @@ import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
 import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_ios_setup.dart';
+import '../firebase/firebase_macos_setup.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
@@ -122,28 +121,28 @@ class ConfigCommand extends FlutterFireCommand {
       hide: true,
       abbr: 'd',
       help:
-          "Whether you want an upload Crashlytic's debug symbols script adding to the build phases of your iOS project.",
+          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
     );
 
     argParser.addOption(
       'ios-out',
       valueHelp: 'pathForIosConfig',
       help:
-          'Where to write the `Google-Service-Info.plist` file for the iOS platform. Useful for different flavors',
+          'Where to write the `Google-Service-Info.plist` file for iOS platform. Useful for different flavors',
     );
 
     argParser.addOption(
       'macos-out',
       valueHelp: 'pathForMacosConfig',
       help:
-          'Where would you like your `Google-Service-Info.plist` file to be written for macOS platform. Useful for different flavors',
+          'Where to write the `Google-Service-Info.plist` file to be written for macOS platform. Useful for different flavors',
     );
 
     argParser.addOption(
       'android-out',
       valueHelp: 'pathForAndroidConfig',
       help:
-          'Where would you like your `google-services.json` file to be written for android platform. Useful for different flavors',
+          'Where to write the `google-services.json` file to be written for android platform. Useful for different flavors',
     );
   }
 
@@ -194,16 +193,16 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get macosServiceFilePath {
-    if (updatedMACOSServiceFilePath != null) {
-      return updatedMACOSServiceFilePath;
+    if (updatedMacOSServiceFilePath != null) {
+      return updatedMacOSServiceFilePath;
     }
     return argResults!['macos-out'] as String?;
   }
 
   // This allows us to update to the required "GoogleService-Info.plist" file name for macOS target or scheme writes.
-  String? updatedMACOSServiceFilePath;
+  String? updatedMacOSServiceFilePath;
 
-  String? get fullMACOSServicePath {
+  String? get fullMacOSServicePath {
     if (macosServiceFilePath == null) {
       return null;
     }
@@ -220,7 +219,7 @@ class ConfigCommand extends FlutterFireCommand {
   // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
   String? updatedIOSServiceFilePath;
 
-  String? get fullIOSServicePath {
+  String? get fulliOSServicePath {
     if (iosServiceFilePath == null) {
       return null;
     }
@@ -440,66 +439,6 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
-  Future<void> _writeDebugScriptForScheme(
-    String xcodeProjFilePath,
-    String appId,
-    String scheme,
-  ) async {
-    final adUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToScheme(
-      xcodeProjFilePath,
-      appId,
-      scheme,
-      '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
-    );
-
-    final resultUploadScript = await Process.run('ruby', [
-      '-e',
-      adUploadSymbolsScript,
-    ]);
-
-    if (resultUploadScript.exitCode != 0) {
-      throw Exception(resultUploadScript.stderr);
-    }
-
-    if (resultUploadScript.stdout != null) {
-      logger.stdout(resultUploadScript.stdout as String);
-    }
-  }
-
-  Future<void> _writeDebugScriptForTarget(
-    String xcodeProjFilePath,
-    String appId,
-    String target,
-  ) async {
-    final addUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToTarget(
-      xcodeProjFilePath,
-      appId,
-      target,
-      '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
-    );
-
-    final resultUploadScript = await Process.run('ruby', [
-      '-e',
-      addUploadSymbolsScript,
-    ]);
-
-    if (resultUploadScript.exitCode != 0) {
-      throw Exception(resultUploadScript.stderr);
-    }
-
-    if (resultUploadScript.stdout != null) {
-      logger.stdout(resultUploadScript.stdout as String);
-    }
-  }
-
-  String removeForwardSlash(String input) {
-    if (input.startsWith('/')) {
-      return input.substring(1);
-    } else {
-      return input;
-    }
-  }
-
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
@@ -602,452 +541,27 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (iosOptions != null) {
-      final googleServiceInfoFile = path.join(
-        flutterApp!.iosDirectory.path,
-        'Runner',
-        iosOptions.optionsSourceFileName,
-      );
-
-      File file;
-      // If "iosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-      if (fullIOSServicePath != null) {
-        final googleServiceFileName = path.basename(iosServiceFilePath!);
-
-        if (googleServiceFileName != 'GoogleService-Info.plist') {
-          final response = promptBool(
-            'The file name must be "GoogleService-Info.plist" if you\'re bundling with your iOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
-          );
-
-          // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
-          if (response == true) {
-            updatedIOSServiceFilePath = path.join(
-              path.dirname(iosServiceFilePath!),
-              'GoogleService-Info.plist',
-            );
-          }
-        }
-        // Create new directory for file output if it doesn't currently exist
-        await Directory(path.dirname(fullIOSServicePath!))
-            .create(recursive: true);
-
-        file = File(fullIOSServicePath!);
-      } else {
-        file = File(googleServiceInfoFile);
-      }
-
-      if (!file.existsSync()) {
-        await file.writeAsString(iosOptions.optionsSourceContent);
-      }
-
-      final xcodeProjFilePath =
-          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
-
-      // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
-      if (Platform.isMacOS) {
-        if (fullIOSServicePath != null) {
-          final fileName = path.basename(fullIOSServicePath!);
-          final response = promptSelect(
-            'Would you like your iOS $fileName to be associated with your iOS Scheme or Target (use arrow keys & space to select)?',
-            [
-              'Scheme',
-              'Target',
-              'No, I want to write the file to the path I chose'
-            ],
-          );
-
-          // Add to scheme
-          if (response == 0) {
-            // Find the schemes available on the project
-            final schemeScript = findingSchemesScript(xcodeProjFilePath);
-
-            final result = await Process.run('ruby', [
-              '-e',
-              schemeScript,
-            ]);
-
-            if (result.exitCode != 0) {
-              throw Exception(result.stderr);
-            }
-            // Retrieve the schemes to prompt the user to select one
-            final schemes = (result.stdout as String).split(',');
-
-            final response = promptSelect(
-              'Which scheme would you like your iOS $fileName to be included within your iOS app bundle?',
-              schemes,
-            );
-
-            final runScriptName =
-                '[firebase_core] add Firebase configuration to "${schemes[response]}" scheme';
-            // Create bash script for adding Google service file to app bundle
-            final addBuildPhaseScript = addServiceFileToSchemeScript(
-              xcodeProjFilePath,
-              schemes[response],
-              runScriptName,
-              removeForwardSlash(iosServiceFilePath!),
-            );
-
-            // Add script to Build Phases in Xcode project
-            final resultBuildPhase = await Process.run('ruby', [
-              '-e',
-              addBuildPhaseScript,
-            ]);
-
-            if (resultBuildPhase.exitCode != 0) {
-              throw Exception(resultBuildPhase.stderr);
-            }
-
-            if (resultBuildPhase.stdout != null) {
-              logger.stdout(resultBuildPhase.stdout as String);
-            }
-
-            if (generateDebugSymbolScript) {
-              await _writeDebugScriptForScheme(
-                xcodeProjFilePath,
-                iosOptions.appId,
-                schemes[response],
-              );
-            } else {
-              final addSymbolScript = promptBool(
-                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${schemes[response]}' scheme?",
-              );
-
-              if (addSymbolScript == true) {
-                await _writeDebugScriptForScheme(
-                  xcodeProjFilePath,
-                  iosOptions.appId,
-                  schemes[response],
-                );
-              } else {
-                logger.stdout(
-                  logSkippingDebugSymbolScript,
-                );
-              }
-            }
-
-            // Add to target
-          } else if (response == 1) {
-            final targetScript = findingTargetsScript(xcodeProjFilePath);
-
-            final result = await Process.run('ruby', [
-              '-e',
-              targetScript,
-            ]);
-
-            if (result.exitCode != 0) {
-              throw Exception(result.stderr);
-            }
-            // Retrieve the targets to prompt the user to select one
-            final targets = (result.stdout as String).split(',');
-
-            final response = promptSelect(
-              'Which target would you like your iOS $fileName to be included within your iOS app bundle?',
-              targets,
-            );
-
-            final addServiceFileToTargetScript = addServiceFileToTarget(
-              xcodeProjFilePath,
-              fullIOSServicePath!,
-              targets[response],
-            );
-
-            final resultServiceFileToTarget = await Process.run('ruby', [
-              '-e',
-              addServiceFileToTargetScript,
-            ]);
-
-            if (resultServiceFileToTarget.exitCode != 0) {
-              throw Exception(resultServiceFileToTarget.stderr);
-            }
-
-            if (generateDebugSymbolScript) {
-              await _writeDebugScriptForTarget(
-                xcodeProjFilePath,
-                iosOptions.appId,
-                targets[response],
-              );
-            } else {
-              final addSymbolScript = promptBool(
-                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's '${targets[response]}' target?",
-              );
-
-              if (addSymbolScript == true) {
-                await _writeDebugScriptForTarget(
-                  xcodeProjFilePath,
-                  iosOptions.appId,
-                  targets[response],
-                );
-              } else {
-                logger.stdout(
-                  logSkippingDebugSymbolScript,
-                );
-              }
-            }
-          }
-        } else {
-          // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
-          final rubyScript = addServiceFileToRunnerScript(
-            googleServiceInfoFile,
-            xcodeProjFilePath,
-          );
-
-          final result = await Process.run('ruby', [
-            '-e',
-            rubyScript,
-          ]);
-
-          if (result.exitCode != 0) {
-            throw Exception(result.stderr);
-          }
-
-          if (generateDebugSymbolScript) {
-            await _writeDebugScriptForTarget(
-              xcodeProjFilePath,
-              iosOptions.appId,
-              'Runner',
-            );
-          } else {
-            final addSymbolScript = promptBool(
-              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your iOS project's 'Runner' target?",
-            );
-            if (addSymbolScript == true) {
-              await _writeDebugScriptForTarget(
-                xcodeProjFilePath,
-                iosOptions.appId,
-                'Runner',
-              );
-            } else {
-              logger.stdout(
-                logSkippingDebugSymbolScript,
-              );
-            }
-          }
-        }
-      }
+      await FirebaseIOSSetup(
+        iosOptions,
+        flutterApp,
+        fulliOSServicePath,
+        iosServiceFilePath,
+        updatedIOSServiceFilePath,
+        logger,
+        generateDebugSymbolScript,
+      ).apply();
     }
 
     if (macosOptions != null) {
-      final googleServiceInfoFile = path.join(
-        flutterApp!.macosDirectory.path,
-        'Runner',
-        macosOptions.optionsSourceFileName,
-      );
-
-      File file;
-
-      // If "macosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-      if (fullMACOSServicePath != null) {
-        final googleServiceFileName = path.basename(fullMACOSServicePath!);
-
-        if (googleServiceFileName != 'GoogleService-Info.plist') {
-          final response = promptBool(
-            'The file name must be "GoogleService-Info.plist" if you\'re bundling with your macOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
-          );
-
-          // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
-          if (response == true) {
-            updatedMACOSServiceFilePath = path.join(
-              path.dirname(macosServiceFilePath!),
-              'GoogleService-Info.plist',
-            );
-          }
-        }
-        // Create new directory for file output if it doesn't currently exist
-        await Directory(path.dirname(fullMACOSServicePath!))
-            .create(recursive: true);
-
-        file = File(fullMACOSServicePath!);
-      } else {
-        file = File(googleServiceInfoFile);
-      }
-
-      if (!file.existsSync()) {
-        await file.writeAsString(macosOptions.optionsSourceContent);
-      }
-
-      final xcodeProjFilePath =
-          path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
-
-      if (Platform.isMacOS) {
-        // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
-        if (fullMACOSServicePath != null) {
-          final fileName = path.basename(fullMACOSServicePath!);
-          final response = promptSelect(
-            'Would you like your macOS $fileName to be associated with your macOS Scheme or Target (use arrow keys & space to select)?',
-            [
-              'Scheme',
-              'Target',
-              'No, I want to write the file to the path I chose'
-            ],
-          );
-
-          // Add to scheme
-          if (response == 0) {
-            // Find the schemes available on the project
-            final schemeScript = findingSchemesScript(xcodeProjFilePath);
-
-            final result = await Process.run('ruby', [
-              '-e',
-              schemeScript,
-            ]);
-
-            if (result.exitCode != 0) {
-              throw Exception(result.stderr);
-            }
-            // Retrieve the schemes to prompt the user to select one
-            final schemes = (result.stdout as String).split(',');
-
-            final response = promptSelect(
-              'Which scheme would you like your macOS $fileName to be included within the macOS app bundle?',
-              schemes,
-            );
-
-            final runScriptName =
-                '[firebase_core] add Firebase configuration to "${schemes[response]}" scheme';
-            // Create bash script for adding Google service file to app bundle
-            final addBuildPhaseScript = addServiceFileToSchemeScript(
-              xcodeProjFilePath,
-              schemes[response],
-              runScriptName,
-              removeForwardSlash(macosServiceFilePath!),
-            );
-
-            // Add script to Build Phases in Xcode project
-            final resultBuildPhase = await Process.run('ruby', [
-              '-e',
-              addBuildPhaseScript,
-            ]);
-
-            if (resultBuildPhase.exitCode != 0) {
-              throw Exception(resultBuildPhase.stderr);
-            }
-
-            if (resultBuildPhase.stdout != null) {
-              logger.stdout(resultBuildPhase.stdout as String);
-            }
-
-            if (generateDebugSymbolScript) {
-              await _writeDebugScriptForScheme(
-                xcodeProjFilePath,
-                macosOptions.appId,
-                schemes[response],
-              );
-            } else {
-              final addSymbolScript = promptBool(
-                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's '${schemes[response]}' scheme?",
-              );
-
-              if (addSymbolScript == true) {
-                await _writeDebugScriptForScheme(
-                  xcodeProjFilePath,
-                  macosOptions.appId,
-                  schemes[response],
-                );
-              } else {
-                logger.stdout(
-                  logSkippingDebugSymbolScript,
-                );
-              }
-            }
-
-            // Add to target
-          } else if (response == 1) {
-            final targetScript = findingTargetsScript(xcodeProjFilePath);
-
-            final result = await Process.run('ruby', [
-              '-e',
-              targetScript,
-            ]);
-
-            if (result.exitCode != 0) {
-              throw Exception(result.stderr);
-            }
-            // Retrieve the targets to prompt the user to select one
-            final targets = (result.stdout as String).split(',');
-
-            final response = promptSelect(
-              'Which target would you like your macOS $fileName to be included within your macOS app bundle?',
-              targets,
-            );
-
-            final addServiceFileToTargetScript = addServiceFileToTarget(
-              xcodeProjFilePath,
-              fullMACOSServicePath!,
-              targets[response],
-            );
-
-            final resultServiceFileToTarget = await Process.run('ruby', [
-              '-e',
-              addServiceFileToTargetScript,
-            ]);
-
-            if (resultServiceFileToTarget.exitCode != 0) {
-              throw Exception(resultServiceFileToTarget.stderr);
-            }
-
-            if (generateDebugSymbolScript) {
-              await _writeDebugScriptForTarget(
-                xcodeProjFilePath,
-                macosOptions.appId,
-                targets[response],
-              );
-            } else {
-              final addSymbolScript = promptBool(
-                "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's '${targets[response]}' target?",
-              );
-
-              if (addSymbolScript == true) {
-                await _writeDebugScriptForTarget(
-                  xcodeProjFilePath,
-                  macosOptions.appId,
-                  targets[response],
-                );
-              } else {
-                logger.stdout(
-                  logSkippingDebugSymbolScript,
-                );
-              }
-            }
-          }
-        } else {
-          // Continue to write file to Runner/GoogleService-Info.plist if no "macosServiceFilePath" is provided
-          final rubyScript = addServiceFileToRunnerScript(
-            googleServiceInfoFile,
-            xcodeProjFilePath,
-          );
-
-          final result = await Process.run('ruby', [
-            '-e',
-            rubyScript,
-          ]);
-
-          if (result.exitCode != 0) {
-            throw Exception(result.stderr);
-          }
-
-          if (generateDebugSymbolScript) {
-            await _writeDebugScriptForTarget(
-              xcodeProjFilePath,
-              macosOptions.appId,
-              'Runner',
-            );
-          } else {
-            final addSymbolScript = promptBool(
-              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's 'Runner' target?",
-            );
-            if (addSymbolScript == true) {
-              await _writeDebugScriptForTarget(
-                xcodeProjFilePath,
-                macosOptions.appId,
-                'Runner',
-              );
-            } else {
-              logger.stdout(
-                logSkippingDebugSymbolScript,
-              );
-            }
-          }
-        }
-      }
+      await FirebaseMacOSSetup(
+              macosOptions,
+              flutterApp,
+              fullMacOSServicePath,
+              macosServiceFilePath,
+              updatedMacOSServiceFilePath,
+              logger,
+              generateDebugSymbolScript)
+          .apply();
     }
 
     await Future.wait<void>(futures);

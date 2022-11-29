@@ -18,6 +18,7 @@
 import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
+import 'package:cli_util/cli_logging.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 import 'platform.dart';
@@ -207,6 +208,68 @@ String relativePath(String path, String from) {
         .replaceAll(r'\', r'\\');
   }
   return normalize(relative(path, from: from));
+}
+
+String removeForwardSlash(String input) {
+  if (input.startsWith('/')) {
+    return input.substring(1);
+  } else {
+    return input;
+  }
+}
+
+Future<void> writeDebugScriptForScheme(
+  String xcodeProjFilePath,
+  String appId,
+  String scheme,
+  Logger logger,
+) async {
+  final adUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToScheme(
+    xcodeProjFilePath,
+    appId,
+    scheme,
+    '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
+  );
+
+  final resultUploadScript = await Process.run('ruby', [
+    '-e',
+    adUploadSymbolsScript,
+  ]);
+
+  if (resultUploadScript.exitCode != 0) {
+    throw Exception(resultUploadScript.stderr);
+  }
+
+  if (resultUploadScript.stdout != null) {
+    logger.stdout(resultUploadScript.stdout as String);
+  }
+}
+
+Future<void> writeDebugScriptForTarget(
+  String xcodeProjFilePath,
+  String appId,
+  String target,
+  Logger logger,
+) async {
+  final addUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToTarget(
+    xcodeProjFilePath,
+    appId,
+    target,
+    '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
+  );
+
+  final resultUploadScript = await Process.run('ruby', [
+    '-e',
+    addUploadSymbolsScript,
+  ]);
+
+  if (resultUploadScript.exitCode != 0) {
+    throw Exception(resultUploadScript.stderr);
+  }
+
+  if (resultUploadScript.stdout != null) {
+    logger.stdout(resultUploadScript.stdout as String);
+  }
 }
 
 String addServiceFileToRunnerScript(
