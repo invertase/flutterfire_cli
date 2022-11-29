@@ -391,7 +391,7 @@ bashScript = %q(
 
 # Run upload symbol script for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
 # This is why we use *"scheme"*
-if [[ "\${CONFIGURATION}" == *"$scheme"* ]];
+if [[ "\${CONFIGURATION}" == *"$scheme"* && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols]];
 then
     echo "Running $runScriptName"
     \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
@@ -437,7 +437,7 @@ bashScript = %q(
 #!/bin/bash
 
 # Run upload symbol script for appropriate target.
-if [ "\${TARGET_NAME}" == "$target" ];
+if [ "\${TARGET_NAME}" == "$target" && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols];
 then
     echo "Running $runScriptName"
     \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
