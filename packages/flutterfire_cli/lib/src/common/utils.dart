@@ -18,6 +18,7 @@
 import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
+import 'package:cli_util/cli_logging.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 import 'platform.dart';
@@ -209,7 +210,69 @@ String relativePath(String path, String from) {
   return normalize(relative(path, from: from));
 }
 
-String generateRubyScript(
+String removeForwardSlash(String input) {
+  if (input.startsWith('/')) {
+    return input.substring(1);
+  } else {
+    return input;
+  }
+}
+
+Future<void> writeDebugScriptForScheme(
+  String xcodeProjFilePath,
+  String appId,
+  String scheme,
+  Logger logger,
+) async {
+  final adUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToScheme(
+    xcodeProjFilePath,
+    appId,
+    scheme,
+    '[firebase_crashlytics] upload debug symbols script for "$scheme" scheme',
+  );
+
+  final resultUploadScript = await Process.run('ruby', [
+    '-e',
+    adUploadSymbolsScript,
+  ]);
+
+  if (resultUploadScript.exitCode != 0) {
+    throw Exception(resultUploadScript.stderr);
+  }
+
+  if (resultUploadScript.stdout != null) {
+    logger.stdout(resultUploadScript.stdout as String);
+  }
+}
+
+Future<void> writeDebugScriptForTarget(
+  String xcodeProjFilePath,
+  String appId,
+  String target,
+  Logger logger,
+) async {
+  final addUploadSymbolsScript = addCrashlyticsDebugSymbolScriptToTarget(
+    xcodeProjFilePath,
+    appId,
+    target,
+    '[firebase_crashlytics] upload debug symbols script for "$target" scheme',
+  );
+
+  final resultUploadScript = await Process.run('ruby', [
+    '-e',
+    addUploadSymbolsScript,
+  ]);
+
+  if (resultUploadScript.exitCode != 0) {
+    throw Exception(resultUploadScript.stderr);
+  }
+
+  if (resultUploadScript.stdout != null) {
+    logger.stdout(resultUploadScript.stdout as String);
+  }
+}
+
+String addServiceFileToRunnerScript(
   String googleServiceInfoFile,
   String xcodeProjFilePath,
 ) {
@@ -242,6 +305,230 @@ if googleConfigExists == false
     project.save
   else
     abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
+  end  
+end
+''';
+}
+
+String findingSchemesScript(
+  String xcodeProjFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+
+schemes = Xcodeproj::Project.schemes(xcodeProject)
+
+response = Array.new
+
+schemes.each do |scheme|
+  response << scheme.to_s
+end
+
+if response.length == 0
+  abort("There are no schemes in your Xcode workspace. Please create a scheme and try again.")
+end
+
+\$stdout.write response.join(',')
+''';
+}
+
+String findingTargetsScript(
+  String xcodeProjFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+project = Xcodeproj::Project.open(xcodeProject)
+
+response = Array.new
+
+project.targets.each do |target|
+  response << target.name
+end
+
+if response.length == 0
+  abort("There are no targets in your Xcode workspace. Please create a target and try again.")
+end
+
+\$stdout.write response.join(',')
+''';
+}
+
+String addServiceFileToTarget(
+  String xcodeProjFilePath,
+  String googleServiceInfoFile,
+  String targetName,
+) {
+  return '''
+require 'xcodeproj'
+googleFile='$googleServiceInfoFile'
+xcodeFile='$xcodeProjFilePath'
+targetName='$targetName'
+
+project = Xcodeproj::Project.open(xcodeFile)
+
+file = project.new_file(googleFile)
+target = project.targets.find { |target| target.name == targetName }
+
+if(target)
+  exists = target.resources_build_phase.files.find do |file|
+    if defined? file && file.file_ref && file.file_ref.path
+      if file.file_ref.path.is_a? String
+        file.file_ref.path.include? 'GoogleService-Info.plist'
+      end
+    end
+  end  
+  if !exists
+    target.add_resources([file])
+    project.save
+  end
+else
+  abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
+end  
+''';
+}
+
+String addServiceFileToSchemeScript(
+  String xcodeProjFilePath,
+  String scheme,
+  String runScriptName,
+  String googleServiceFilePath,
+) {
+  return '''
+require 'xcodeproj'
+xcodeFile='$xcodeProjFilePath'
+runScriptName='$runScriptName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+# multi line argument for bash script
+bashScript = %q(
+#!/bin/bash
+
+PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
+# Remove the "ios" segment from the SOURCE_ROOT environment variable as it could already be on "googleServiceFilePath"
+GOOGLESERVICE_INFO_PATH=\${SOURCE_ROOT%/*}
+GOOGLESERVICE_INFO_PATH=\${GOOGLESERVICE_INFO_PATH}/$googleServiceFilePath
+
+# Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
+# This is why we use *"scheme"*
+# If scheme is "Runner", it is the default scheme for a Flutter iOS project so we allow for all configurations
+if [[ "\${CONFIGURATION}" == *"$scheme"* ||  "Runner" = "$scheme" ]];
+then
+    echo "Copying \${GOOGLESERVICE_INFO_PATH} to \${PLIST_DESTINATION}"
+    cp "\${GOOGLESERVICE_INFO_PATH}" "\${PLIST_DESTINATION}"
+fi     
+)
+
+for target in project.targets 
+  if target.name == 'Runner'
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == runScriptName
+      end
+    end
+
+    if (phase.nil?)
+        phase = target.new_shell_script_build_phase(runScriptName)
+        phase.shell_script = bashScript
+        project.save() 
+    else
+        \$stdout.write "Shell script already exists for bundling 'GoogleService-Info.plist' for $scheme scheme, skipping..."
+        exit(0)
+    end
+  end  
+end
+''';
+}
+
+String addCrashlyticsDebugSymbolScriptToScheme(
+  String xcodeProjFilePath,
+  String appId,
+  String scheme,
+  String runScriptName,
+) {
+  return '''
+require 'xcodeproj'
+bashScript = %q(
+#!/bin/bash
+
+# Run upload symbol script for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
+# This is why we use *"scheme"*
+if [ "\${CONFIGURATION}" == *"$scheme"* && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols];
+then
+    echo "Running $runScriptName"
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase -ai '$appId'
+fi     
+)
+
+input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/\${TARGET_NAME}\\"", "\\"\$(SRCROOT)/\$(BUILT_PRODUCTS_DIR)/\$(INFOPLIST_PATH)\\""]
+
+project = Xcodeproj::Project.open('$xcodeProjFilePath')
+
+for target in project.targets
+  if target.name == 'Runner'
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == '$runScriptName'
+      end
+    end
+  
+    if (phase.nil?)
+      phase = target.new_shell_script_build_phase('$runScriptName')
+      phase.shell_script = bashScript
+      phase.input_paths = input_paths
+      project.save() 
+    else
+      \$stdout.write "firebase_crashlytics upload debug symbols script script already exists, skipping..."
+      exit(0)
+    end
+  end
+end
+''';
+}
+
+String addCrashlyticsDebugSymbolScriptToTarget(
+  String xcodeProjFilePath,
+  String appId,
+  String target,
+  String runScriptName,
+) {
+  return '''
+require 'xcodeproj'
+bashScript = %q(
+#!/bin/bash
+
+# Run upload symbol script for appropriate target.
+if [ "\${TARGET_NAME}" == "$target" && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols];
+then
+    echo "Running $runScriptName"
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
+    \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase -ai '$appId'
+fi     
+)
+
+input_paths = ["\\"\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/\${TARGET_NAME}\\"", "\\"\$(SRCROOT)/\$(BUILT_PRODUCTS_DIR)/\$(INFOPLIST_PATH)\\""]
+
+project = Xcodeproj::Project.open('$xcodeProjFilePath')
+
+for target in project.targets
+  if (target.name == '$target')
+    phase = target.shell_script_build_phases().find do |item|
+      if !item.nil? && item.name.is_a?(String)
+        item.name.include? '[firebase_crashlytics] upload debug symbols script'
+      end
+    end
+
+    if (phase.nil?)
+        phase = target.new_shell_script_build_phase('$runScriptName')
+        phase.shell_script = bashScript
+        phase.input_paths = input_paths
+        project.save() 
+    else
+        \$stdout.write "firebase_crashlytics upload debug symbols script script already exists, skipping..."
+        exit(0)
+    end
   end  
 end
 ''';

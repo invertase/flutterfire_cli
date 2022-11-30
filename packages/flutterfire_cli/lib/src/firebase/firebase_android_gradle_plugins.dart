@@ -58,19 +58,35 @@ class FirebaseAndroidGradlePlugins {
     this.flutterApp,
     this.firebaseOptions,
     this.logger,
+    this.androidServiceFilePath,
   );
 
   final FlutterApp flutterApp;
   final FirebaseOptions firebaseOptions;
   final Logger logger;
+  final String? androidServiceFilePath;
 
-  File get androidGoogleServicesJsonFile => File(
+  File get androidGoogleServicesJsonFile {
+    if (androidServiceFilePath != null) {
+      return File('${flutterApp.package.path}${androidServiceFilePath!}');
+    } else {
+      return File(
         path.join(
           flutterApp.androidDirectory.path,
           'app',
           firebaseOptions.optionsSourceFileName,
         ),
       );
+    }
+  }
+
+  Future<void> createAndroidGoogleServicesJsonFile() async {
+    if (androidServiceFilePath != null) {
+      final updatedPath =
+          '${flutterApp.package.path}${androidServiceFilePath!}';
+      await File(updatedPath).create(recursive: true);
+    }
+  }
 
   File get androidBuildGradleFile =>
       File(path.join(flutterApp.androidDirectory.path, 'build.gradle'));
@@ -120,6 +136,9 @@ class FirebaseAndroidGradlePlugins {
         return;
       }
     }
+
+    await createAndroidGoogleServicesJsonFile();
+
     await androidGoogleServicesJsonFile.writeAsString(
       firebaseOptions.optionsSourceContent,
     );

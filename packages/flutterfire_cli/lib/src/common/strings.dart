@@ -43,10 +43,9 @@ String logCliUpdated(String packageName, String latestVersion) =>
 /// Logs when the `--no-app-id-json` flag is used. See the following link for
 /// context on why a flag to opt-out was added:
 /// https://github.com/invertase/flutterfire_cli/issues/14
-const logSkippingAppIdJson =
-    'Skipping `firebase_app_id_file.json` generation. Note: this is not '
-    'recommended as it can cause configuration issues with some FlutterFire '
-    'plugins such as Crashlytics.';
+const logSkippingDebugSymbolScript =
+    'Skipping upload "Crashlytic\'s debug symbols script" build phase. Note: this is not '
+    'recommended if you use Crashlytics in your app.';
 
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>

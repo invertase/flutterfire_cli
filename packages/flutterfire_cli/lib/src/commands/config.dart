@@ -15,10 +15,7 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -26,9 +23,10 @@ import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
-import '../firebase/firebase_app_id_file.dart';
 import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_ios_setup.dart';
+import '../firebase/firebase_macos_setup.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
@@ -119,12 +117,32 @@ class ConfigCommand extends FlutterFireCommand {
           'and create the google-services.json file in your ./android/app folder.',
     );
     argParser.addFlag(
-      'app-id-json',
-      defaultsTo: true,
+      'debug-symbols-script',
       hide: true,
-      abbr: 'j',
+      abbr: 'd',
       help:
-          'Whether to generate the firebase_app_id.json files used by native iOS and Android builds.',
+          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
+    );
+
+    argParser.addOption(
+      'ios-out',
+      valueHelp: 'pathForIosConfig',
+      help:
+          'Where to write the `Google-Service-Info.plist` file for iOS platform. Useful for different flavors',
+    );
+
+    argParser.addOption(
+      'macos-out',
+      valueHelp: 'pathForMacosConfig',
+      help:
+          'Where to write the `Google-Service-Info.plist` file to be written for macOS platform. Useful for different flavors',
+    );
+
+    argParser.addOption(
+      'android-out',
+      valueHelp: 'pathForAndroidConfig',
+      help:
+          'Where to write the `google-services.json` file to be written for android platform. Useful for different flavors',
     );
   }
 
@@ -170,8 +188,34 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['apply-gradle-plugins'] as bool;
   }
 
-  bool get generateAppIdJson {
-    return argResults!['app-id-json'] as bool;
+  bool get generateDebugSymbolScript {
+    return argResults!['debug-symbols-script'] as bool;
+  }
+
+  String? get macosServiceFilePath {
+    return argResults!['macos-out'] as String?;
+  }
+
+  String? get fullMacOSServicePath {
+    if (macosServiceFilePath == null) {
+      return null;
+    }
+    return '${flutterApp!.package.path}${macosServiceFilePath!}';
+  }
+
+  String? get iosServiceFilePath {
+    return argResults!['ios-out'] as String?;
+  }
+
+  String? get fulliOSServicePath {
+    if (iosServiceFilePath == null) {
+      return null;
+    }
+    return '${flutterApp!.package.path}${iosServiceFilePath!}';
+  }
+
+  String? get androidServiceFilePath {
+    return argResults!['android-out'] as String?;
   }
 
   String? get androidApplicationId {
@@ -475,101 +519,35 @@ class ConfigCommand extends FlutterFireCommand {
     );
     futures.add(configFile.write());
 
-    if (generateAppIdJson) {
-      if (iosOptions != null) {
-        final appIDFile = FirebaseAppIDFile(
-          // In order to generate if we're not in the folder of the flutterApp
-          flutterApp?.iosDirectory.path ?? iosAppIDOutputFilePrefix,
-          options: iosOptions,
-          force: isCI || yes,
-        );
-        futures.add(appIDFile.write());
-      }
-
-      if (macosOptions != null) {
-        final appIDFile = FirebaseAppIDFile(
-          // In order to generate if we're not in the folder of the flutterApp
-          flutterApp?.macosDirectory.path ?? macosAppIDOutputFilePrefix,
-          options: macosOptions,
-          force: isCI || yes,
-        );
-        futures.add(appIDFile.write());
-      }
-    } else {
-      logger.stdout(
-        logSkippingAppIdJson,
-      );
-    }
-
     if (androidOptions != null && applyGradlePlugins) {
-      futures.add(
-        FirebaseAndroidGradlePlugins(
-          flutterApp!,
-          androidOptions,
-          logger,
-        ).apply(force: isCI || yes),
-      );
+      await FirebaseAndroidGradlePlugins(
+        flutterApp!,
+        androidOptions,
+        logger,
+        androidServiceFilePath,
+      ).apply(force: isCI || yes);
     }
 
     if (iosOptions != null) {
-      final googleServiceInfoFile = path.join(
-        flutterApp!.iosDirectory.path,
-        'Runner',
-        iosOptions.optionsSourceFileName,
-      );
-
-      final file = File(googleServiceInfoFile);
-
-      if (!file.existsSync()) {
-        await file.writeAsString(iosOptions.optionsSourceContent);
-      }
-
-      final xcodeProjFilePath =
-          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
-
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
-
-      if (Platform.isMacOS) {
-        final result = await Process.run('ruby', [
-          '-e',
-          rubyScript,
-        ]);
-
-        if (result.exitCode != 0) {
-          throw Exception(result.stderr);
-        }
-      }
+      await FirebaseIOSSetup(
+        iosOptions,
+        flutterApp,
+        fulliOSServicePath,
+        iosServiceFilePath,
+        logger,
+        generateDebugSymbolScript,
+      ).apply();
     }
 
     if (macosOptions != null) {
-      final googleServiceInfoFile = path.join(
-        flutterApp!.macosDirectory.path,
-        'Runner',
-        macosOptions.optionsSourceFileName,
-      );
-      final file = File(googleServiceInfoFile);
-
-      if (!file.existsSync()) {
-        await file.writeAsString(macosOptions.optionsSourceContent);
-      }
-
-      final xcodeProjFilePath =
-          path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
-
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
-
-      if (Platform.isMacOS) {
-        final result = await Process.run('ruby', [
-          '-e',
-          rubyScript,
-        ]);
-
-        if (result.exitCode != 0) {
-          throw Exception(result.stderr);
-        }
-      }
+      await FirebaseMacOSSetup(
+        macosOptions,
+        flutterApp,
+        fullMacOSServicePath,
+        macosServiceFilePath,
+        logger,
+        generateDebugSymbolScript,
+      ).apply();
     }
 
     await Future.wait<void>(futures);
