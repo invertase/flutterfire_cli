@@ -560,7 +560,8 @@ class ConfigCommand extends FlutterFireCommand {
               macosServiceFilePath,
               updatedMacOSServiceFilePath,
               logger,
-              generateDebugSymbolScript)
+              generateDebugSymbolScript,
+              )
           .apply();
     }
 
