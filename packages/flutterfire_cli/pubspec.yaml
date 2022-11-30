@@ -1,5 +1,5 @@
 name: flutterfire_cli
-description: A command-line application for FlutterFire.
+description: FlutterFire CLI for configuring Firebase on your application.
 version: 0.3.0-dev.13
 homepage: "https://github.com/invertase/flutterfire_cli"
 
