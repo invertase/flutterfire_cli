@@ -1,3 +1,7 @@
+## 0.3.0-dev.13
+
+ - **FEAT**: new command line args for service file output. ([c335a26b](https://github.com/invertase/flutterfire_cli/commit/c335a26bf7748ab218ecd846b8f22ea96433cbdb))
+
 ## 0.2.7
 
  - **FEAT**: remove package the user should not depend on. ([9faa9e13](https://github.com/invertase/flutterfire_cli/commit/9faa9e13ed73673f9c46262fb2a5b2622ce684fd))

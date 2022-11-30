@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2022-11-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.13`](#flutterfire_cli---v030-dev13)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.13`
+
+ - **FEAT**: new command line args for service file output. ([c335a26b](https://github.com/invertase/flutterfire_cli/commit/c335a26bf7748ab218ecd846b8f22ea96433cbdb))
+
+
 ## 2022-11-09
 
 ### Changes
