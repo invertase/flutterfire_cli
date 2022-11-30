@@ -15,19 +15,16 @@ class FirebaseMacOSSetup {
     this.flutterApp,
     this.fullMacOSServicePath,
     this.macosServiceFilePath,
-    this.updatedMacOSServiceFilePath,
     this.logger,
     this.generateDebugSymbolScript,
   );
 
   final FlutterApp? flutterApp;
   final FirebaseOptions macosOptions;
-  final String? fullMacOSServicePath;
-  final String? macosServiceFilePath;
+  String? fullMacOSServicePath;
+  String? macosServiceFilePath;
   final Logger logger;
   final bool generateDebugSymbolScript;
-// This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
-  String? updatedMacOSServiceFilePath;
 
   Future<void> apply() async {
     final googleServiceInfoFile = path.join(
@@ -49,10 +46,12 @@ class FirebaseMacOSSetup {
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
         if (response == true) {
-          updatedMacOSServiceFilePath = path.join(
+          macosServiceFilePath = path.join(
             path.dirname(macosServiceFilePath!),
             'GoogleService-Info.plist',
           );
+          fullMacOSServicePath =
+              '${flutterApp!.package.path}${macosServiceFilePath!}';
         }
       }
       // Create new directory for file output if it doesn't currently exist

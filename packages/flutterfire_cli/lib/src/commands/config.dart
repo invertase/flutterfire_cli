@@ -193,14 +193,8 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get macosServiceFilePath {
-    if (updatedMacOSServiceFilePath != null) {
-      return updatedMacOSServiceFilePath;
-    }
     return argResults!['macos-out'] as String?;
   }
-
-  // This allows us to update to the required "GoogleService-Info.plist" file name for macOS target or scheme writes.
-  String? updatedMacOSServiceFilePath;
 
   String? get fullMacOSServicePath {
     if (macosServiceFilePath == null) {
@@ -210,14 +204,8 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get iosServiceFilePath {
-    if (updatedIOSServiceFilePath != null) {
-      return updatedIOSServiceFilePath;
-    }
     return argResults!['ios-out'] as String?;
   }
-
-  // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
-  String? updatedIOSServiceFilePath;
 
   String? get fulliOSServicePath {
     if (iosServiceFilePath == null) {
@@ -546,7 +534,6 @@ class ConfigCommand extends FlutterFireCommand {
         flutterApp,
         fulliOSServicePath,
         iosServiceFilePath,
-        updatedIOSServiceFilePath,
         logger,
         generateDebugSymbolScript,
       ).apply();
@@ -554,15 +541,13 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (macosOptions != null) {
       await FirebaseMacOSSetup(
-              macosOptions,
-              flutterApp,
-              fullMacOSServicePath,
-              macosServiceFilePath,
-              updatedMacOSServiceFilePath,
-              logger,
-              generateDebugSymbolScript,
-              )
-          .apply();
+        macosOptions,
+        flutterApp,
+        fullMacOSServicePath,
+        macosServiceFilePath,
+        logger,
+        generateDebugSymbolScript,
+      ).apply();
     }
 
     await Future.wait<void>(futures);

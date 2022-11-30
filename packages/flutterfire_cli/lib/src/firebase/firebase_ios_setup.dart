@@ -15,15 +15,14 @@ class FirebaseIOSSetup {
     this.flutterApp,
     this.fulliOSServicePath,
     this.iosServiceFilePath,
-    this.updatedIOSServiceFilePath,
     this.logger,
     this.generateDebugSymbolScript,
   );
 
   final FlutterApp? flutterApp;
   final FirebaseOptions iosOptions;
-  final String? fulliOSServicePath;
-  final String? iosServiceFilePath;
+  String? fulliOSServicePath;
+  String? iosServiceFilePath;
   final Logger logger;
   final bool generateDebugSymbolScript;
 // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
@@ -48,10 +47,13 @@ class FirebaseIOSSetup {
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
         if (response == true) {
-          updatedIOSServiceFilePath = path.join(
+          iosServiceFilePath = path.join(
             path.dirname(iosServiceFilePath!),
             'GoogleService-Info.plist',
           );
+
+          fulliOSServicePath =
+              '${flutterApp!.package.path}${iosServiceFilePath!}';
         }
       }
       // Create new directory for file output if it doesn't currently exist
