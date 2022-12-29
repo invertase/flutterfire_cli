@@ -17,6 +17,8 @@ class FirebaseMacOSSetup {
     this.macosServiceFilePath,
     this.logger,
     this.generateDebugSymbolScript,
+    this.scheme,
+    this.target,
   );
 
   final FlutterApp? flutterApp;
@@ -25,6 +27,12 @@ class FirebaseMacOSSetup {
   String? macosServiceFilePath;
   final Logger logger;
   final bool generateDebugSymbolScript;
+  String? scheme;
+  String? target;
+
+  String get xcodeProjFilePath {
+    return path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
+  }
 
   Future<void> apply() async {
     final googleServiceInfoFile = path.join(
@@ -67,152 +75,123 @@ class FirebaseMacOSSetup {
       await file.writeAsString(macosOptions.optionsSourceContent);
     }
 
-    final xcodeProjFilePath =
-        path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
-
     if (Platform.isMacOS) {
       // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
       if (fullMacOSServicePath != null) {
-        final fileName = path.basename(fullMacOSServicePath!);
-        final response = promptSelect(
-          'Would you like your macOS $fileName to be associated with your macOS Scheme or Target (use arrow keys & space to select)?',
-          [
-            'Scheme',
-            'Target',
-            'No, I want to write the file to the path I chose'
-          ],
-        );
+        if (scheme != null) {
+          final schemes = await findSchemesAvailable(xcodeProjFilePath);
 
-        // Add to scheme
-        if (response == 0) {
-          // Find the schemes available on the project
-          final schemeScript = findingSchemesScript(xcodeProjFilePath);
+          final schemeExists = schemes.contains(scheme);
 
-          final result = await Process.run('ruby', [
-            '-e',
-            schemeScript,
-          ]);
-
-          if (result.exitCode != 0) {
-            throw Exception(result.stderr);
-          }
-          // Retrieve the schemes to prompt the user to select one
-          final schemes = (result.stdout as String).split(',');
-
-          final response = promptSelect(
-            'Which scheme would you like your macOS $fileName to be included within the macOS app bundle?',
-            schemes,
-          );
-
-          final runScriptName =
-              '[firebase_core] add Firebase configuration to "${schemes[response]}" scheme';
-          // Create bash script for adding Google service file to app bundle
-          final addBuildPhaseScript = addServiceFileToSchemeScript(
-            xcodeProjFilePath,
-            schemes[response],
-            runScriptName,
-            removeForwardSlash(macosServiceFilePath!),
-          );
-
-          // Add script to Build Phases in Xcode project
-          final resultBuildPhase = await Process.run('ruby', [
-            '-e',
-            addBuildPhaseScript,
-          ]);
-
-          if (resultBuildPhase.exitCode != 0) {
-            throw Exception(resultBuildPhase.stderr);
-          }
-
-          if (resultBuildPhase.stdout != null) {
-            logger.stdout(resultBuildPhase.stdout as String);
-          }
-
-          if (generateDebugSymbolScript) {
-            await writeDebugScriptForScheme(
+          if (schemeExists) {
+            await writeSchemeScriptToProject(
+              xcodeProjFilePath,
+              macosServiceFilePath!,
+              scheme!,
+              logger,
+            );
+            await writeDebugSymbolScriptForScheme(
+              generateDebugSymbolScript,
               xcodeProjFilePath,
               macosOptions.appId,
+              logger,
+              scheme!,
+              'macOS',
+            );
+          } else {
+            throw MissingFromXcodeProjectException(
+              'macOS',
+              'scheme',
+              scheme!,
+              schemes,
+            );
+          }
+        } else if (target != null) {
+          final targets = await findTargetsAvailable(xcodeProjFilePath);
+
+          final targetExists = targets.contains(target);
+
+          if (targetExists) {
+            await writeToTargetProject(
+              xcodeProjFilePath,
+              fullMacOSServicePath!,
+              target!,
+            );
+
+            await writeDebugSymbolScriptForTarget(
+              generateDebugSymbolScript,
+              xcodeProjFilePath,
+              macosOptions.appId,
+              logger,
+              target!,
+              'macOS',
+            );
+          } else {
+            throw MissingFromXcodeProjectException(
+              'macOS',
+              'target',
+              target!,
+              targets,
+            );
+          }
+        } else {
+          final fileName = path.basename(fullMacOSServicePath!);
+          final response = promptSelect(
+            'Would you like your macOS $fileName to be associated with your macOS Scheme or Target (use arrow keys & space to select)?',
+            [
+              'Scheme',
+              'Target',
+              'No, I want to write the file to the path I chose'
+            ],
+          );
+
+          // Add to scheme
+          if (response == 0) {
+            // Find the schemes available on the project
+            final schemes = await findSchemesAvailable(xcodeProjFilePath);
+
+            final response = promptSelect(
+              'Which scheme would you like your macOS $fileName to be included within the macOS app bundle?',
+              schemes,
+            );
+
+            await writeSchemeScriptToProject(
+              xcodeProjFilePath,
+              macosServiceFilePath!,
               schemes[response],
               logger,
             );
-          } else {
-            final addSymbolScript = promptBool(
-              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's '${schemes[response]}' scheme?",
-            );
-
-            if (addSymbolScript == true) {
-              await writeDebugScriptForScheme(
-                xcodeProjFilePath,
-                macosOptions.appId,
-                schemes[response],
-                logger,
-              );
-            } else {
-              logger.stdout(
-                logSkippingDebugSymbolScript,
-              );
-            }
-          }
-
-          // Add to target
-        } else if (response == 1) {
-          final targetScript = findingTargetsScript(xcodeProjFilePath);
-
-          final result = await Process.run('ruby', [
-            '-e',
-            targetScript,
-          ]);
-
-          if (result.exitCode != 0) {
-            throw Exception(result.stderr);
-          }
-          // Retrieve the targets to prompt the user to select one
-          final targets = (result.stdout as String).split(',');
-
-          final response = promptSelect(
-            'Which target would you like your macOS $fileName to be included within your macOS app bundle?',
-            targets,
-          );
-
-          final addServiceFileToTargetScript = addServiceFileToTarget(
-            xcodeProjFilePath,
-            fullMacOSServicePath!,
-            targets[response],
-          );
-
-          final resultServiceFileToTarget = await Process.run('ruby', [
-            '-e',
-            addServiceFileToTargetScript,
-          ]);
-
-          if (resultServiceFileToTarget.exitCode != 0) {
-            throw Exception(resultServiceFileToTarget.stderr);
-          }
-
-          if (generateDebugSymbolScript) {
-            await writeDebugScriptForTarget(
+            await writeDebugSymbolScriptForScheme(
+              generateDebugSymbolScript,
               xcodeProjFilePath,
               macosOptions.appId,
-              targets[response],
               logger,
-            );
-          } else {
-            final addSymbolScript = promptBool(
-              "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's '${targets[response]}' target?",
+              schemes[response],
+              'macOS',
             );
 
-            if (addSymbolScript == true) {
-              await writeDebugScriptForTarget(
-                xcodeProjFilePath,
-                macosOptions.appId,
-                targets[response],
-                logger,
-              );
-            } else {
-              logger.stdout(
-                logSkippingDebugSymbolScript,
-              );
-            }
+            // Add to target
+          } else if (response == 1) {
+            final targets = await findTargetsAvailable(xcodeProjFilePath);
+
+            final response = promptSelect(
+              'Which target would you like your macOS $fileName to be included within your macOS app bundle?',
+              targets,
+            );
+
+            await writeToTargetProject(
+              xcodeProjFilePath,
+              fullMacOSServicePath!,
+              targets[response],
+            );
+            await writeDebugSymbolScriptForTarget(
+              generateDebugSymbolScript,
+              xcodeProjFilePath,
+              macosOptions.appId,
+              logger,
+              targets[response],
+              'macOS',
+            );
           }
         }
       } else {
@@ -231,30 +210,14 @@ class FirebaseMacOSSetup {
           throw Exception(result.stderr);
         }
 
-        if (generateDebugSymbolScript) {
-          await writeDebugScriptForTarget(
-            xcodeProjFilePath,
-            macosOptions.appId,
-            'Runner',
-            logger,
-          );
-        } else {
-          final addSymbolScript = promptBool(
-            "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your macOS project's 'Runner' target?",
-          );
-          if (addSymbolScript == true) {
-            await writeDebugScriptForTarget(
-              xcodeProjFilePath,
-              macosOptions.appId,
-              'Runner',
-              logger,
-            );
-          } else {
-            logger.stdout(
-              logSkippingDebugSymbolScript,
-            );
-          }
-        }
+        await writeDebugSymbolScriptForTarget(
+          generateDebugSymbolScript,
+          xcodeProjFilePath,
+          macosOptions.appId,
+          logger,
+          'Runner',
+          'macOS',
+        );
       }
     }
   }

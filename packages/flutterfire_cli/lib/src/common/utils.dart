@@ -16,11 +16,14 @@
  */
 
 import 'dart:io';
+
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:cli_util/cli_logging.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
+
+import './strings.dart';
 import 'platform.dart';
 
 /// Key for windows platform.
@@ -269,6 +272,162 @@ Future<void> writeDebugScriptForTarget(
 
   if (resultUploadScript.stdout != null) {
     logger.stdout(resultUploadScript.stdout as String);
+  }
+}
+
+Future<List<String>> findSchemesAvailable(String xcodeProjFilePath) async {
+  final schemeScript = findingSchemesScript(xcodeProjFilePath);
+
+  final result = await Process.run('ruby', [
+    '-e',
+    schemeScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the schemes to prompt the user to select one
+  final schemes = (result.stdout as String).split(',');
+
+  return schemes;
+}
+
+Future<List<String>> findTargetsAvailable(String xcodeProjFilePath) async {
+  final targetScript = findingTargetsScript(xcodeProjFilePath);
+
+  final result = await Process.run('ruby', [
+    '-e',
+    targetScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the targets to prompt the user to select one
+  final targets = (result.stdout as String).split(',');
+
+  return targets;
+}
+
+Future<void> writeSchemeScriptToProject(
+  String xcodeProjFilePath,
+  String serviceFilePath,
+  String scheme,
+  Logger logger,
+) async {
+  final runScriptName =
+      '[firebase_core] add Firebase configuration to "$scheme" scheme';
+  // Create bash script for adding Google service file to app bundle
+  final addBuildPhaseScript = addServiceFileToSchemeScript(
+    xcodeProjFilePath,
+    scheme,
+    runScriptName,
+    removeForwardSlash(serviceFilePath),
+  );
+
+  // Add script to Build Phases in Xcode project
+  final resultBuildPhase = await Process.run('ruby', [
+    '-e',
+    addBuildPhaseScript,
+  ]);
+
+  if (resultBuildPhase.exitCode != 0) {
+    throw Exception(resultBuildPhase.stderr);
+  }
+
+  if (resultBuildPhase.stdout != null) {
+    logger.stdout(resultBuildPhase.stdout as String);
+  }
+}
+
+Future<void> writeToTargetProject(
+  String xcodeProjFilePath,
+  String serviceFilePath,
+  String target,
+) async {
+  final addServiceFileToTargetScript = addServiceFileToTarget(
+    xcodeProjFilePath,
+    serviceFilePath,
+    target,
+  );
+
+  final resultServiceFileToTarget = await Process.run('ruby', [
+    '-e',
+    addServiceFileToTargetScript,
+  ]);
+
+  if (resultServiceFileToTarget.exitCode != 0) {
+    throw Exception(resultServiceFileToTarget.stderr);
+  }
+}
+
+Future<void> writeDebugSymbolScriptForScheme(
+  bool generateDebugSymbolScript,
+  String xcodeProjFilePath,
+  String appId,
+  Logger logger,
+  String name,
+  String platform,
+) async {
+  if (generateDebugSymbolScript) {
+    await writeDebugScriptForScheme(
+      xcodeProjFilePath,
+      appId,
+      name,
+      logger,
+    );
+  } else {
+    final addSymbolScript = promptBool(
+      "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' scheme?",
+    );
+
+    if (addSymbolScript == true) {
+      await writeDebugScriptForScheme(
+        xcodeProjFilePath,
+        appId,
+        name,
+        logger,
+      );
+    } else {
+      logger.stdout(
+        logSkippingDebugSymbolScript,
+      );
+    }
+  }
+}
+
+Future<void> writeDebugSymbolScriptForTarget(
+  bool generateDebugSymbolScript,
+  String xcodeProjFilePath,
+  String appId,
+  Logger logger,
+  String name,
+  String platform,
+) async {
+  if (generateDebugSymbolScript) {
+    await writeDebugScriptForTarget(
+      xcodeProjFilePath,
+      appId,
+      name,
+      logger,
+    );
+  } else {
+    final addSymbolScript = promptBool(
+      "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' target?",
+    );
+
+    if (addSymbolScript == true) {
+      await writeDebugScriptForTarget(
+        xcodeProjFilePath,
+        appId,
+        name,
+        logger,
+      );
+    } else {
+      logger.stdout(
+        logSkippingDebugSymbolScript,
+      );
+    }
   }
 }
 
