@@ -178,6 +178,13 @@ class ConfigCommand extends FlutterFireCommand {
       help:
           'Where to write the `google-services.json` file to be written for android platform. Useful for different flavors',
     );
+
+    argParser.addFlag(
+      'overwrite-firebase-options',
+      abbr: 'f',
+      help:
+          "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
+    );
   }
 
   @override
@@ -330,6 +337,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   String get outputFilePath {
     return argResults!['out'] as String;
+  }
+
+  bool? get overwriteFirebaseOptions {
+    return argResults!['overwrite-firebase-options'] as bool?;
   }
 
   String get iosAppIDOutputFilePrefix {
@@ -580,6 +591,7 @@ class ConfigCommand extends FlutterFireCommand {
       windowsOptions: windowsOptions,
       linuxOptions: linuxOptions,
       force: isCI || yes,
+      overwriteFirebaseOptions: overwriteFirebaseOptions,
     );
     futures.add(configFile.write());
 
