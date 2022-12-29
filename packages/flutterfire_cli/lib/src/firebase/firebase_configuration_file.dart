@@ -63,7 +63,7 @@ class FirebaseConfigurationFile {
     final fileExists = outputFile.existsSync();
 
     // If the user specifically chooses to negate overwriting the file, return immediately
-    if(fileExists && overwriteFirebaseOptions == false) return;
+    if (fileExists && overwriteFirebaseOptions == false) return;
 
     // Write buffer early so we can string compare contents if file exists already.
     _writeHeader();

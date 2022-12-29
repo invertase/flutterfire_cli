@@ -26,7 +26,7 @@ class FirebaseMacOSSetup {
   String? fullMacOSServicePath;
   String? macosServiceFilePath;
   final Logger logger;
-  final bool generateDebugSymbolScript;
+  final bool? generateDebugSymbolScript;
   String? scheme;
   String? target;
 

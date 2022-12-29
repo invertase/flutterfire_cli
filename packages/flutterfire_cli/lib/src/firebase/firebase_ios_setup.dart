@@ -26,7 +26,7 @@ class FirebaseIOSSetup {
   String? fulliOSServicePath;
   String? iosServiceFilePath;
   final Logger logger;
-  final bool generateDebugSymbolScript;
+  final bool? generateDebugSymbolScript;
 // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
   String? updatedIOSServiceFilePath;
   String? scheme;

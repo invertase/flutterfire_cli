@@ -362,21 +362,26 @@ Future<void> writeToTargetProject(
 }
 
 Future<void> writeDebugSymbolScriptForScheme(
-  bool generateDebugSymbolScript,
+  bool? generateDebugSymbolScript,
   String xcodeProjFilePath,
   String appId,
   Logger logger,
   String name,
   String platform,
 ) async {
-  if (generateDebugSymbolScript) {
+  // ignore: use_if_null_to_convert_nulls_to_bools
+  if (generateDebugSymbolScript == true) {
     await writeDebugScriptForScheme(
       xcodeProjFilePath,
       appId,
       name,
       logger,
     );
+  } else if (generateDebugSymbolScript == false) {
+    // User has specifically requested no debug symbol script insert.
+    return;
   } else {
+    // User hasn't specified anything, so we prompt
     final addSymbolScript = promptBool(
       "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' scheme?",
     );
@@ -397,21 +402,26 @@ Future<void> writeDebugSymbolScriptForScheme(
 }
 
 Future<void> writeDebugSymbolScriptForTarget(
-  bool generateDebugSymbolScript,
+  bool? generateDebugSymbolScript,
   String xcodeProjFilePath,
   String appId,
   Logger logger,
   String name,
   String platform,
 ) async {
-  if (generateDebugSymbolScript) {
+  // ignore: use_if_null_to_convert_nulls_to_bools
+  if (generateDebugSymbolScript == true) {
     await writeDebugScriptForTarget(
       xcodeProjFilePath,
       appId,
       name,
       logger,
     );
+  } else if (generateDebugSymbolScript == false) {
+    // User has specifically requested no debug symbol script insert.
+    return;
   } else {
+    // User hasn't specified anything, so we prompt
     final addSymbolScript = promptBool(
       "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' target?",
     );

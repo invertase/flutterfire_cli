@@ -229,11 +229,11 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['apply-gradle-plugins'] as bool;
   }
 
-  bool get iosGenerateDebugSymbolScript {
+  bool? get iosGenerateDebugSymbolScript {
     return argResults!['debug-symbols-ios'] as bool;
   }
 
-  bool get macosGenerateDebugSymbolScript {
+  bool? get macosGenerateDebugSymbolScript {
     return argResults!['debug-symbols-macos'] as bool;
   }
 
