@@ -14,7 +14,7 @@ class FirebaseIOSSetup {
     this.iosOptions,
     this.flutterApp,
     this.fulliOSServicePath,
-    this.iosServiceFilePath,
+    this.relativeiOSServiceFilePath,
     this.logger,
     this.generateDebugSymbolScript,
     this.scheme,
@@ -24,7 +24,7 @@ class FirebaseIOSSetup {
   final FlutterApp? flutterApp;
   final FirebaseOptions iosOptions;
   String? fulliOSServicePath;
-  String? iosServiceFilePath;
+  String? relativeiOSServiceFilePath;
   final Logger logger;
   final bool? generateDebugSymbolScript;
 // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
@@ -44,24 +44,49 @@ class FirebaseIOSSetup {
     );
 
     File file;
-    // If "iosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-    if (fulliOSServicePath != null) {
-      final googleServiceFileName = path.basename(iosServiceFilePath!);
 
-      if (googleServiceFileName != 'GoogleService-Info.plist') {
+    if (scheme != null && fulliOSServicePath == null) {
+      // if the user has selected a  scheme but no "ios-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
+      // No need to do the same for target as it is included with bundle resources
+
+      final pathToServiceFile = promptInput(
+        'Enter a path for your iOS "GoogleService-Info.plist" ("ios-out" argument.) file in your Flutter project. It is required if you set "ios-scheme" argument. Example input: ios/dev',
+        validator: (String x) {
+          if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) && !path.basename(x).contains('.')) {
+            return true;
+          } else {
+            return 'Do not start or end path with a backslash, nor specify the filename. Example: ios/dev';
+          }
+        },
+      );
+
+      fulliOSServicePath =
+          '${flutterApp!.package.path}/$pathToServiceFile/${iosOptions.optionsSourceFileName}';
+
+      relativeiOSServiceFilePath = '$pathToServiceFile/${iosOptions.optionsSourceFileName}';
+
+      await Directory(path.dirname(fulliOSServicePath!))
+          .create(recursive: true);
+
+      file = File(fulliOSServicePath!);
+      // If "iosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
+    } else if (fulliOSServicePath != null) {
+      final googleServiceFileName = path.basename(relativeiOSServiceFilePath!);
+
+      if (googleServiceFileName != iosOptions.optionsSourceFileName) {
         final response = promptBool(
-          'The file name must be "GoogleService-Info.plist" if you\'re bundling with your iOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+          'The file name must be "${iosOptions.optionsSourceFileName}" if you\'re bundling with your iOS target or scheme. Do you want to change filename to "${iosOptions.optionsSourceFileName}"?',
         );
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
         if (response == true) {
-          iosServiceFilePath = path.join(
-            path.dirname(iosServiceFilePath!),
-            'GoogleService-Info.plist',
+          relativeiOSServiceFilePath = path.join(
+            path.dirname(relativeiOSServiceFilePath!),
+            iosOptions.optionsSourceFileName,
           );
 
           fulliOSServicePath =
-              '${flutterApp!.package.path}${iosServiceFilePath!}';
+              '${flutterApp!.package.path}${relativeiOSServiceFilePath!}';
         }
       }
       // Create new directory for file output if it doesn't currently exist
@@ -87,7 +112,7 @@ class FirebaseIOSSetup {
           if (schemeExists) {
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              iosServiceFilePath!,
+              relativeiOSServiceFilePath!,
               scheme!,
               logger,
             );
@@ -157,7 +182,7 @@ class FirebaseIOSSetup {
             );
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              iosServiceFilePath!,
+              relativeiOSServiceFilePath!,
               schemes[response],
               logger,
             );
