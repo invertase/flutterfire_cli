@@ -582,7 +582,7 @@ GOOGLESERVICE_INFO_PATH=\${GOOGLESERVICE_INFO_PATH}/$googleServiceFilePath
 # Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
 # This is why we use *"scheme"*
 # If scheme is "Runner", it is the default scheme for a Flutter iOS project so we allow for all configurations
-if [[ "\${CONFIGURATION}" == *"$scheme"* ||  "Runner" = "$scheme" ]];
+if [[ ("\${CONFIGURATION}" == *"$scheme"*) ||  ("Runner" = "$scheme") ]];
 then
     echo "Copying \${GOOGLESERVICE_INFO_PATH} to \${PLIST_DESTINATION}"
     cp "\${GOOGLESERVICE_INFO_PATH}" "\${PLIST_DESTINATION}"
@@ -623,7 +623,7 @@ bashScript = %q(
 
 # Run upload symbol script for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
 # This is why we use *"scheme"*
-if [ "\${CONFIGURATION}" == *"$scheme"* && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols];
+if [[ ("\${CONFIGURATION}" == *"$scheme"*) && (-f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols)]];
 then
     echo "Running $runScriptName"
     \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
@@ -669,7 +669,7 @@ bashScript = %q(
 #!/bin/bash
 
 # Run upload symbol script for appropriate target.
-if [ "\${TARGET_NAME}" == "$target" && -f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols];
+if [[ ("\${TARGET_NAME}" == "$target") && (-f \$PODS_ROOT/FirebaseCrashlytics/upload-symbols)]];
 then
     echo "Running $runScriptName"
     \$PODS_ROOT/FirebaseCrashlytics/upload-symbols --build-phase --validate -ai '$appId'
