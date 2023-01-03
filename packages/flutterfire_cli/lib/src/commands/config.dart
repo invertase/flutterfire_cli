@@ -119,6 +119,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addFlag(
       'debug-symbols-ios',
       abbr: 'r',
+      defaultsTo: null,
       help:
           "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
     );
@@ -126,6 +127,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addFlag(
       'debug-symbols-macos',
       abbr: 's',
+      defaultsTo: null,
       help:
           "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your macOS project.",
     );
@@ -182,6 +184,7 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addFlag(
       'overwrite-firebase-options',
       abbr: 'f',
+      defaultsTo: null,
       help:
           "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
     );
@@ -230,11 +233,11 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   bool? get iosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-ios'] as bool;
+    return argResults!['debug-symbols-ios'] as bool?;
   }
 
   bool? get macosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-macos'] as bool;
+    return argResults!['debug-symbols-macos'] as bool?;
   }
 
   String? get iosScheme {
