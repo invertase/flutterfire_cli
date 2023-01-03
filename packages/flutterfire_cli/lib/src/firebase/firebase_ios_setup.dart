@@ -48,11 +48,11 @@ class FirebaseIOSSetup {
     if (scheme != null && fulliOSServicePath == null) {
       // if the user has selected a  scheme but no "ios-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
       // No need to do the same for target as it is included with bundle resources
-
       final pathToServiceFile = promptInput(
         'Enter a path for your iOS "GoogleService-Info.plist" ("ios-out" argument.) file in your Flutter project. It is required if you set "ios-scheme" argument. Example input: ios/dev',
         validator: (String x) {
-          if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) && !path.basename(x).contains('.')) {
+          if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
+              !path.basename(x).contains('.')) {
             return true;
           } else {
             return 'Do not start or end path with a backslash, nor specify the filename. Example: ios/dev';
@@ -63,7 +63,8 @@ class FirebaseIOSSetup {
       fulliOSServicePath =
           '${flutterApp!.package.path}/$pathToServiceFile/${iosOptions.optionsSourceFileName}';
 
-      relativeiOSServiceFilePath = '$pathToServiceFile/${iosOptions.optionsSourceFileName}';
+      relativeiOSServiceFilePath =
+          '$pathToServiceFile/${iosOptions.optionsSourceFileName}';
 
       await Directory(path.dirname(fulliOSServicePath!))
           .create(recursive: true);

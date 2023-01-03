@@ -14,7 +14,7 @@ class FirebaseMacOSSetup {
     this.macosOptions,
     this.flutterApp,
     this.fullMacOSServicePath,
-    this.macosServiceFilePath,
+    this.relativemacOSServiceFilePath,
     this.logger,
     this.generateDebugSymbolScript,
     this.scheme,
@@ -24,7 +24,7 @@ class FirebaseMacOSSetup {
   final FlutterApp? flutterApp;
   final FirebaseOptions macosOptions;
   String? fullMacOSServicePath;
-  String? macosServiceFilePath;
+  String? relativemacOSServiceFilePath;
   final Logger logger;
   final bool? generateDebugSymbolScript;
   String? scheme;
@@ -43,23 +43,49 @@ class FirebaseMacOSSetup {
 
     File file;
 
-    // If "macosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-    if (fullMacOSServicePath != null) {
+    if (scheme != null && fullMacOSServicePath == null) {
+      // if the user has selected a  scheme but no "macos-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
+      // No need to do the same for target as it is included with bundle resources
+      final pathToServiceFile = promptInput(
+        'Enter a relative path for your macOS "${macosOptions.optionsSourceFileName}" ("macos-out" argument.) file in your Flutter project. It is required if you set "macos-scheme" argument. Example input: macos/dev',
+        validator: (String x) {
+          if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
+              !path.basename(x).contains('.')) {
+            return true;
+          } else {
+            return 'Do not start or end path with a backslash, nor specify the filename. Example: macos/dev';
+          }
+        },
+      );
+
+      fullMacOSServicePath =
+          '${flutterApp!.package.path}/$pathToServiceFile/${macosOptions.optionsSourceFileName}';
+
+      relativemacOSServiceFilePath =
+          '$pathToServiceFile/${macosOptions.optionsSourceFileName}';
+
+      await Directory(path.dirname(fullMacOSServicePath!))
+          .create(recursive: true);
+
+      file = File(fullMacOSServicePath!);
+
+      // If "macosServiceFilePath" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
+    } else if (fullMacOSServicePath != null) {
       final googleServiceFileName = path.basename(fullMacOSServicePath!);
 
-      if (googleServiceFileName != 'GoogleService-Info.plist') {
+      if (googleServiceFileName != macosOptions.optionsSourceFileName) {
         final response = promptBool(
-          'The file name must be "GoogleService-Info.plist" if you\'re bundling with your macOS target or scheme. Do you want to change filename to "GoogleService-Info.plist"?',
+          'The file name must be "${macosOptions.optionsSourceFileName}" if you\'re bundling with your macOS target or scheme. Do you want to change filename to "${macosOptions.optionsSourceFileName}"?',
         );
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
         if (response == true) {
-          macosServiceFilePath = path.join(
-            path.dirname(macosServiceFilePath!),
-            'GoogleService-Info.plist',
+          relativemacOSServiceFilePath = path.join(
+            path.dirname(relativemacOSServiceFilePath!),
+            macosOptions.optionsSourceFileName,
           );
           fullMacOSServicePath =
-              '${flutterApp!.package.path}${macosServiceFilePath!}';
+              '${flutterApp!.package.path}${relativemacOSServiceFilePath!}';
         }
       }
       // Create new directory for file output if it doesn't currently exist
@@ -86,7 +112,7 @@ class FirebaseMacOSSetup {
           if (schemeExists) {
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              macosServiceFilePath!,
+              relativemacOSServiceFilePath!,
               scheme!,
               logger,
             );
@@ -157,7 +183,7 @@ class FirebaseMacOSSetup {
 
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              macosServiceFilePath!,
+              relativemacOSServiceFilePath!,
               schemes[response],
               logger,
             );
