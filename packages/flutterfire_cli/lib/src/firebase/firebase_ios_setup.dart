@@ -55,7 +55,7 @@ class FirebaseIOSSetup {
               !path.basename(x).contains('.')) {
             return true;
           } else {
-            return 'Do not start or end path with a backslash, nor specify the filename. Example: ios/dev';
+            return 'Do not start or end path with a forward slash, nor specify the filename. Example: ios/dev';
           }
         },
       );
