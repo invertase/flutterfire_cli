@@ -45,7 +45,7 @@ class FirebaseMacOSSetup {
 
     if (scheme != null && fullMacOSServicePath == null) {
       // if the user has selected a  scheme but no "macos-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
-      // No need to do the same for target as it is included with bundle resources
+      // No need to do the same for target as it is included with bundle resources and included in Runner directory
       final pathToServiceFile = promptInput(
         'Enter a relative path for your macOS "${macosOptions.optionsSourceFileName}" ("macos-out" argument.) file in your Flutter project. It is required if you set "macos-scheme" argument. Example input: macos/dev',
         validator: (String x) {
