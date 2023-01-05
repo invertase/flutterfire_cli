@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-01-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.14`](#flutterfire_cli---v030-dev14)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.14`
+
+ - **FEAT**: command line arguments for different environments. ([02cf8501](https://github.com/invertase/flutterfire_cli/commit/02cf8501f1c6303ed99aa888e1b2698c43481a0e))
+
+
 ## 2022-11-30
 
 ### Changes
