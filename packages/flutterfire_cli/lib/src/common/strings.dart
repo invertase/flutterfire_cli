@@ -90,6 +90,40 @@ const logSkippingGradleFilesUpdate =
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
 
+/// An exception that is thrown when a "[ios || macos]-target" & a "[ios || macos]-scheme" have both been used as command
+/// line arguments
+class XcodeProjectException implements FlutterFireException {
+  XcodeProjectException(this.platform) : super();
+
+  final String platform;
+
+  @override
+  String toString() {
+    return 'XcodeProjectException: choose either a "$platform-target" or a "$platform-scheme" for your $platform project setup';
+  }
+}
+
+/// An exception that is thrown when you have selected a name for your scheme or target that does not exist on your project
+class MissingFromXcodeProjectException implements FlutterFireException {
+  MissingFromXcodeProjectException(
+    this.platform,
+    this.type,
+    this.name,
+    this.listOfChoices,
+  ) : super();
+
+  final String platform;
+  // Type is either "scheme" or "target"
+  final String type;
+  final String name;
+  final List<String> listOfChoices;
+
+  @override
+  String toString() {
+    return 'MissingFromXcodeProjectException: The $name does not exist as a $type for your $platform project. Please choose from one of the following: ${listOfChoices.join(', ')} ';
+  }
+}
+
 /// An exception that is thrown when the configure command is ran in a directory
 /// that is not a Flutter project.
 class FlutterAppRequiredException implements FlutterFireException {

@@ -117,11 +117,47 @@ class ConfigCommand extends FlutterFireCommand {
           'and create the google-services.json file in your ./android/app folder.',
     );
     argParser.addFlag(
-      'debug-symbols-script',
-      hide: true,
-      abbr: 'd',
+      'debug-symbols-ios',
+      abbr: 'r',
+      defaultsTo: null,
       help:
           "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
+    );
+
+    argParser.addFlag(
+      'debug-symbols-macos',
+      abbr: 's',
+      defaultsTo: null,
+      help:
+          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your macOS project.",
+    );
+
+    argParser.addOption(
+      'ios-scheme',
+      valueHelp: 'iosSchemeName',
+      help:
+          'Name of iOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+    );
+
+    argParser.addOption(
+      'macos-scheme',
+      valueHelp: 'macosSchemeName',
+      help:
+          'Name of macOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+    );
+
+    argParser.addOption(
+      'ios-target',
+      valueHelp: 'iosTargetName',
+      help:
+          'Name of iOS target to use for bundling `Google-Service-Info.plist` with your Xcode project',
+    );
+
+    argParser.addOption(
+      'macos-target',
+      valueHelp: 'macosTargetName',
+      help:
+          'Name of macOS target to use for bundling `Google-Service-Info.plist` with your Xcode project',
     );
 
     argParser.addOption(
@@ -143,6 +179,14 @@ class ConfigCommand extends FlutterFireCommand {
       valueHelp: 'pathForAndroidConfig',
       help:
           'Where to write the `google-services.json` file to be written for android platform. Useful for different flavors',
+    );
+
+    argParser.addFlag(
+      'overwrite-firebase-options',
+      abbr: 'f',
+      defaultsTo: null,
+      help:
+          "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
     );
   }
 
@@ -188,8 +232,28 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['apply-gradle-plugins'] as bool;
   }
 
-  bool get generateDebugSymbolScript {
-    return argResults!['debug-symbols-script'] as bool;
+  bool? get iosGenerateDebugSymbolScript {
+    return argResults!['debug-symbols-ios'] as bool?;
+  }
+
+  bool? get macosGenerateDebugSymbolScript {
+    return argResults!['debug-symbols-macos'] as bool?;
+  }
+
+  String? get iosScheme {
+    return argResults!['ios-scheme'] as String?;
+  }
+
+  String? get macosScheme {
+    return argResults!['macos-scheme'] as String?;
+  }
+
+  String? get iosTarget {
+    return argResults!['ios-target'] as String?;
+  }
+
+  String? get macosTarget {
+    return argResults!['macos-target'] as String?;
   }
 
   String? get macosServiceFilePath {
@@ -276,6 +340,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   String get outputFilePath {
     return argResults!['out'] as String;
+  }
+
+  bool? get overwriteFirebaseOptions {
+    return argResults!['overwrite-firebase-options'] as bool?;
   }
 
   String get iosAppIDOutputFilePrefix {
@@ -427,10 +495,20 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
+  void _checkTargetAndSchemeSetup() {
+    if (iosScheme != null && iosTarget != null) {
+      throw XcodeProjectException('ios');
+    }
+
+    if (macosScheme != null && macosTarget != null) {
+      throw XcodeProjectException('macos');
+    }
+  }
+
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
-
+    _checkTargetAndSchemeSetup();
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
 
@@ -516,6 +594,7 @@ class ConfigCommand extends FlutterFireCommand {
       windowsOptions: windowsOptions,
       linuxOptions: linuxOptions,
       force: isCI || yes,
+      overwriteFirebaseOptions: overwriteFirebaseOptions,
     );
     futures.add(configFile.write());
 
@@ -535,7 +614,9 @@ class ConfigCommand extends FlutterFireCommand {
         fulliOSServicePath,
         iosServiceFilePath,
         logger,
-        generateDebugSymbolScript,
+        iosGenerateDebugSymbolScript,
+        iosScheme,
+        iosTarget,
       ).apply();
     }
 
@@ -546,7 +627,9 @@ class ConfigCommand extends FlutterFireCommand {
         fullMacOSServicePath,
         macosServiceFilePath,
         logger,
-        generateDebugSymbolScript,
+        macosGenerateDebugSymbolScript,
+        macosScheme,
+        macosTarget,
       ).apply();
     }
 
