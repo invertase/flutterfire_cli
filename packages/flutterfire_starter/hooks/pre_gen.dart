@@ -41,8 +41,6 @@ void _injectInContext(HookContext context) {
   for (final element in varsPlugins) {
     context.vars[element.replaceAll(' ', '').toLowerCase()] = true;
   }
-  context.logger
-      .info('Plugins injected in context successfully! ${context.vars}');
 }
 
 Future<void> _generateApp(HookContext context) async {

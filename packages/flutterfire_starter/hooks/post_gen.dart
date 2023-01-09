@@ -35,6 +35,18 @@ Future<void> _installDependencies(HookContext context) async {
     ['pub', 'add', 'firebase_core'],
     workingDirectory: './$appName',
   );
+
+  final varsPlugins =
+      ((context.vars['plugins'] as List<dynamic>).cast<String>())
+          .map((e) => e.split(' ')[0])
+          .toList();
+  if (varsPlugins.contains('Analytics')) {
+    await Process.run(
+      'flutter',
+      ['pub', 'add', 'firebase_analytics'],
+      workingDirectory: './$appName',
+    );
+  }
   if (result.exitCode == 0) {
     installDone.complete('Dependencies installed!');
   } else {

@@ -9,7 +9,7 @@
       supportedLocales: const [
         Locale('en', ''),
       ],
-      {{#analytics(withnavigator)}}
+      {{#analyticswithnavigator}}
       navigatorObservers: [
         FirebaseAnalyticsObserver(
           analytics: FirebaseAnalytics.instance,
@@ -22,7 +22,7 @@
           },
         )
       ],
-      {{/analytics(withnavigator)}}
+      {{/analyticswithnavigator}}
       onGenerateTitle: (BuildContext context) =>
           AppLocalizations.of(context)!.appTitle,
       theme: ThemeData(),
