@@ -29,5 +29,5 @@ vars:
   plugins:
     type: array
     values:
-      - Analytics (with GoRouter)
-      - Analytics (with Navigator)
+      - Analytics with GoRouter
+      - Analytics with Navigator

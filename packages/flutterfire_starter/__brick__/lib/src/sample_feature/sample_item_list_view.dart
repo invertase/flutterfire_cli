@@ -34,6 +34,7 @@ class SampleItemListView extends StatelessWidget {
                 Navigator.restorablePushNamed(
                   context,
                   SampleItemDetailsView.routeName,
+                  arguments: item.id,
                 );
               });
         },
