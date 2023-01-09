@@ -10,6 +10,7 @@ Future<void> run(HookContext context) async {
   await _copyGeneratedFilesToLib(context);
   await _runFlutterFireConfigure(context);
   await _copyConfigFile(context);
+  await _format(context);
 }
 
 Future<void> _removeFiles(HookContext context, String name) async {
@@ -96,6 +97,21 @@ Future<void> _copyConfigFile(HookContext context) async {
 
   if (result.exitCode == 0) {
     done.complete('Files copied successfully');
+  } else {
+    done.fail(result.stderr.toString());
+  }
+}
+
+Future<void> _format(HookContext context) async {
+  final done = context.logger.progress('Formatting files...');
+  final appName = context.vars['name'] as String;
+  final result = await Process.run('flutter', [
+    'format',
+    './$appName',
+  ]);
+
+  if (result.exitCode == 0) {
+    done.complete('Files formatted successfully');
   } else {
     done.fail(result.stderr.toString());
   }

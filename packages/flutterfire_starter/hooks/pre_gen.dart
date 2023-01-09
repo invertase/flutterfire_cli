@@ -31,6 +31,12 @@ void _validatePluginList(HookContext context) {
 
 // Inject the array of plugins into the context
 void _injectInContext(HookContext context) {
+  // Default values
+  context.vars = <String, dynamic>{
+    'analyticswithgorouter': false,
+    'analyticswithnavigator': false,
+    ...context.vars
+  };
   final varsPlugins = (context.vars['plugins'] as List<dynamic>).cast<String>();
   for (final element in varsPlugins) {
     context.vars[element.replaceAll(' ', '').toLowerCase()] = true;

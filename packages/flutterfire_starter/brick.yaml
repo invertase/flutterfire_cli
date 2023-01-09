@@ -28,6 +28,7 @@ vars:
 
   plugins:
     type: array
+    prompt: Which plugins would you like to use?
     values:
       - Analytics with GoRouter
       - Analytics with Navigator
