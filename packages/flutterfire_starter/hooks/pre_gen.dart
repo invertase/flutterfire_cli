@@ -4,7 +4,13 @@ import 'package:mason/mason.dart';
 
 Future<void> run(HookContext context) async {
   final appGenerated = context.logger.progress('Generating a Flutter App');
+  final firebaseAdditionalPackages =
+      context.vars['firebase_packages'] as List;
   try {
+    context.vars = <String, dynamic>{
+      ...context.vars,
+      'uses_firestore': firebaseAdditionalPackages.contains('cloud_firestore')
+    };
     await _generateApp(context);
     appGenerated.complete('Flutter App generated!');
   } catch (e) {

@@ -25,3 +25,27 @@ vars:
     description: Organization name
     default: com.example
     prompt: What is your organization name?
+
+  firebase_packages:
+    type: array
+    description: additional packages
+    defaults: []
+    prompt: Which additional packages you want to add?
+    values:
+      - cloud_firestore
+      - firebase_database
+      - firebase_auth
+      - firebase_messaging
+      - firebase_in_app_messaging
+      - firebase_analytics
+      - firebase_crashlytics
+      - firebase_storage
+      - firebase_dynamic_links
+      - firebase_remote_config
+      - firebase_performance
+      - cloud_functions
+      - firebase_app_check
+      - firebase_app_installations
+      - firebase_ml_model_downloader
+      - firebase_ml_custom
+      - cloud_firestore_odm

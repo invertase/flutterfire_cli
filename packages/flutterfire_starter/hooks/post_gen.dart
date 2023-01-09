@@ -27,17 +27,29 @@ Future<void> _removeFiles(HookContext context, String name) async {
 }
 
 Future<void> _installDependencies(HookContext context) async {
-  final installDone = context.logger.progress('Installing dependencies...');
+  final installDependencies = context.logger.progress('Installing dependencies...');
   final appName = context.vars['name'] as String;
-  final result = await Process.run(
-    'flutter',
-    ['pub', 'add', 'firebase_core'],
-    workingDirectory: './$appName',
+  final dependencies = <String>[
+    'firebase_core',
+    ...context.vars['firebase_packages']
+  ];
+
+  final processes = dependencies.map(
+    (package) => Process.run(
+      'flutter',
+      ['pub', 'add', package],
+      workingDirectory: './$appName',
+    ),
   );
-  if (result.exitCode == 0) {
-    installDone.complete('Dependencies installed!');
+
+  final results = await Future.wait<ProcessResult>(processes);
+
+  if (results.every((element) => element.exitCode == 0)) {
+    installDependencies.complete('Dependencies installed!');
   } else {
-    installDone.fail(result.stderr.toString());
+    installDependencies.fail(
+      results.firstWhere((element) => element.exitCode != 0).stderr.toString(),
+    );
   }
 }
 
@@ -53,6 +65,10 @@ Future<void> _copyGeneratedFilesToLib(HookContext context) async {
     Process.run('mv', [
       'lib',
       './$appName/',
+    ]),
+    Process.run('mv', [
+      'ios/Podfile',
+      './$appName/ios',
     ]),
     Process.run('mv', [
       'macos/Podfile',
