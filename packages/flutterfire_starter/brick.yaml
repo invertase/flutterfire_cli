@@ -25,3 +25,9 @@ vars:
     description: Organization name
     default: com.example
     prompt: What is your organization name?
+
+  plugins:
+    type: array
+    values:
+      - Analytics (with GoRouter)
+      - Analytics (with Navigator)
