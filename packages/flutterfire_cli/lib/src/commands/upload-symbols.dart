@@ -147,6 +147,10 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final platform = flutterConfig?['platforms'] as Map?;
       final iosConfig = platform?['ios'] as Map?;
       final schemeConfig = iosConfig?[scheme] as Map?;
+      final uploadDebugSymbols = schemeConfig?['uploadDebugSymbols'] as bool?;
+
+      // Exit if the user chooses not to run debug upload symbol script
+      if (uploadDebugSymbols == false) return;
 
       appId = schemeConfig?['appId'] as String?;
       projectId = schemeConfig?['projectId'] as String?;
@@ -154,7 +158,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       if (projectId == null || appId == null) {
         throw FirebaseJsonException();
       }
-    } on FirebaseJsonException catch (e) {
+    } on FirebaseJsonException {
       return;
     } catch (e) {
       throw FirebaseJsonException();
