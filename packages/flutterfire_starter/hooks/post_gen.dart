@@ -12,8 +12,8 @@ Future<void> run(HookContext context) async {
   await _copyConfigFile(context);
   await _format(context);
 
-  context.logger.progress('');
-  context.logger.progress('Ready to use Firebase with Flutter! 🚀');
+  context.logger.info('');
+  context.logger.success('Ready to use Firebase with Flutter! 🚀');
 }
 
 Future<void> _removeFiles(HookContext context, String name) async {
