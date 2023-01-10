@@ -27,6 +27,7 @@ scripts:
     select-package:
       ignore:
         - "flutterfire_starter"
+        - "*monorepo*"
 
   test:
     description: Run tests in a specific package.
