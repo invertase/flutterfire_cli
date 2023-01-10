@@ -24,9 +24,8 @@ import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
 import '../firebase/firebase_apple_options.dart';
+import '../firebase/firebase_apple_setup.dart';
 import '../firebase/firebase_configuration_file.dart';
-import '../firebase/firebase_ios_setup.dart';
-import '../firebase/firebase_macos_setup.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
@@ -611,7 +610,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (iosOptions != null) {
-      await FirebaseIOSSetup(
+      await FirebaseAppleSetup(
         iosOptions,
         flutterApp,
         fulliOSServicePath,
@@ -620,11 +619,12 @@ class ConfigCommand extends FlutterFireCommand {
         iosGenerateDebugSymbolScript,
         iosScheme,
         iosTarget,
+        'iOS',
       ).apply();
     }
 
     if (macosOptions != null) {
-      await FirebaseMacOSSetup(
+      await FirebaseAppleSetup(
         macosOptions,
         flutterApp,
         fullMacOSServicePath,
@@ -633,6 +633,7 @@ class ConfigCommand extends FlutterFireCommand {
         macosGenerateDebugSymbolScript,
         macosScheme,
         macosTarget,
+        'macOS',
       ).apply();
     }
 

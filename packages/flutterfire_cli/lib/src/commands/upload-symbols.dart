@@ -50,6 +50,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
+      'target',
+      valueHelp: 'targetName',
+      help: 'The name of the target.',
+    );
+
+    argParser.addOption(
       'flutterAppPath',
       valueHelp: 'flutterAppPath',
       help: 'The absolute path to the flutter app root.',
@@ -75,8 +81,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['infoPlistPath'] as String;
   }
 
-  String get scheme {
-    return argResults!['scheme'] as String;
+  String? get scheme {
+    return argResults!['scheme'] as String?;
+  }
+
+  String? get target {
+    return argResults!['target'] as String?;
   }
 
   String get flutterAppPath {
@@ -147,6 +157,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final platform = flutterConfig?['platforms'] as Map?;
       final iosConfig = platform?['ios'] as Map?;
       final schemeConfigurations = iosConfig?['scheme'] as Map?;
+      //TODO - update depending on whether a "scheme" or "target"
       final schemeConfig = schemeConfigurations?[scheme] as Map?;
       final uploadDebugSymbols = schemeConfig?['uploadDebugSymbols'] as bool?;
 
