@@ -146,7 +146,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final flutterConfig = parsedJson['flutter'] as Map?;
       final platform = flutterConfig?['platforms'] as Map?;
       final iosConfig = platform?['ios'] as Map?;
-      final schemeConfig = iosConfig?[scheme] as Map?;
+      final schemeConfigurations = iosConfig?['scheme'] as Map?;
+      final schemeConfig = schemeConfigurations?[scheme] as Map?;
       final uploadDebugSymbols = schemeConfig?['uploadDebugSymbols'] as bool?;
 
       // Exit if the user chooses not to run debug upload symbol script
