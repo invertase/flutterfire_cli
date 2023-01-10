@@ -15,6 +15,7 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
@@ -24,6 +25,7 @@ import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart' show relative, normalize, windows, joinAll;
 
 import './strings.dart';
+import '../flutter_app.dart';
 import 'platform.dart';
 
 /// Key for windows platform.
@@ -399,6 +401,30 @@ Future<void> writeDebugSymbolScriptForScheme(
       );
     }
   }
+}
+
+Future<void> writeFirebaseJsonFile(
+  FlutterApp flutterApp,
+) async {
+  final file = File('${flutterApp.package.path}/firebase.json');
+  // Exit if it already exists
+  if (file.existsSync()) return;
+
+  final map = {
+    'flutter': {
+      'platforms': {
+        'ios': {
+          'schemes': <String, Object>{},
+          'targets': <String, Object>{},
+          'default': <String, Object>{}
+        }
+      }
+    }
+  };
+
+  final mapJson = json.encode(map);
+
+  file.writeAsStringSync(mapJson);
 }
 
 Future<void> writeDebugSymbolScriptForTarget(

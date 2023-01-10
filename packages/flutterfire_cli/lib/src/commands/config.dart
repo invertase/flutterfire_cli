@@ -516,6 +516,9 @@ class ConfigCommand extends FlutterFireCommand {
       throw NoFlutterPlatformsSelectedException();
     }
 
+    // Write this early so it can be used whatever setup is configured
+    await writeFirebaseJsonFile(flutterApp!);
+
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
       androidOptions = await FirebaseAndroidOptions.forFlutterApp(
