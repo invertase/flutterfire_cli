@@ -1,0 +1,26 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/src/sample_feature/sample_item_details_view.dart';
+import 'package:my_app/src/sample_feature/sample_item_list_view.dart';
+
+final router = GoRouter(
+  routes: [
+    GoRoute(
+        path: SampleItemListView.routeName,
+        builder: (context, state) => const SampleItemListView(),
+        routes: [
+          GoRoute(
+            path: '${SampleItemDetailsView.routeName}/:id',
+            builder: (context, state) {
+              final id = int.tryParse(state.params['id'] ?? '0');
+              return SampleItemDetailsView(itemId: id);
+            },
+          ),
+        ]),
+  ],
+  observers: [
+    FirebaseAnalyticsObserver(
+      analytics: FirebaseAnalytics.instance,
+    )
+  ],
+);

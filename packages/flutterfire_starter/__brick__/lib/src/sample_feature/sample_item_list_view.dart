@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+{{#analyticswithgorouter}}import 'package:go_router/go_router.dart';{{/analyticswithgorouter}}
 
 import 'sample_item.dart';
 import 'sample_item_details_view.dart';
@@ -31,11 +32,17 @@ class SampleItemListView extends StatelessWidget {
                 foregroundImage: AssetImage('assets/images/flutter_logo.png'),
               ),
               onTap: () {
+                {{#analyticswithgorouter}}
+                GoRouter.of(context)
+                    .go('/${SampleItemDetailsView.routeName}/${item.id}');
+                {{/analyticswithgorouter}}
+                {{^analyticswithgorouter}}
                 Navigator.restorablePushNamed(
                   context,
                   SampleItemDetailsView.routeName,
                   arguments: item.id,
                 );
+                {{/analyticswithgorouter}}    
               });
         },
       ),

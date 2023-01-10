@@ -11,6 +11,9 @@ Future<void> run(HookContext context) async {
   await _runFlutterFireConfigure(context);
   await _copyConfigFile(context);
   await _format(context);
+
+  context.logger.progress('');
+  context.logger.progress('Ready to use Firebase with Flutter! 🚀');
 }
 
 Future<void> _removeFiles(HookContext context, String name) async {
@@ -36,17 +39,23 @@ Future<void> _installDependencies(HookContext context) async {
     workingDirectory: './$appName',
   );
 
-  final varsPlugins =
-      ((context.vars['plugins'] as List<dynamic>).cast<String>())
-          .map((e) => e.split(' ')[0])
-          .toList();
-  if (varsPlugins.contains('Analytics')) {
+  final varsPlugins = (context.vars['plugins'] as List<dynamic>).cast<String>();
+  final varsPluginsName = varsPlugins.map((e) => e.split(' ')[0]).toList();
+  if (varsPluginsName.contains('Analytics')) {
     await Process.run(
       'flutter',
       ['pub', 'add', 'firebase_analytics'],
       workingDirectory: './$appName',
     );
   }
+  if (varsPlugins.contains('Analytics with GoRouter')) {
+    await Process.run(
+      'flutter',
+      ['pub', 'add', 'go_router'],
+      workingDirectory: './$appName',
+    );
+  }
+
   if (result.exitCode == 0) {
     installDone.complete('Dependencies installed!');
   } else {
