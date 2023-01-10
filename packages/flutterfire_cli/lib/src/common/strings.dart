@@ -124,6 +124,14 @@ class MissingFromXcodeProjectException implements FlutterFireException {
   }
 }
 
+/// An exception that is thrown when you do not have a firebase.json file at the root of your project or it does not have values required
+class FirebaseJsonException implements FlutterFireException {
+  @override
+  String toString() {
+    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values.';
+  }
+}
+
 /// An exception that is thrown when the configure command is ran in a directory
 /// that is not a Flutter project.
 class FlutterAppRequiredException implements FlutterFireException {

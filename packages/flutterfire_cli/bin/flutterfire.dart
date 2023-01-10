@@ -53,7 +53,12 @@ Future<void> main(List<String> arguments) async {
   }
 
   try {
-    final flutterApp = await FlutterApp.load(Directory.current);
+    FlutterApp? flutterApp;
+    // Upload symbols script is ran from Xcode environment
+    if (!arguments.contains('upload-crashlytics-symbols')) {
+      flutterApp = await FlutterApp.load(Directory.current);
+    }
+
     await FlutterFireCommandRunner(flutterApp).run(arguments);
   } on FlutterFireException catch (err) {
     if (utils.activeSpinnerState != null) {
