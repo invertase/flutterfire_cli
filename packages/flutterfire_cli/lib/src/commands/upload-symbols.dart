@@ -150,7 +150,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final uploadDebugSymbols = schemeConfig?['uploadDebugSymbols'] as bool?;
 
       // Exit if the user chooses not to run debug upload symbol script
-      if (uploadDebugSymbols == false) return;
+      if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
 
       appId = schemeConfig?['appId'] as String?;
       projectId = schemeConfig?['projectId'] as String?;
