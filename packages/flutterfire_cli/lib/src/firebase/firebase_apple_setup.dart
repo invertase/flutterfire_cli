@@ -444,7 +444,7 @@ end
           throw Exception(result.stderr);
         }
         // Update "Runner", default target
-        final defaultProjectPath = '${Directory.current.path}/ios/Runner';
+        final defaultProjectPath = '${Directory.current.path}/ios/Runner/${platformOptions.optionsSourceFileName}';
         await _updateFirebaseJsonAndDebugSymbolScript(
           defaultProjectPath,
           target: 'Runner',
