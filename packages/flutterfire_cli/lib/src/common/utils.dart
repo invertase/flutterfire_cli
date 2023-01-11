@@ -342,7 +342,7 @@ Future<void> writeSchemeScriptToProject(
   }
 }
 
-Future<void> writeToTargetProject(
+Future<void> writeGoogleServiceFileToTargetProject(
   String xcodeProjFilePath,
   String serviceFilePath,
   String target,
@@ -360,46 +360,6 @@ Future<void> writeToTargetProject(
 
   if (resultServiceFileToTarget.exitCode != 0) {
     throw Exception(resultServiceFileToTarget.stderr);
-  }
-}
-
-Future<void> writeDebugSymbolScriptForScheme(
-  bool? generateDebugSymbolScript,
-  String xcodeProjFilePath,
-  String appId,
-  Logger logger,
-  String name,
-  String platform,
-) async {
-  // ignore: use_if_null_to_convert_nulls_to_bools
-  if (generateDebugSymbolScript == true) {
-    await writeDebugScriptForScheme(
-      xcodeProjFilePath,
-      appId,
-      name,
-      logger,
-    );
-  } else if (generateDebugSymbolScript == false) {
-    // User has specifically requested no debug symbol script insert.
-    return;
-  } else {
-    // User hasn't specified anything, so we prompt
-    final addSymbolScript = promptBool(
-      "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' scheme?",
-    );
-
-    if (addSymbolScript == true) {
-      await writeDebugScriptForScheme(
-        xcodeProjFilePath,
-        appId,
-        name,
-        logger,
-      );
-    } else {
-      logger.stdout(
-        logSkippingDebugSymbolScript,
-      );
-    }
   }
 }
 
@@ -425,84 +385,6 @@ Future<void> writeFirebaseJsonFile(
   final mapJson = json.encode(map);
 
   file.writeAsStringSync(mapJson);
-}
-
-Future<void> writeDebugSymbolScriptForTarget(
-  bool? generateDebugSymbolScript,
-  String xcodeProjFilePath,
-  String appId,
-  Logger logger,
-  String name,
-  String platform,
-) async {
-  // ignore: use_if_null_to_convert_nulls_to_bools
-  if (generateDebugSymbolScript == true) {
-    await writeDebugScriptForTarget(
-      xcodeProjFilePath,
-      appId,
-      name,
-      logger,
-    );
-  } else if (generateDebugSymbolScript == false) {
-    // User has specifically requested no debug symbol script insert.
-    return;
-  } else {
-    // User hasn't specified anything, so we prompt
-    final addSymbolScript = promptBool(
-      "Do you want an 'upload Crashlytic's debug symbols script' adding to the build phases of your $platform project's '$name' target?",
-    );
-
-    if (addSymbolScript == true) {
-      await writeDebugScriptForTarget(
-        xcodeProjFilePath,
-        appId,
-        name,
-        logger,
-      );
-    } else {
-      logger.stdout(
-        logSkippingDebugSymbolScript,
-      );
-    }
-  }
-}
-
-String addServiceFileToRunnerScript(
-  String googleServiceInfoFile,
-  String xcodeProjFilePath,
-) {
-  return '''
-require 'xcodeproj'
-googleFile='$googleServiceInfoFile'
-xcodeFile='$xcodeProjFilePath'
-
-# define the path to your .xcodeproj file
-project_path = xcodeFile
-# open the xcode project
-project = Xcodeproj::Project.open(project_path)
-
-# check if `GoogleService-Info.plist` config is set in `project.pbxproj` file.
-googleConfigExists = false
-project.files.each do |file|
-  if file.path == "Runner/GoogleService-Info.plist"
-    googleConfigExists = true
-    exit
-  end
-end
-
-# Write only if config doesn't exist
-if googleConfigExists == false
-  file = project.new_file(googleFile)
-  main_target = project.targets.find { |target| target.name == 'Runner' }
-  
-  if(main_target)
-    main_target.add_resources([file])
-    project.save
-  else
-    abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
-  end  
-end
-''';
 }
 
 String findingSchemesScript(

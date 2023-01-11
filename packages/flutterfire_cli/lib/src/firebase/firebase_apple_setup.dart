@@ -16,7 +16,7 @@ class FirebaseAppleSetup {
     this.platformOptions,
     this.flutterApp,
     this.fullPathToServiceFile,
-    this.isDefaultSetup,
+    this.googleServicePathSpecified,
     this.logger,
     this.generateDebugSymbolScript,
     this.scheme,
@@ -28,7 +28,7 @@ class FirebaseAppleSetup {
   final FlutterApp? flutterApp;
   final FirebaseOptions platformOptions;
   String? fullPathToServiceFile;
-  bool isDefaultSetup;
+  bool googleServicePathSpecified;
   final Logger logger;
   final bool? generateDebugSymbolScript;
 // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
@@ -37,7 +37,8 @@ class FirebaseAppleSetup {
   String? target;
 
   String get xcodeProjFilePath {
-    return path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+    return path.join(
+        Directory.current.path, platform.toLowerCase(), 'Runner.xcodeproj');
   }
 
   Future<void> _addFlutterFireDebugSymbolsScript(
@@ -116,10 +117,11 @@ end
   final uploadDebugSymbolsName = 'uploadDebugSymbols';
   final pathToServiceFileOutput = 'serviceFileOutput';
 
-  String get googleServiceInfoFile {
+  String googleServiceFilePathForTarget({String target = 'Runner'}) {
     return path.join(
-      flutterApp!.iosDirectory.path,
-      'Runner',
+      Directory.current.path,
+      platform.toLowerCase(),
+      target,
       platformOptions.optionsSourceFileName,
     );
   }
@@ -196,6 +198,7 @@ end
     } else if (generateDebugSymbolScript == false) {
       return false;
     } else {
+      // Unspecified, so we prompt
       final addSymbolScript = promptBool(
         "Do you want an '$runScriptName' adding to the build phases of your $platform project?",
       );
@@ -284,8 +287,19 @@ end
     return File(fullPathToServiceFile!);
   }
 
+  Future<void> _writeGoogleServiceFileForScheme(
+      String pathToServiceFile) async {
+    final file = await _createFileToSpecifiedPath(pathToServiceFile);
+
+    if (!file.existsSync()) {
+      await file.writeAsString(platformOptions.optionsSourceContent);
+    } else {
+      logger.stdout(serviceFileAlreadyExists);
+    }
+  }
+
   Future<void> apply() async {
-    if (scheme != null && fullPathToServiceFile == null) {
+    if (scheme != null && !googleServicePathSpecified) {
       // if the user has selected a  scheme but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
       // No need to do the same for target as it is included with bundle resources and included in Runner directory
       final pathToServiceFile = promptInput(
@@ -303,8 +317,33 @@ end
       fullPathToServiceFile =
           '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
 
-      // If "fullPathToServiceFile" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
-    } else if (fullPathToServiceFile != null) {
+      await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+    } else if (target != null) {
+      final targets = await findTargetsAvailable(xcodeProjFilePath);
+
+      final targetExists = targets.contains(target);
+
+      if (targetExists) {
+        await writeGoogleServiceFileToTargetProject(
+          xcodeProjFilePath,
+          fullPathToServiceFile!,
+          target!,
+        );
+
+        await _updateFirebaseJsonAndDebugSymbolScript(
+          fullPathToServiceFile!,
+          target: target,
+        );
+      } else {
+        throw MissingFromXcodeProjectException(
+          platform,
+          'target',
+          target!,
+          targets,
+        );
+      }
+      // If "googleServicePathSpecified", we use a different configuration from default. i.e. Runner/GoogleService-Info.plist setup
+    } else if (googleServicePathSpecified) {
       final googleServiceFileName = path.basename(fullPathToServiceFile!);
 
       if (googleServiceFileName != platformOptions.optionsSourceFileName) {
@@ -318,138 +357,99 @@ end
               '${path.dirname(fullPathToServiceFile!)}/${platformOptions.optionsSourceFileName}';
         }
       }
-    } else {
-      fullPathToServiceFile = googleServiceInfoFile;
-    }
 
-    final file = await _createFileToSpecifiedPath(fullPathToServiceFile!);
+      if (scheme != null) {
+        final schemes = await findSchemesAvailable(xcodeProjFilePath);
 
-    if (!file.existsSync()) {
-      await file.writeAsString(platformOptions.optionsSourceContent);
-    }
+        final schemeExists = schemes.contains(scheme);
 
-    if (Platform.isMacOS) {
-      if (!isDefaultSetup) {
-        if (scheme != null) {
-          final schemes = await findSchemesAvailable(xcodeProjFilePath);
-
-          final schemeExists = schemes.contains(scheme);
-
-          if (schemeExists) {
-            await writeSchemeScriptToProject(
-              xcodeProjFilePath,
-              fullPathToServiceFile!,
-              scheme!,
-              logger,
-            );
-            await _updateFirebaseJsonAndDebugSymbolScript(
-              fullPathToServiceFile!,
-              scheme: scheme,
-            );
-          } else {
-            throw MissingFromXcodeProjectException(
-              platform,
-              'scheme',
-              scheme!,
-              schemes,
-            );
-          }
-        } else if (target != null) {
-          final targets = await findTargetsAvailable(xcodeProjFilePath);
-
-          final targetExists = targets.contains(target);
-
-          if (targetExists) {
-            await writeToTargetProject(
-              xcodeProjFilePath,
-              fullPathToServiceFile!,
-              target!,
-            );
-
-            await _updateFirebaseJsonAndDebugSymbolScript(
-              fullPathToServiceFile!,
-              target: target,
-            );
-          } else {
-            throw MissingFromXcodeProjectException(
-              platform,
-              'target',
-              target!,
-              targets,
-            );
-          }
-        } else {
-          // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
-          final fileName = path.basename(fullPathToServiceFile!);
-          final response = promptSelect(
-            'Would you like your $platform $fileName to be associated with your $platform Scheme or Target (use arrow keys & space to select)?',
-            [
-              'Scheme',
-              'Target',
-              'No, I want to write the file to the path I chose'
-            ],
+        if (schemeExists) {
+          await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+          await writeSchemeScriptToProject(
+            xcodeProjFilePath,
+            fullPathToServiceFile!,
+            scheme!,
+            logger,
           );
-
-          // Add to scheme
-          if (response == 0) {
-            final schemes = await findSchemesAvailable(xcodeProjFilePath);
-
-            final response = promptSelect(
-              'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
-              schemes,
-            );
-            await writeSchemeScriptToProject(
-              xcodeProjFilePath,
-              fullPathToServiceFile!,
-              schemes[response],
-              logger,
-            );
-            await _updateFirebaseJsonAndDebugSymbolScript(
-              fullPathToServiceFile!,
-              scheme: schemes[response],
-            );
-
-            // Add to target
-          } else if (response == 1) {
-            final targets = await findTargetsAvailable(xcodeProjFilePath);
-
-            final response = promptSelect(
-              'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
-              targets,
-            );
-            await writeToTargetProject(
-              xcodeProjFilePath,
-              fullPathToServiceFile!,
-              targets[response],
-            );
-            await _updateFirebaseJsonAndDebugSymbolScript(
-              fullPathToServiceFile!,
-              target: targets[response],
-            );
-          }
+          await _updateFirebaseJsonAndDebugSymbolScript(
+            fullPathToServiceFile!,
+            scheme: scheme,
+          );
+        } else {
+          throw MissingFromXcodeProjectException(
+            platform,
+            'scheme',
+            scheme!,
+            schemes,
+          );
         }
       } else {
-        // Continue to write file to Runner/GoogleService-Info.plist if no "iosServiceFilePath" is provided
-        final rubyScript = addServiceFileToRunnerScript(
-          googleServiceInfoFile,
-          xcodeProjFilePath,
+        // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
+        final fileName = path.basename(fullPathToServiceFile!);
+        final response = promptSelect(
+          'Would you like your $platform $fileName to be associated with your $platform Scheme or Target (use arrow keys & space to select)?',
+          [
+            'Scheme',
+            'Target',
+            'No, I want to write the file to the path I chose'
+          ],
         );
 
-        final result = await Process.run('ruby', [
-          '-e',
-          rubyScript,
-        ]);
+        // Add to scheme
+        if (response == 0) {
+          final schemes = await findSchemesAvailable(xcodeProjFilePath);
 
-        if (result.exitCode != 0) {
-          throw Exception(result.stderr);
+          final response = promptSelect(
+            'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
+            schemes,
+          );
+          await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+          await writeSchemeScriptToProject(
+            xcodeProjFilePath,
+            fullPathToServiceFile!,
+            schemes[response],
+            logger,
+          );
+          await _updateFirebaseJsonAndDebugSymbolScript(
+            fullPathToServiceFile!,
+            scheme: schemes[response],
+          );
+
+          // Add to target
+        } else if (response == 1) {
+          final targets = await findTargetsAvailable(xcodeProjFilePath);
+
+          final response = promptSelect(
+            'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
+            targets,
+          );
+
+          await writeGoogleServiceFileToTargetProject(
+            xcodeProjFilePath,
+            fullPathToServiceFile!,
+            targets[response],
+          );
+          await _updateFirebaseJsonAndDebugSymbolScript(
+            fullPathToServiceFile!,
+            target: targets[response],
+          );
         }
-        // Update "Runner", default target
-        final defaultProjectPath = '${Directory.current.path}/ios/Runner/${platformOptions.optionsSourceFileName}';
-        await _updateFirebaseJsonAndDebugSymbolScript(
-          defaultProjectPath,
-          target: 'Runner',
-        );
       }
+    } else {
+      // Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "scheme" and "target" is provided
+      await writeGoogleServiceFileToTargetProject(
+        xcodeProjFilePath,
+        fullPathToServiceFile!,
+        'Runner',
+      );
+
+      // Update "Runner", default target
+      final defaultProjectPath =
+          '${Directory.current.path}/ios/Runner/${platformOptions.optionsSourceFileName}';
+      await _updateFirebaseJsonAndDebugSymbolScript(
+        defaultProjectPath,
+        target: 'Runner',
+      );
     }
   }
 }
