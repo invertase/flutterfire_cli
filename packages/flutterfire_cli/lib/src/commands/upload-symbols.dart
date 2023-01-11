@@ -16,6 +16,7 @@
  */
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as path;
 import '../common/strings.dart';
 import '../flutter_app.dart';
 import 'base.dart';
@@ -56,9 +57,9 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'flutterAppPath',
-      valueHelp: 'flutterAppPath',
-      help: 'The absolute path to the flutter app root.',
+      'iosProjectPath',
+      valueHelp: 'iosProjectPath',
+      help: 'The absolute path to the flutter app iOS directory.',
     );
   }
 
@@ -89,8 +90,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['target'] as String?;
   }
 
-  String get flutterAppPath {
-    return argResults!['flutterAppPath'] as String;
+  String get iosProjectPath {
+    return argResults!['iosProjectPath'] as String;
   }
 
   String get appIdFileName {
@@ -145,6 +146,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   @override
   Future<void> run() async {
     // Pull values from firebase.json in root of project
+    final flutterAppPath = path.dirname(iosProjectPath);
     final firebaseJson =
         await File('$flutterAppPath/firebase.json').readAsString();
 
