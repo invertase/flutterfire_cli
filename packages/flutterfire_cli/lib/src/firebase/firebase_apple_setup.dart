@@ -16,7 +16,7 @@ class FirebaseAppleSetup {
     this.platformOptions,
     this.flutterApp,
     this.fullPathToServiceFile,
-    this.relativePathToServiceFile,
+    this.isDefaultSetup,
     this.logger,
     this.generateDebugSymbolScript,
     this.scheme,
@@ -28,7 +28,7 @@ class FirebaseAppleSetup {
   final FlutterApp? flutterApp;
   final FirebaseOptions platformOptions;
   String? fullPathToServiceFile;
-  String? relativePathToServiceFile;
+  bool isDefaultSetup;
   final Logger logger;
   final bool? generateDebugSymbolScript;
 // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
@@ -115,6 +115,14 @@ end
   final appIdName = 'projectId';
   final uploadDebugSymbolsName = 'uploadDebugSymbols';
   final pathToServiceFileOutput = 'serviceFileOutput';
+
+  String get googleServiceInfoFile {
+    return path.join(
+      flutterApp!.iosDirectory.path,
+      'Runner',
+      platformOptions.optionsSourceFileName,
+    );
+  }
 
   Future<void> _updateFirebaseJsonFileScheme(
     FlutterApp flutterApp,
@@ -268,15 +276,15 @@ end
     }
   }
 
+  Future<File> _createFileToSpecifiedPath(
+    String pathToServiceFile,
+  ) async {
+    await Directory(path.dirname(pathToServiceFile)).create(recursive: true);
+
+    return File(fullPathToServiceFile!);
+  }
+
   Future<void> apply() async {
-    final googleServiceInfoFile = path.join(
-      flutterApp!.iosDirectory.path,
-      'Runner',
-      platformOptions.optionsSourceFileName,
-    );
-
-    File file;
-
     if (scheme != null && fullPathToServiceFile == null) {
       // if the user has selected a  scheme but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
       // No need to do the same for target as it is included with bundle resources and included in Runner directory
@@ -295,16 +303,9 @@ end
       fullPathToServiceFile =
           '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
 
-      relativePathToServiceFile =
-          '$pathToServiceFile/${platformOptions.optionsSourceFileName}';
-
-      await Directory(path.dirname(fullPathToServiceFile!))
-          .create(recursive: true);
-
-      file = File(fullPathToServiceFile!);
       // If "fullPathToServiceFile" exists, we use a different configuration from Runner/GoogleService-Info.plist setup
     } else if (fullPathToServiceFile != null) {
-      final googleServiceFileName = path.basename(relativePathToServiceFile!);
+      final googleServiceFileName = path.basename(fullPathToServiceFile!);
 
       if (googleServiceFileName != platformOptions.optionsSourceFileName) {
         final response = promptBool(
@@ -313,30 +314,22 @@ end
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
         if (response == true) {
-          relativePathToServiceFile = path.join(
-            path.dirname(relativePathToServiceFile!),
-            platformOptions.optionsSourceFileName,
-          );
-
           fullPathToServiceFile =
-              '${flutterApp!.package.path}${relativePathToServiceFile!}';
+              '${path.dirname(fullPathToServiceFile!)}/${platformOptions.optionsSourceFileName}';
         }
       }
-      // Create new directory for file output if it doesn't currently exist
-      await Directory(path.dirname(fullPathToServiceFile!))
-          .create(recursive: true);
-
-      file = File(fullPathToServiceFile!);
     } else {
-      file = File(googleServiceInfoFile);
+      fullPathToServiceFile = googleServiceInfoFile;
     }
+
+    final file = await _createFileToSpecifiedPath(fullPathToServiceFile!);
 
     if (!file.existsSync()) {
       await file.writeAsString(platformOptions.optionsSourceContent);
     }
 
     if (Platform.isMacOS) {
-      if (fullPathToServiceFile != null) {
+      if (!isDefaultSetup) {
         if (scheme != null) {
           final schemes = await findSchemesAvailable(xcodeProjFilePath);
 
@@ -345,7 +338,7 @@ end
           if (schemeExists) {
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              relativePathToServiceFile!,
+              fullPathToServiceFile!,
               scheme!,
               logger,
             );
@@ -407,7 +400,7 @@ end
             );
             await writeSchemeScriptToProject(
               xcodeProjFilePath,
-              relativePathToServiceFile!,
+              fullPathToServiceFile!,
               schemes[response],
               logger,
             );

@@ -324,7 +324,7 @@ Future<void> writeSchemeScriptToProject(
     xcodeProjFilePath,
     scheme,
     runScriptName,
-    removeForwardSlash(serviceFilePath),
+    serviceFilePath,
   );
 
   // Add script to Build Phases in Xcode project
@@ -602,8 +602,7 @@ bashScript = %q(
 
 PLIST_DESTINATION=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app
 # Remove the "ios" segment from the SOURCE_ROOT environment variable as it could already be on "googleServiceFilePath"
-GOOGLESERVICE_INFO_PATH=\${SOURCE_ROOT%/*}
-GOOGLESERVICE_INFO_PATH=\${GOOGLESERVICE_INFO_PATH}/$googleServiceFilePath
+GOOGLESERVICE_INFO_PATH=$googleServiceFilePath
 
 # Copy GoogleService-Info.plist for appropriate scheme. Each scheme has multiple configurations (i.e. Debug-development, Debug-staging, etc).
 # This is why we use *"scheme"*
