@@ -266,15 +266,15 @@ class ConfigCommand extends FlutterFireCommand {
     return '${flutterApp!.package.path}${macosServiceFilePath!}';
   }
 
-  String? get iosServiceFilePath {
+  String? get relativeiOSServiceFilePath {
     return argResults!['ios-out'] as String?;
   }
 
   String? get fulliOSServicePath {
-    if (iosServiceFilePath == null) {
+    if (relativeiOSServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}${iosServiceFilePath!}';
+    return '${flutterApp!.package.path}${relativeiOSServiceFilePath!}';
   }
 
   String? get androidServiceFilePath {
@@ -614,7 +614,7 @@ class ConfigCommand extends FlutterFireCommand {
         iosOptions,
         flutterApp,
         fulliOSServicePath,
-        iosServiceFilePath,
+        relativeiOSServiceFilePath,
         logger,
         iosGenerateDebugSymbolScript,
         iosScheme,
