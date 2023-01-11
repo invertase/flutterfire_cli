@@ -59,7 +59,7 @@ class FirebaseAppleSetup {
     }
   }
 
-//TODO - remove reference to my paths, can only do it when I've done dev release of FFCLI
+//TODO - need to find a way to fix path so it isn't dependent on environment
   String _debugSymbolsScript(
     String xcodeProjFilePath,
     // Always runner for "scheme" setup
@@ -75,12 +75,9 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-dart flutterfire upload-crashlytics-symbols
---uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols 
---debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} 
---infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} 
---scheme=\${CONFIGURATION} 
---flutterAppPath=\${FLUTTER_APPLICATION_PATH}
+PATH=\${PATH}:\${HOME}/sdks/flutter/bin:\${HOME}/.pub-cache/bin
+
+flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --scheme=\${CONFIGURATION} --iosProjectPath=\${SRCROOT}
 )
 
 for target in project.targets 
@@ -104,7 +101,7 @@ end
 ''';
   }
 
-  final runScriptName = 'FlutterFire: `flutterfire upload-crashlytics-symbols`';
+  final runScriptName = 'FlutterFire: "flutterfire upload-crashlytics-symbols"';
 
 // Constants for firebase.json properties
   final projectIdName = 'projectId';
