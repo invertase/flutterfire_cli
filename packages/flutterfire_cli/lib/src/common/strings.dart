@@ -58,6 +58,10 @@ const logLearnMoreAboutCli =
     'Learn more about using this file and next steps from the documentation:\n'
     ' > $firebaseDocumentationUrl';
 
+const noPathVariableFound = r'There is no $PATH variable in your environment. '
+    "Please file an issue as your Crashlytic's upload debug "
+    'symbols script will not work without it';
+
 /// Prompts when Android Google Services JSON file already exists but contains
 /// configuration values for a different Firebase project.
 String logPromptReplaceGoogleServicesJson(

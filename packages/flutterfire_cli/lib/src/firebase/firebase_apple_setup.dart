@@ -45,25 +45,33 @@ class FirebaseAppleSetup {
     Logger logger, {
     String target = 'Runner',
   }) async {
-    final debugSymbolScript = await Process.run('ruby', [
-      '-e',
-      _debugSymbolsScript(xcodeProjFilePath, target),
-    ]);
+    final paths = _addPathToExecutablesForDebugScript();
+    if (paths != null) {
+      final debugSymbolScript = await Process.run('ruby', [
+        '-e',
+        _debugSymbolsScript(
+          xcodeProjFilePath,
+          target,
+          paths,
+        ),
+      ]);
 
-    if (debugSymbolScript.exitCode != 0) {
-      throw Exception(debugSymbolScript.stderr);
-    }
+      if (debugSymbolScript.exitCode != 0) {
+        throw Exception(debugSymbolScript.stderr);
+      }
 
-    if (debugSymbolScript.stdout != null) {
-      logger.stdout(debugSymbolScript.stdout as String);
+      if (debugSymbolScript.stdout != null) {
+        logger.stdout(debugSymbolScript.stdout as String);
+      }
     }
   }
 
 //TODO - need to find a way to fix path so it isn't dependent on environment
   String _debugSymbolsScript(
     String xcodeProjFilePath,
-    // Always runner for "scheme" setup
+    // Always "Runner" for "scheme" setup
     String target,
+    String pathsToExecutables,
   ) {
     return '''
 require 'xcodeproj'
@@ -75,7 +83,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH=\${PATH}:\${HOME}/sdks/flutter/bin:\${HOME}/.pub-cache/bin
+PATH=\${PATH}:$pathsToExecutables
 
 flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --scheme=\${CONFIGURATION} --iosProjectPath=\${SRCROOT}
 )
@@ -226,6 +234,30 @@ end
     } else {
       throw Exception(
           'Ensure that either a "target" or a "scheme" has been selected for $platform configuration.');
+    }
+  }
+
+  String? _addPathToExecutablesForDebugScript() {
+    final envVars = Platform.environment;
+    final paths = envVars['PATH'];
+    if (paths != null) {
+      final array = paths.split(':');
+
+      final pathsToAddToScript = array.where((path) {
+        if (path.contains('dart-sdk') ||
+            path.contains('flutter') ||
+            path.contains('.pub-cache')) {
+          return true;
+        }
+        return false;
+      });
+
+      return pathsToAddToScript.join(':');
+    } else {
+      logger.stdout(
+        noPathVariableFound,
+      );
+      return null;
     }
   }
 
