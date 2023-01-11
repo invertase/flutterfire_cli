@@ -66,7 +66,6 @@ class FirebaseAppleSetup {
     }
   }
 
-//TODO - need to find a way to fix path so it isn't dependent on environment
   String _debugSymbolsScript(
     String xcodeProjFilePath,
     // Always "Runner" for "scheme" setup
@@ -115,6 +114,7 @@ end
   final projectIdName = 'projectId';
   final appIdName = 'projectId';
   final uploadDebugSymbolsName = 'uploadDebugSymbols';
+  final pathToServiceFileOutput = 'serviceFileOutput';
 
   Future<void> _updateFirebaseJsonFileScheme(
     FlutterApp flutterApp,
@@ -122,6 +122,7 @@ end
     String projectId,
     bool debugSymbolScript,
     String scheme,
+    String pathToServiceFile,
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
 
@@ -139,6 +140,7 @@ end
     schemeConfig?[projectIdName] = projectId;
     schemeConfig?[appIdName] = appId;
     schemeConfig?[uploadDebugSymbolsName] = debugSymbolScript;
+    schemeConfig?[pathToServiceFileOutput] = pathToServiceFile;
 
     final mapJson = json.encode(map);
 
@@ -151,6 +153,7 @@ end
     String projectId,
     bool debugSymbolScript,
     String target,
+    String pathToServiceFile,
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
 
@@ -168,6 +171,7 @@ end
     targetConfig?[projectIdName] = projectId;
     targetConfig?[appIdName] = appId;
     targetConfig?[uploadDebugSymbolsName] = debugSymbolScript;
+    targetConfig?[pathToServiceFileOutput] = pathToServiceFile;
 
     final mapJson = json.encode(map);
 
@@ -198,7 +202,8 @@ end
     }
   }
 
-  Future<void> _updateFirebaseJsonAndDebugSymbolScript({
+  Future<void> _updateFirebaseJsonAndDebugSymbolScript(
+    String pathToServiceFile, {
     String? scheme,
     String? target,
   }) async {
@@ -221,6 +226,7 @@ end
         platformOptions.projectId,
         runDebugSymbolScript,
         scheme,
+        pathToServiceFile,
       );
     } else if (target != null) {
       // Chosen Target or default
@@ -230,6 +236,7 @@ end
         platformOptions.projectId,
         runDebugSymbolScript,
         target,
+        pathToServiceFile,
       );
     } else {
       throw Exception(
@@ -342,7 +349,10 @@ end
               scheme!,
               logger,
             );
-            await _updateFirebaseJsonAndDebugSymbolScript(scheme: scheme);
+            await _updateFirebaseJsonAndDebugSymbolScript(
+              fullPathToServiceFile!,
+              scheme: scheme,
+            );
           } else {
             throw MissingFromXcodeProjectException(
               platform,
@@ -363,7 +373,10 @@ end
               target!,
             );
 
-            await _updateFirebaseJsonAndDebugSymbolScript(target: target);
+            await _updateFirebaseJsonAndDebugSymbolScript(
+              fullPathToServiceFile!,
+              target: target,
+            );
           } else {
             throw MissingFromXcodeProjectException(
               platform,
@@ -399,6 +412,7 @@ end
               logger,
             );
             await _updateFirebaseJsonAndDebugSymbolScript(
+              fullPathToServiceFile!,
               scheme: schemes[response],
             );
 
@@ -416,6 +430,7 @@ end
               targets[response],
             );
             await _updateFirebaseJsonAndDebugSymbolScript(
+              fullPathToServiceFile!,
               target: targets[response],
             );
           }
@@ -436,7 +451,11 @@ end
           throw Exception(result.stderr);
         }
         // Update "Runner", default target
-        await _updateFirebaseJsonAndDebugSymbolScript(target: 'Runner');
+        final defaultProjectPath = '${Directory.current.path}/ios/Runner';
+        await _updateFirebaseJsonAndDebugSymbolScript(
+          defaultProjectPath,
+          target: 'Runner',
+        );
       }
     }
   }
