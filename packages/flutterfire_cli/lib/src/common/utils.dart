@@ -401,12 +401,12 @@ Future<void> writeFirebaseJsonFile(
   if (file.existsSync()) return;
 
   final map = {
-    'flutter': {
-      'platforms': {
-        'ios': {
-          'schemes': <String, Object>{},
-          'targets': <String, Object>{},
-          'default': <String, Object>{}
+    kFlutter: {
+      kPlatforms: {
+        kIos: {
+          kSchemes: <String, Object>{},
+          kTargets: <String, Object>{},
+          kDefaultConfig: <String, Object>{}
         }
       }
     }

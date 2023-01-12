@@ -131,7 +131,7 @@ end
     String appId,
     String projectId,
     bool debugSymbolScript,
-    String schemeOrTarget,
+    String schemeOrTargetName,
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
   ) async {
@@ -149,12 +149,17 @@ end
     final iosConfig = platform?[kIos] as Map?;
 
     final configurationMaps = iosConfig?[configuration] as Map?;
-    final configurationMap = configurationMaps?[schemeOrTarget] as Map?;
 
-    configurationMap?[kProjectId] = projectId;
-    configurationMap?[kAppId] = appId;
-    configurationMap?[kUploadDebugSymbols] = debugSymbolScript;
-    configurationMap?[kServiceFileOutput] = pathToServiceFile;
+    if (configurationMaps?[schemeOrTargetName] == null) {
+      // ignore: implicit_dynamic_map_literal
+      configurationMaps?[schemeOrTargetName] = {};
+    }
+
+    final configurationMap = configurationMaps?[schemeOrTargetName] as Map;
+    configurationMap[kProjectId] = projectId;
+    configurationMap[kAppId] = appId;
+    configurationMap[kUploadDebugSymbols] = debugSymbolScript;
+    configurationMap[kServiceFileOutput] = pathToServiceFile;
 
     final mapJson = json.encode(map);
 
