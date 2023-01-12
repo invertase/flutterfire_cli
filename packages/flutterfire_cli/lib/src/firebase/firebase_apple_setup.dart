@@ -43,7 +43,8 @@ class FirebaseAppleSetup {
 
   Future<void> _addFlutterFireDebugSymbolsScript(
     String xcodeProjFilePath,
-    Logger logger, {
+    Logger logger,
+    ProjectConfiguration projectConfiguration, {
     String target = 'Runner',
   }) async {
     final paths = _addPathToExecutablesForDebugScript();
@@ -54,6 +55,7 @@ class FirebaseAppleSetup {
           xcodeProjFilePath,
           target,
           paths,
+          projectConfiguration,
         ),
       ]);
 
@@ -72,7 +74,22 @@ class FirebaseAppleSetup {
     // Always "Runner" for "scheme" setup
     String target,
     String pathsToExecutables,
+    ProjectConfiguration projectConfiguration,
   ) {
+    var command =
+        r'flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME} --infoPlistPath=${SRCROOT}/${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH} --iosProjectPath=${SRCROOT} ';
+
+    switch (projectConfiguration) {
+      case ProjectConfiguration.scheme:
+        command += r'--scheme=${CONFIGURATION}';
+        break;
+      case ProjectConfiguration.target:
+        command += "--target='$target";
+        break;
+      case ProjectConfiguration.defaultConfig:
+        command += '--defaultConfig=default';
+    }
+
     return '''
 require 'xcodeproj'
 xcodeFile='$xcodeProjFilePath'
@@ -84,8 +101,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 bashScript = %q(
 #!/bin/bash
 PATH=\${PATH}:$pathsToExecutables
-
-flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --scheme=\${CONFIGURATION} --iosProjectPath=\${SRCROOT}
+$command
 )
 
 for target in project.targets 
@@ -96,29 +112,19 @@ for target in project.targets
       end
     end
 
-    if (phase.nil?)
-        phase = target.new_shell_script_build_phase(runScriptName)
-        phase.shell_script = bashScript
-        project.save() 
-    else
-        \$stdout.write "Shell script already exists for running `flutterfire upload-crashlytics-symbols`, skipping..."
-        exit(0)
+    if (!phase.nil?)
+      phase.remove_from_project()
     end
+    
+    phase = target.new_shell_script_build_phase(runScriptName)
+    phase.shell_script = bashScript
+    project.save()   
   end  
 end
 ''';
   }
 
   final runScriptName = 'FlutterFire: "flutterfire upload-crashlytics-symbols"';
-
-  String googleServiceFilePathForTarget({String target = 'Runner'}) {
-    return path.join(
-      Directory.current.path,
-      platform.toLowerCase(),
-      target,
-      platformOptions.optionsSourceFileName,
-    );
-  }
 
   Future<void> _updateFirebaseJsonFile(
     FlutterApp flutterApp,
@@ -192,6 +198,7 @@ end
       await _addFlutterFireDebugSymbolsScript(
         xcodeProjFilePath,
         logger,
+        projectConfiguration,
       );
     }
 
@@ -230,7 +237,7 @@ end
     }
   }
 
-  Future<File> _createFileToSpecifiedPath(
+  Future<File> _createServiceFileToSpecifiedPath(
     String pathToServiceFile,
   ) async {
     await Directory(path.dirname(pathToServiceFile)).create(recursive: true);
@@ -239,7 +246,7 @@ end
   }
 
   Future<void> _writeGoogleServiceFileToPath(String pathToServiceFile) async {
-    final file = await _createFileToSpecifiedPath(pathToServiceFile);
+    final file = await _createServiceFileToSpecifiedPath(pathToServiceFile);
 
     if (!file.existsSync()) {
       await file.writeAsString(platformOptions.optionsSourceContent);
@@ -248,63 +255,94 @@ end
     }
   }
 
+  String _promptForPathToServiceFile() {
+    final pathToServiceFile = promptInput(
+      'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-scheme" argument. Example input: ${platform.toLowerCase()}/dev',
+      validator: (String x) {
+        if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
+            !path.basename(x).contains('.')) {
+          return true;
+        } else {
+          return 'Do not start or end path with a forward slash, nor specify the filename. Example: ${platform.toLowerCase()}/dev';
+        }
+      },
+    );
+
+    return '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
+  }
+
+  Future<void> _createSchemeSetup(String pathToServiceFile) async {
+    final schemes = await findSchemesAvailable(xcodeProjFilePath);
+
+    final schemeExists = schemes.contains(scheme);
+
+    if (schemeExists) {
+      await _schemeWrites(pathToServiceFile);
+    } else {
+      throw MissingFromXcodeProjectException(
+        platform,
+        'scheme',
+        scheme!,
+        schemes,
+      );
+    }
+  }
+
+  Future<void> _createTargetSetup(String pathToServiceFile) async {
+    final targets = await findTargetsAvailable(xcodeProjFilePath);
+
+    final targetExists = targets.contains(target);
+
+    if (targetExists) {
+      await _targetWrites(pathToServiceFile);
+    } else {
+      throw MissingFromXcodeProjectException(
+        platform,
+        'target',
+        target!,
+        targets,
+      );
+    }
+  }
+
+  Future<void> _schemeWrites(String pathToServiceFile) async {
+    await _writeGoogleServiceFileToPath(pathToServiceFile);
+    await writeSchemeScriptToProject(
+      xcodeProjFilePath,
+      fullPathToServiceFile!,
+      scheme!,
+      logger,
+    );
+    await _updateFirebaseJsonAndDebugSymbolScript(
+      pathToServiceFile,
+      ProjectConfiguration.scheme,
+      scheme!,
+    );
+  }
+
+  Future<void> _targetWrites(String pathToServiceFile) async {
+    await _writeGoogleServiceFileToPath(pathToServiceFile);
+    await writeGoogleServiceFileToTargetProject(
+      xcodeProjFilePath,
+      pathToServiceFile,
+      target!,
+    );
+
+    await _updateFirebaseJsonAndDebugSymbolScript(
+      pathToServiceFile,
+      ProjectConfiguration.target,
+      target!,
+    );
+  }
+
   Future<void> apply() async {
     if (scheme != null && !googleServicePathSpecified) {
       // if the user has selected a  scheme but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
-      // No need to do the same for target as it is included with bundle resources and included in Runner directory
-      final pathToServiceFile = promptInput(
-        'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-scheme" argument. Example input: ${platform.toLowerCase()}/dev',
-        validator: (String x) {
-          if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
-              !path.basename(x).contains('.')) {
-            return true;
-          } else {
-            return 'Do not start or end path with a forward slash, nor specify the filename. Example: ${platform.toLowerCase()}/dev';
-          }
-        },
-      );
-
-      fullPathToServiceFile =
-          '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
-
-      await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-      await writeSchemeScriptToProject(
-        xcodeProjFilePath,
-        fullPathToServiceFile!,
-        scheme!,
-        logger,
-      );
-      await _updateFirebaseJsonAndDebugSymbolScript(
-        fullPathToServiceFile!,
-        ProjectConfiguration.scheme,
-        scheme!,
-      );
-    } else if (target != null) {
-      final targets = await findTargetsAvailable(xcodeProjFilePath);
-
-      final targetExists = targets.contains(target);
-
-      if (targetExists) {
-        await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-        await writeGoogleServiceFileToTargetProject(
-          xcodeProjFilePath,
-          fullPathToServiceFile!,
-          target!,
-        );
-
-        await _updateFirebaseJsonAndDebugSymbolScript(
-          fullPathToServiceFile!,
-          ProjectConfiguration.target,
-          target!,
-        );
-      } else {
-        throw MissingFromXcodeProjectException(
-          platform,
-          'target',
-          target!,
-          targets,
-        );
-      }
+      fullPathToServiceFile = _promptForPathToServiceFile();
+      await _createSchemeSetup(fullPathToServiceFile!);
+    } else if (target != null && !googleServicePathSpecified) {
+      fullPathToServiceFile = _promptForPathToServiceFile();
+      await _createTargetSetup(fullPathToServiceFile!);
       // If "googleServicePathSpecified", we use a different configuration from default. i.e. Runner/GoogleService-Info.plist setup
     } else if (googleServicePathSpecified) {
       final googleServiceFileName = path.basename(fullPathToServiceFile!);
@@ -322,31 +360,9 @@ end
       }
 
       if (scheme != null) {
-        final schemes = await findSchemesAvailable(xcodeProjFilePath);
-
-        final schemeExists = schemes.contains(scheme);
-
-        if (schemeExists) {
-          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-          await writeSchemeScriptToProject(
-            xcodeProjFilePath,
-            fullPathToServiceFile!,
-            scheme!,
-            logger,
-          );
-          await _updateFirebaseJsonAndDebugSymbolScript(
-            fullPathToServiceFile!,
-            ProjectConfiguration.scheme,
-            scheme!,
-          );
-        } else {
-          throw MissingFromXcodeProjectException(
-            platform,
-            'scheme',
-            scheme!,
-            schemes,
-          );
-        }
+        await _createSchemeSetup(fullPathToServiceFile!);
+      } else if (target != null) {
+        await _createTargetSetup(fullPathToServiceFile!);
       } else {
         // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
         final fileName = path.basename(fullPathToServiceFile!);
@@ -367,18 +383,7 @@ end
             'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
             schemes,
           );
-          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-          await writeSchemeScriptToProject(
-            xcodeProjFilePath,
-            fullPathToServiceFile!,
-            schemes[response],
-            logger,
-          );
-          await _updateFirebaseJsonAndDebugSymbolScript(
-            fullPathToServiceFile!,
-            ProjectConfiguration.scheme,
-            schemes[response],
-          );
+          await _schemeWrites(fullPathToServiceFile!);
 
           // Add to target
         } else if (response == 1) {
@@ -388,17 +393,7 @@ end
             'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
             targets,
           );
-          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-          await writeGoogleServiceFileToTargetProject(
-            xcodeProjFilePath,
-            fullPathToServiceFile!,
-            targets[response],
-          );
-          await _updateFirebaseJsonAndDebugSymbolScript(
-            fullPathToServiceFile!,
-            ProjectConfiguration.target,
-            targets[response],
-          );
+          await _targetWrites(fullPathToServiceFile!);
         }
       }
     } else {
@@ -406,18 +401,9 @@ end
       // Update "Runner", default target
       final defaultProjectPath =
           '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';
-      await _writeGoogleServiceFileToPath(defaultProjectPath);
-      await writeGoogleServiceFileToTargetProject(
-        xcodeProjFilePath,
-        defaultProjectPath,
-        'Runner',
-      );
-
-      await _updateFirebaseJsonAndDebugSymbolScript(
-        defaultProjectPath,
-        ProjectConfiguration.defaultConfig,
-        'Runner',
-      );
+      // Make target default "Runner"
+      target = 'Runner';
+      await _targetWrites(fullPathToServiceFile!);
     }
   }
 }

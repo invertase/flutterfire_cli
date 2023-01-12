@@ -131,7 +131,10 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   Future<String> _findOrCreateAppIdFile(
-      String pathToAppIdFile, String appId, String projectId) async {
+    String pathToAppIdFile,
+    String appId,
+    String projectId,
+  ) async {
     // Will do nothing if it already exists
     await Directory(pathToAppIdFile).create(recursive: true);
     final file = File('$pathToAppIdFile/$appIdFileName');
@@ -186,7 +189,19 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final platform = flutterConfig?[kPlatforms] as Map?;
       final iosConfig = platform?[kIos] as Map?;
       final configurationMaps = iosConfig?[configuration] as Map?;
-      final configurationMap = configurationMaps?[scheme] as Map?;
+      Map? configurationMap;
+
+      switch (projectConfiguration) {
+        case ProjectConfiguration.scheme:
+          configurationMap = configurationMaps?[scheme] as Map?;
+          break;
+        case ProjectConfiguration.target:
+          configurationMap = configurationMaps?[target] as Map?;
+          break;
+        case ProjectConfiguration.defaultConfig:
+          // There is no more nested maps in "default" configuration, it is one single default configuration map
+          configurationMap = configurationMaps;
+      }
 
       uploadDebugSymbols = configurationMap?[kUploadDebugSymbols] as bool?;
       appId = configurationMap?[kAppId] as String?;
