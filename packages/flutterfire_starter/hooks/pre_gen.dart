@@ -23,7 +23,7 @@ void _validatePluginList(HookContext context) {
   final setPlugins = varsPlugins.toSet().toList();
   if (setPlugins.length != varsPlugins.length) {
     context.logger.err(
-      'You have duplicate plugins in your plugin's list. Please remove them.',
+      "You have duplicate plugins in your plugin's list. Please remove them.",
     );
     exit(1);
   }
