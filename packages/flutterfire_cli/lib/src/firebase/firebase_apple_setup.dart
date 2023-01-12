@@ -13,6 +13,7 @@ import '../flutter_app.dart';
 enum ProjectConfiguration {
   target,
   scheme,
+  defaultConfig,
 }
 
 // Use for both macOS & iOS
@@ -141,10 +142,18 @@ end
     ProjectConfiguration projectConfiguration,
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
+    String configuration;
+    switch (projectConfiguration) {
+      case ProjectConfiguration.defaultConfig:
+        configuration = 'default';
+        break;
+      case ProjectConfiguration.scheme:
+        configuration = 'schemes';
+        break;
+      case ProjectConfiguration.target:
+        configuration = 'targets';
+    }
 
-    final configuration = projectConfiguration == ProjectConfiguration.scheme
-        ? 'schemes'
-        : 'targets';
     final fileAsString = await file.readAsString();
 
     final map = jsonDecode(fileAsString) as Map;
@@ -179,14 +188,13 @@ end
       final addSymbolScript = promptBool(
         "Do you want an '$runScriptName' adding to the build phases of your $platform project?",
       );
-      if (addSymbolScript == true) {
-        return true;
-      } else {
+
+      if (addSymbolScript == false) {
         logger.stdout(
           logSkippingDebugSymbolScript,
         );
-        return false;
       }
+      return addSymbolScript;
     }
   }
 
