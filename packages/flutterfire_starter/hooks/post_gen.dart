@@ -48,6 +48,8 @@ Future<void> _installDependencies(HookContext context) async {
       workingDirectory: './$appName',
     );
   }
+
+  // Value is coming from brick.yaml
   if (varsPlugins.contains('Analytics with GoRouter')) {
     await Process.run(
       'flutter',
