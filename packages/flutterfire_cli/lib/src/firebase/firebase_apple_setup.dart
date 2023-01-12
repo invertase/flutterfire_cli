@@ -336,14 +336,16 @@ end
   }
 
   Future<void> apply() async {
-    if (scheme != null && !googleServicePathSpecified) {
+    if (!googleServicePathSpecified) {
       // if the user has selected a  scheme but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
       fullPathToServiceFile = _promptForPathToServiceFile();
-      await _createSchemeSetup(fullPathToServiceFile!);
-    } else if (target != null && !googleServicePathSpecified) {
-      fullPathToServiceFile = _promptForPathToServiceFile();
-      await _createTargetSetup(fullPathToServiceFile!);
-      // If "googleServicePathSpecified", we use a different configuration from default. i.e. Runner/GoogleService-Info.plist setup
+
+      if (target != null) {
+        await _createTargetSetup(fullPathToServiceFile!);
+      }
+      if (scheme != null) {
+        await _createSchemeSetup(fullPathToServiceFile!);
+      }
     } else if (googleServicePathSpecified) {
       final googleServiceFileName = path.basename(fullPathToServiceFile!);
 
@@ -383,6 +385,8 @@ end
             'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
             schemes,
           );
+
+          scheme = schemes[response];
           await _schemeWrites(fullPathToServiceFile!);
 
           // Add to target
@@ -393,6 +397,7 @@ end
             'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
             targets,
           );
+          target = targets[response];
           await _targetWrites(fullPathToServiceFile!);
         }
       }
@@ -403,7 +408,7 @@ end
           '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';
       // Make target default "Runner"
       target = 'Runner';
-      await _targetWrites(fullPathToServiceFile!);
+      await _targetWrites(defaultProjectPath);
     }
   }
 }
