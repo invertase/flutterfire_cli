@@ -435,7 +435,7 @@ end
 
       await _updateFirebaseJsonAndDebugSymbolScript(
         defaultProjectPath,
-        ProjectConfiguration.target,
+        ProjectConfiguration.defaultConfig,
         'Runner',
       );
     }
