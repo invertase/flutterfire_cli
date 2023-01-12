@@ -10,6 +10,11 @@ import '../firebase/firebase_options.dart';
 
 import '../flutter_app.dart';
 
+enum ProjectConfiguration {
+  target,
+  scheme,
+}
+
 // Use for both macOS & iOS
 class FirebaseAppleSetup {
   FirebaseAppleSetup(
@@ -126,16 +131,20 @@ end
     );
   }
 
-  Future<void> _updateFirebaseJsonFileScheme(
+  Future<void> _updateFirebaseJsonFile(
     FlutterApp flutterApp,
     String appId,
     String projectId,
     bool debugSymbolScript,
-    String scheme,
+    String schemeOrTarget,
     String pathToServiceFile,
+    ProjectConfiguration projectConfiguration,
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
 
+    final configuration = projectConfiguration == ProjectConfiguration.scheme
+        ? 'schemes'
+        : 'targets';
     final fileAsString = await file.readAsString();
 
     final map = jsonDecode(fileAsString) as Map;
@@ -144,44 +153,13 @@ end
     final platform = flutterConfig?['platforms'] as Map?;
     final iosConfig = platform?['ios'] as Map?;
 
-    final schemeConfigurations = iosConfig?['schemes'] as Map?;
-    final schemeConfig = schemeConfigurations?[scheme] as Map?;
+    final configurationMaps = iosConfig?[configuration] as Map?;
+    final configurationMap = configurationMaps?[schemeOrTarget] as Map?;
 
-    schemeConfig?[projectIdName] = projectId;
-    schemeConfig?[appIdName] = appId;
-    schemeConfig?[uploadDebugSymbolsName] = debugSymbolScript;
-    schemeConfig?[pathToServiceFileOutput] = pathToServiceFile;
-
-    final mapJson = json.encode(map);
-
-    file.writeAsStringSync(mapJson);
-  }
-
-  Future<void> _updateFirebaseJsonFileTarget(
-    FlutterApp flutterApp,
-    String appId,
-    String projectId,
-    bool debugSymbolScript,
-    String target,
-    String pathToServiceFile,
-  ) async {
-    final file = File('${flutterApp.package.path}/firebase.json');
-
-    final fileAsString = await file.readAsString();
-
-    final map = jsonDecode(fileAsString) as Map;
-
-    final flutterConfig = map['flutter'] as Map?;
-    final platform = flutterConfig?['platforms'] as Map?;
-    final iosConfig = platform?['ios'] as Map?;
-
-    final targetConfigurations = iosConfig?['targets'] as Map?;
-    final targetConfig = targetConfigurations?[target] as Map?;
-
-    targetConfig?[projectIdName] = projectId;
-    targetConfig?[appIdName] = appId;
-    targetConfig?[uploadDebugSymbolsName] = debugSymbolScript;
-    targetConfig?[pathToServiceFileOutput] = pathToServiceFile;
+    configurationMap?[projectIdName] = projectId;
+    configurationMap?[appIdName] = appId;
+    configurationMap?[uploadDebugSymbolsName] = debugSymbolScript;
+    configurationMap?[pathToServiceFileOutput] = pathToServiceFile;
 
     final mapJson = json.encode(map);
 
@@ -214,10 +192,10 @@ end
   }
 
   Future<void> _updateFirebaseJsonAndDebugSymbolScript(
-    String pathToServiceFile, {
-    String? scheme,
-    String? target,
-  }) async {
+    String pathToServiceFile,
+    ProjectConfiguration projectConfiguration,
+    String targetOrScheme,
+  ) async {
     final runDebugSymbolScript = _shouldRunUploadDebugSymbolScript(
       generateDebugSymbolScript,
       logger,
@@ -230,29 +208,15 @@ end
       );
     }
 
-    if (scheme != null) {
-      await _updateFirebaseJsonFileScheme(
-        flutterApp!,
-        platformOptions.appId,
-        platformOptions.projectId,
-        runDebugSymbolScript,
-        scheme,
-        pathToServiceFile,
-      );
-    } else if (target != null) {
-      // Chosen Target or default
-      await _updateFirebaseJsonFileTarget(
-        flutterApp!,
-        platformOptions.appId,
-        platformOptions.projectId,
-        runDebugSymbolScript,
-        target,
-        pathToServiceFile,
-      );
-    } else {
-      throw Exception(
-          'Ensure that either a "target" or a "scheme" has been selected for $platform configuration.');
-    }
+    await _updateFirebaseJsonFile(
+      flutterApp!,
+      platformOptions.appId,
+      platformOptions.projectId,
+      runDebugSymbolScript,
+      targetOrScheme,
+      pathToServiceFile,
+      projectConfiguration,
+    );
   }
 
   String? _addPathToExecutablesForDebugScript() {
@@ -325,7 +289,8 @@ end
       );
       await _updateFirebaseJsonAndDebugSymbolScript(
         fullPathToServiceFile!,
-        scheme: scheme,
+        ProjectConfiguration.scheme,
+        scheme!,
       );
     } else if (target != null) {
       final targets = await findTargetsAvailable(xcodeProjFilePath);
@@ -342,7 +307,8 @@ end
 
         await _updateFirebaseJsonAndDebugSymbolScript(
           fullPathToServiceFile!,
-          target: target,
+          ProjectConfiguration.target,
+          target!,
         );
       } else {
         throw MissingFromXcodeProjectException(
@@ -383,7 +349,8 @@ end
           );
           await _updateFirebaseJsonAndDebugSymbolScript(
             fullPathToServiceFile!,
-            scheme: scheme,
+            ProjectConfiguration.scheme,
+            scheme!,
           );
         } else {
           throw MissingFromXcodeProjectException(
@@ -422,7 +389,8 @@ end
           );
           await _updateFirebaseJsonAndDebugSymbolScript(
             fullPathToServiceFile!,
-            scheme: schemes[response],
+            ProjectConfiguration.scheme,
+            schemes[response],
           );
 
           // Add to target
@@ -441,7 +409,8 @@ end
           );
           await _updateFirebaseJsonAndDebugSymbolScript(
             fullPathToServiceFile!,
-            target: targets[response],
+            ProjectConfiguration.target,
+            targets[response],
           );
         }
       }
@@ -459,7 +428,8 @@ end
 
       await _updateFirebaseJsonAndDebugSymbolScript(
         defaultProjectPath,
-        target: 'Runner',
+        ProjectConfiguration.target,
+        'Runner',
       );
     }
   }
