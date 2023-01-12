@@ -24,6 +24,10 @@ scripts:
   format-check:
     run: melos exec flutter format . --set-exit-if-changed
     description: Run `flutter format` checks for all packages.
+    select-package:
+      ignore:
+        - "flutterfire_starter"
+        - "*monorepo*"
 
   test:
     description: Run tests in a specific package.

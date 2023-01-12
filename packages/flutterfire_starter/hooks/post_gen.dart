@@ -10,6 +10,10 @@ Future<void> run(HookContext context) async {
   await _copyGeneratedFilesToLib(context);
   await _runFlutterFireConfigure(context);
   await _copyConfigFile(context);
+  await _format(context);
+
+  context.logger.info('');
+  context.logger.success('Ready to use Firebase with Flutter! 🚀');
 }
 
 Future<void> _removeFiles(HookContext context, String name) async {
@@ -34,6 +38,26 @@ Future<void> _installDependencies(HookContext context) async {
     ['pub', 'add', 'firebase_core'],
     workingDirectory: './$appName',
   );
+
+  final varsPlugins = (context.vars['plugins'] as List<dynamic>).cast<String>();
+  final varsPluginsName = varsPlugins.map((e) => e.split(' ')[0]).toList();
+  if (varsPluginsName.contains('Analytics')) {
+    await Process.run(
+      'flutter',
+      ['pub', 'add', 'firebase_analytics'],
+      workingDirectory: './$appName',
+    );
+  }
+
+  // Value is coming from brick.yaml
+  if (varsPlugins.contains('Analytics with GoRouter')) {
+    await Process.run(
+      'flutter',
+      ['pub', 'add', 'go_router'],
+      workingDirectory: './$appName',
+    );
+  }
+
   if (result.exitCode == 0) {
     installDone.complete('Dependencies installed!');
   } else {
@@ -96,6 +120,21 @@ Future<void> _copyConfigFile(HookContext context) async {
 
   if (result.exitCode == 0) {
     done.complete('Files copied successfully');
+  } else {
+    done.fail(result.stderr.toString());
+  }
+}
+
+Future<void> _format(HookContext context) async {
+  final done = context.logger.progress('Formatting files...');
+  final appName = context.vars['name'] as String;
+  final result = await Process.run('flutter', [
+    'format',
+    './$appName',
+  ]);
+
+  if (result.exitCode == 0) {
+    done.complete('Files formatted successfully');
   } else {
     done.fail(result.stderr.toString());
   }

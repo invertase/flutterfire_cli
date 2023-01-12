@@ -18,3 +18,8 @@ mason init
 mason add flutterfire_starter
 mason make flutterfire_starter
 ```
+
+## Analytics
+
+You can enable Firebase Analytics with GoRouter or Navigator.
+By default analytics are enabled even in debug mode.

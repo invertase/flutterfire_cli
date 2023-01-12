@@ -1,0 +1,47 @@
+    return MaterialApp(
+      restorationScopeId: 'app',
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+      ],
+      {{#analyticswithnavigator}}
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(
+          analytics: FirebaseAnalytics.instance,
+          nameExtractor: (RouteSettings routeSettings) {
+            if (routeSettings.name == SampleItemDetailsView.routeName) {
+              final itemId = routeSettings.arguments as int? ?? 0;
+              return '${SampleItemDetailsView.routeName}/$itemId';
+            }
+            return routeSettings.name!;
+          },
+        )
+      ],
+      {{/analyticswithnavigator}}
+      onGenerateTitle: (BuildContext context) =>
+          AppLocalizations.of(context)!.appTitle,
+      theme: ThemeData(),
+      darkTheme: ThemeData.dark(),
+      onGenerateRoute: (RouteSettings routeSettings) {
+        return MaterialPageRoute<void>(
+          settings: routeSettings,
+          builder: (BuildContext context) {
+            switch (routeSettings.name) {
+              case SampleItemDetailsView.routeName:
+                final itemId = routeSettings.arguments as int? ?? 0;
+                return SampleItemDetailsView(
+                  itemId: itemId,
+                );
+              case SampleItemListView.routeName:
+              default:
+                return const SampleItemListView();
+            }
+          },
+        );
+      },
+    );
