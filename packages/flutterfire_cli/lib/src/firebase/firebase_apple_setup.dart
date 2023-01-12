@@ -318,6 +318,16 @@ end
           '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
 
       await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+      await writeSchemeScriptToProject(
+        xcodeProjFilePath,
+        fullPathToServiceFile!,
+        scheme!,
+        logger,
+      );
+      await _updateFirebaseJsonAndDebugSymbolScript(
+        fullPathToServiceFile!,
+        scheme: scheme,
+      );
     } else if (target != null) {
       final targets = await findTargetsAvailable(xcodeProjFilePath);
 
