@@ -48,7 +48,7 @@ Future<void> _generateApp(HookContext context) async {
   final appName = context.vars['name'] as String;
   final appDescription = context.vars['description'] as String;
   final nameOrg = context.vars['org'] as String;
-  await Process.run('flutter', [
+  final runScript = await Process.run('flutter', [
     'create',
     appName,
     '-t',
@@ -58,4 +58,8 @@ Future<void> _generateApp(HookContext context) async {
     '--org',
     nameOrg,
   ]);
+
+  if (runScript.exitCode != 0) {
+    throw Exception(runScript.stderr);
+  }
 }
