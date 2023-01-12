@@ -284,11 +284,10 @@ end
   ) async {
     await Directory(path.dirname(pathToServiceFile)).create(recursive: true);
 
-    return File(fullPathToServiceFile!);
+    return File(pathToServiceFile);
   }
 
-  Future<void> _writeGoogleServiceFileForScheme(
-      String pathToServiceFile) async {
+  Future<void> _writeGoogleServiceFileToPath(String pathToServiceFile) async {
     final file = await _createFileToSpecifiedPath(pathToServiceFile);
 
     if (!file.existsSync()) {
@@ -317,7 +316,7 @@ end
       fullPathToServiceFile =
           '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
 
-      await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+      await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
       await writeSchemeScriptToProject(
         xcodeProjFilePath,
         fullPathToServiceFile!,
@@ -334,6 +333,7 @@ end
       final targetExists = targets.contains(target);
 
       if (targetExists) {
+        await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
         await writeGoogleServiceFileToTargetProject(
           xcodeProjFilePath,
           fullPathToServiceFile!,
@@ -374,7 +374,7 @@ end
         final schemeExists = schemes.contains(scheme);
 
         if (schemeExists) {
-          await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
           await writeSchemeScriptToProject(
             xcodeProjFilePath,
             fullPathToServiceFile!,
@@ -413,7 +413,7 @@ end
             'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
             schemes,
           );
-          await _writeGoogleServiceFileForScheme(fullPathToServiceFile!);
+          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
           await writeSchemeScriptToProject(
             xcodeProjFilePath,
             fullPathToServiceFile!,
@@ -433,7 +433,7 @@ end
             'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
             targets,
           );
-
+          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
           await writeGoogleServiceFileToTargetProject(
             xcodeProjFilePath,
             fullPathToServiceFile!,
@@ -447,15 +447,16 @@ end
       }
     } else {
       // Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "scheme" and "target" is provided
+      // Update "Runner", default target
+      final defaultProjectPath =
+          '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';
+      await _writeGoogleServiceFileToPath(defaultProjectPath);
       await writeGoogleServiceFileToTargetProject(
         xcodeProjFilePath,
-        fullPathToServiceFile!,
+        defaultProjectPath,
         'Runner',
       );
 
-      // Update "Runner", default target
-      final defaultProjectPath =
-          '${Directory.current.path}/ios/Runner/${platformOptions.optionsSourceFileName}';
       await _updateFirebaseJsonAndDebugSymbolScript(
         defaultProjectPath,
         target: 'Runner',
