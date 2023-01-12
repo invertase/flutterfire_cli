@@ -10,12 +10,6 @@ import '../firebase/firebase_options.dart';
 
 import '../flutter_app.dart';
 
-enum ProjectConfiguration {
-  target,
-  scheme,
-  defaultConfig,
-}
-
 // Use for both macOS & iOS
 class FirebaseAppleSetup {
   FirebaseAppleSetup(
@@ -117,12 +111,6 @@ end
 
   final runScriptName = 'FlutterFire: "flutterfire upload-crashlytics-symbols"';
 
-// Constants for firebase.json properties
-  final projectIdName = 'projectId';
-  final appIdName = 'projectId';
-  final uploadDebugSymbolsName = 'uploadDebugSymbols';
-  final pathToServiceFileOutput = 'serviceFileOutput';
-
   String googleServiceFilePathForTarget({String target = 'Runner'}) {
     return path.join(
       Directory.current.path,
@@ -158,17 +146,17 @@ end
 
     final map = jsonDecode(fileAsString) as Map;
 
-    final flutterConfig = map['flutter'] as Map?;
-    final platform = flutterConfig?['platforms'] as Map?;
-    final iosConfig = platform?['ios'] as Map?;
+    final flutterConfig = map[kFlutter] as Map?;
+    final platform = flutterConfig?[kPlatforms] as Map?;
+    final iosConfig = platform?[kIos] as Map?;
 
     final configurationMaps = iosConfig?[configuration] as Map?;
     final configurationMap = configurationMaps?[schemeOrTarget] as Map?;
 
-    configurationMap?[projectIdName] = projectId;
-    configurationMap?[appIdName] = appId;
-    configurationMap?[uploadDebugSymbolsName] = debugSymbolScript;
-    configurationMap?[pathToServiceFileOutput] = pathToServiceFile;
+    configurationMap?[kProjectId] = projectId;
+    configurationMap?[kAppId] = appId;
+    configurationMap?[kUploadDebugSymbols] = debugSymbolScript;
+    configurationMap?[kServiceFileOutput] = pathToServiceFile;
 
     final mapJson = json.encode(map);
 

@@ -37,7 +37,7 @@ const String kMacos = 'macos';
 /// Key for linux platform.
 const String kLinux = 'linux';
 
-/// Key for IPA (iOS) platform.
+/// Key for IPA (iOS) platform. Shared with key for firebase.json
 const String kIos = 'ios';
 
 /// Key for APK (Android) platform.
@@ -45,6 +45,22 @@ const String kAndroid = 'android';
 
 /// Key for Web platform.
 const String kWeb = 'web';
+
+// Keys for firebase.json
+const String kFlutter = 'flutter';
+const String kPlatforms = 'platforms';
+const String kSchemes = 'schemes';
+const String kTargets = 'targets';
+const String kUploadDebugSymbols = 'uploadDebugSymbols';
+const String kAppId = 'appId';
+const String kProjectId = 'projectId';
+const String kServiceFileOutput = 'serviceFileOutput';
+
+enum ProjectConfiguration {
+  target,
+  scheme,
+  defaultConfig,
+}
 
 extension Let<T> on T? {
   R? let<R>(R Function(T value) cb) {

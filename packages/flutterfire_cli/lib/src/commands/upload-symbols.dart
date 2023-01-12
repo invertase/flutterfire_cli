@@ -18,8 +18,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../common/strings.dart';
+import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'base.dart';
+
+class ConfigurationResults {
+  ConfigurationResults(
+    this.appId,
+    this.projectId,
+    this.runDebugSymbolsScript,
+  );
+
+  final String appId;
+  final String projectId;
+  final bool? runDebugSymbolsScript;
+}
 
 class UploadCrashlyticsSymbols extends FlutterFireCommand {
   UploadCrashlyticsSymbols(FlutterApp? flutterApp) : super(flutterApp) {
@@ -90,6 +103,10 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['target'] as String?;
   }
 
+  String? get defaultConfig {
+    return argResults!['defaultConfig'] as String?;
+  }
+
   String get iosProjectPath {
     return argResults!['iosProjectPath'] as String;
   }
@@ -143,9 +160,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
   }
 
-  @override
-  Future<void> run() async {
-    // Pull values from firebase.json in root of project
+  Future<ConfigurationResults> _updateFirebaseJsonFile() async {
+// Pull values from firebase.json in root of project
     final flutterAppPath = path.dirname(iosProjectPath);
     final firebaseJson =
         await File('$flutterAppPath/firebase.json').readAsString();
@@ -154,29 +170,38 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
 
     String? appId;
     String? projectId;
+    bool? uploadDebugSymbols;
     try {
-      final flutterConfig = parsedJson['flutter'] as Map?;
-      final platform = flutterConfig?['platforms'] as Map?;
-      final iosConfig = platform?['ios'] as Map?;
-      final schemeConfigurations = iosConfig?['scheme'] as Map?;
+      final flutterConfig = parsedJson[kFlutter] as Map?;
+      final platform = flutterConfig?[kPlatforms] as Map?;
+      final iosConfig = platform?[kIos] as Map?;
+      final schemeConfigurations = iosConfig?[kSchemes] as Map?;
       //TODO - update depending on whether a "scheme" or "target"
       final schemeConfig = schemeConfigurations?[scheme] as Map?;
-      final uploadDebugSymbols = schemeConfig?['uploadDebugSymbols'] as bool?;
 
-      // Exit if the user chooses not to run debug upload symbol script
-      if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
-
-      appId = schemeConfig?['appId'] as String?;
-      projectId = schemeConfig?['projectId'] as String?;
-
-      if (projectId == null || appId == null) {
-        throw FirebaseJsonException();
-      }
-    } on FirebaseJsonException {
-      return;
+      uploadDebugSymbols = schemeConfig?[kUploadDebugSymbols] as bool?;
+      appId = schemeConfig?[kAppId] as String?;
+      projectId = schemeConfig?[kProjectId] as String?;
     } catch (e) {
       throw FirebaseJsonException();
     }
+
+    if (projectId == null || appId == null) {
+      throw FirebaseJsonException();
+    }
+
+    return ConfigurationResults(appId, projectId, uploadDebugSymbols);
+  }
+
+  @override
+  Future<void> run() async {
+    final configuration = await _updateFirebaseJsonFile();
+    final uploadDebugSymbols = configuration.runDebugSymbolsScript;
+    final appId = configuration.appId;
+    final projectId = configuration.projectId;
+
+    // Exit if the user chooses not to run debug upload symbol script
+    if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
 
     final appIdFileDirectory =
         '${Directory.current.path}/.dart_tool/flutterfire/platforms/ios/$scheme/$projectId';
