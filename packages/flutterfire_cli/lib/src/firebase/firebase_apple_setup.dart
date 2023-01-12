@@ -130,17 +130,9 @@ end
     ProjectConfiguration projectConfiguration,
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
-    String configuration;
-    switch (projectConfiguration) {
-      case ProjectConfiguration.defaultConfig:
-        configuration = 'default';
-        break;
-      case ProjectConfiguration.scheme:
-        configuration = 'schemes';
-        break;
-      case ProjectConfiguration.target:
-        configuration = 'targets';
-    }
+
+    // "schemes", "targets" or "default" property
+    final configuration = getProjectConfigurationProperty(projectConfiguration);
 
     final fileAsString = await file.readAsString();
 

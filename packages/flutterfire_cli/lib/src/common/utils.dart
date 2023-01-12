@@ -55,6 +55,7 @@ const String kUploadDebugSymbols = 'uploadDebugSymbols';
 const String kAppId = 'appId';
 const String kProjectId = 'projectId';
 const String kServiceFileOutput = 'serviceFileOutput';
+const String kDefaultConfig = 'default';
 
 enum ProjectConfiguration {
   target,
@@ -263,6 +264,19 @@ Future<void> writeDebugScriptForScheme(
 
   if (resultUploadScript.stdout != null) {
     logger.stdout(resultUploadScript.stdout as String);
+  }
+}
+
+String getProjectConfigurationProperty(
+  ProjectConfiguration projectConfiguration,
+) {
+  switch (projectConfiguration) {
+    case ProjectConfiguration.defaultConfig:
+      return kDefaultConfig;
+    case ProjectConfiguration.scheme:
+      return kSchemes;
+    case ProjectConfiguration.target:
+      return kTargets;
   }
 }
 

@@ -123,6 +123,13 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return 'FIREBASE_PROJECT_ID';
   }
 
+  ProjectConfiguration get projectConfiguration {
+    if (scheme != null) return ProjectConfiguration.scheme;
+    if (target != null) return ProjectConfiguration.target;
+
+    return ProjectConfiguration.defaultConfig;
+  }
+
   Future<String> _findOrCreateAppIdFile(
       String pathToAppIdFile, String appId, String projectId) async {
     // Will do nothing if it already exists
@@ -161,12 +168,15 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   Future<ConfigurationResults> _updateFirebaseJsonFile() async {
-// Pull values from firebase.json in root of project
+    // Pull values from firebase.json in root of project
     final flutterAppPath = path.dirname(iosProjectPath);
     final firebaseJson =
         await File('$flutterAppPath/firebase.json').readAsString();
 
     final parsedJson = json.decode(firebaseJson) as Map;
+
+    // "schemes", "targets" or "default" property
+    final configuration = getProjectConfigurationProperty(projectConfiguration);
 
     String? appId;
     String? projectId;
@@ -175,13 +185,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       final flutterConfig = parsedJson[kFlutter] as Map?;
       final platform = flutterConfig?[kPlatforms] as Map?;
       final iosConfig = platform?[kIos] as Map?;
-      final schemeConfigurations = iosConfig?[kSchemes] as Map?;
-      //TODO - update depending on whether a "scheme" or "target"
-      final schemeConfig = schemeConfigurations?[scheme] as Map?;
+      final configurationMaps = iosConfig?[configuration] as Map?;
+      final configurationMap = configurationMaps?[scheme] as Map?;
 
-      uploadDebugSymbols = schemeConfig?[kUploadDebugSymbols] as bool?;
-      appId = schemeConfig?[kAppId] as String?;
-      projectId = schemeConfig?[kProjectId] as String?;
+      uploadDebugSymbols = configurationMap?[kUploadDebugSymbols] as bool?;
+      appId = configurationMap?[kAppId] as String?;
+      projectId = configurationMap?[kProjectId] as String?;
     } catch (e) {
       throw FirebaseJsonException();
     }
