@@ -137,6 +137,8 @@ end
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
 
+    final relativePathFromProject = path.relative(pathToServiceFile, from: flutterApp.package.path);
+
     // "schemes", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
 
@@ -159,7 +161,7 @@ end
     configurationMap[kProjectId] = projectId;
     configurationMap[kAppId] = appId;
     configurationMap[kUploadDebugSymbols] = debugSymbolScript;
-    configurationMap[kServiceFileOutput] = pathToServiceFile;
+    configurationMap[kServiceFileOutput] = relativePathFromProject;
 
     final mapJson = json.encode(map);
 
