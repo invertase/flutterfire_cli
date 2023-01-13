@@ -27,10 +27,12 @@ class ConfigurationResults {
     this.appId,
     this.projectId,
     this.runDebugSymbolsScript,
+    this.schemeConfigurationKey,
   );
 
   final String appId;
   final String projectId;
+  final String schemeConfigurationKey;
   final bool? runDebugSymbolsScript;
 }
 
@@ -130,6 +132,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return ProjectConfiguration.defaultConfig;
   }
 
+  String _keyForScheme(Map configurationMaps) {
+    return Map<String, dynamic>.from(configurationMaps)
+        .keys
+        .firstWhere((String element) => scheme!.contains(element));
+  }
+
   Future<String> _findOrCreateAppIdFile(
     String pathToAppIdFile,
     String appId,
@@ -170,7 +178,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
   }
 
-  Future<ConfigurationResults> _updateFirebaseJsonFile() async {
+  Future<ConfigurationResults> _getConfigurationFromFirebaseJsonFile() async {
     // Pull values from firebase.json in root of project
     final flutterAppPath = path.dirname(iosProjectPath);
     final firebaseJson =
@@ -184,28 +192,35 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     String? appId;
     String? projectId;
     bool? uploadDebugSymbols;
+    Map configurationMaps;
     try {
-      final flutterConfig = parsedJson[kFlutter] as Map?;
-      final platform = flutterConfig?[kPlatforms] as Map?;
-      final iosConfig = platform?[kIos] as Map?;
-      final configurationMaps = iosConfig?[configuration] as Map?;
-      Map? configurationMap;
+      final flutterConfig = parsedJson[kFlutter] as Map;
+      final platform = flutterConfig[kPlatforms] as Map;
+      final iosConfig = platform[kIos] as Map;
+      configurationMaps = iosConfig[configuration] as Map;
+      Map configurationMap;
 
       switch (projectConfiguration) {
         case ProjectConfiguration.scheme:
-          configurationMap = configurationMaps?[scheme] as Map?;
+          // We don't have access to the scheme name from Xcode env variables. We have scheme configuration names.
+          // e.g. Debug-development. So we match the scheme name with configuration name e.g. "development" to "Debug-development"
+          final schemeKey = _keyForScheme(configurationMaps);
+          // ignore: cast_nullable_to_non_nullable
+          configurationMap =
+              configurationMaps[schemeKey] as Map<String, dynamic>;
           break;
         case ProjectConfiguration.target:
-          configurationMap = configurationMaps?[target] as Map?;
+          // ignore: cast_nullable_to_non_nullable
+          configurationMap = configurationMaps[target] as Map<String, dynamic>;
           break;
         case ProjectConfiguration.defaultConfig:
           // There is no more nested maps in "default" configuration, it is one single default configuration map
           configurationMap = configurationMaps;
       }
 
-      uploadDebugSymbols = configurationMap?[kUploadDebugSymbols] as bool?;
-      appId = configurationMap?[kAppId] as String?;
-      projectId = configurationMap?[kProjectId] as String?;
+      uploadDebugSymbols = configurationMap[kUploadDebugSymbols] as bool?;
+      appId = configurationMap[kAppId] as String?;
+      projectId = configurationMap[kProjectId] as String?;
     } catch (e) {
       throw FirebaseJsonException();
     }
@@ -214,21 +229,27 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       throw FirebaseJsonException();
     }
 
-    return ConfigurationResults(appId, projectId, uploadDebugSymbols);
+    return ConfigurationResults(
+      appId,
+      projectId,
+      uploadDebugSymbols,
+      _keyForScheme(configurationMaps),
+    );
   }
 
   @override
   Future<void> run() async {
-    final configuration = await _updateFirebaseJsonFile();
+    final configuration = await _getConfigurationFromFirebaseJsonFile();
     final uploadDebugSymbols = configuration.runDebugSymbolsScript;
     final appId = configuration.appId;
     final projectId = configuration.projectId;
+    final configurationKey = configuration.schemeConfigurationKey;
 
     // Exit if the user chooses not to run debug upload symbol script
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
 
     final appIdFileDirectory =
-        '${Directory.current.path}/.dart_tool/flutterfire/platforms/ios/$scheme/$projectId';
+        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/ios/$configurationKey/$projectId';
     final appIdFilePath =
         await _findOrCreateAppIdFile(appIdFileDirectory, appId, projectId);
     // Validation script
