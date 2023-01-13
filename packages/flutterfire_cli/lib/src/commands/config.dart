@@ -255,26 +255,26 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-target'] as String?;
   }
 
-  String? get macosServiceFilePath {
+  String? get relativeMacosServiceFilePath {
     return argResults!['macos-out'] as String?;
   }
 
   String? get fullMacOSServicePath {
-    if (macosServiceFilePath == null) {
+    if (relativeMacosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}${macosServiceFilePath!}';
+    return '${flutterApp!.package.path}/${removeForwardSlash(relativeMacosServiceFilePath!)}';
   }
 
-  String? get relativeiOSServiceFilePath {
+  String? get relativeIosServiceFilePath {
     return argResults!['ios-out'] as String?;
   }
 
   String? get fulliOSServicePath {
-    if (relativeiOSServiceFilePath == null) {
+    if (relativeIosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}/${relativeiOSServiceFilePath!}';
+    return '${flutterApp!.package.path}/${removeForwardSlash(relativeIosServiceFilePath!)}';
   }
 
   String? get androidServiceFilePath {
