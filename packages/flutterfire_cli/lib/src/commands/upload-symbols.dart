@@ -27,12 +27,12 @@ class ConfigurationResults {
     this.appId,
     this.projectId,
     this.runDebugSymbolsScript,
-    this.schemeConfigurationKey,
+    this.keyToConfig,
   );
 
   final String appId;
   final String projectId;
-  final String schemeConfigurationKey;
+  final String keyToConfig;
   final bool? runDebugSymbolsScript;
 }
 
@@ -132,6 +132,11 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return ProjectConfiguration.defaultConfig;
   }
 
+  // "schemes", "targets" or "default" property
+  String get configuration {
+    return getProjectConfigurationProperty(projectConfiguration);
+  }
+
   String _keyForScheme(Map configurationMaps) {
     return Map<String, dynamic>.from(configurationMaps)
         .keys
@@ -186,13 +191,11 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
 
     final parsedJson = json.decode(firebaseJson) as Map;
 
-    // "schemes", "targets" or "default" property
-    final configuration = getProjectConfigurationProperty(projectConfiguration);
-
     String? appId;
     String? projectId;
     bool? uploadDebugSymbols;
     Map configurationMaps;
+    String keyToConfig;
     try {
       final flutterConfig = parsedJson[kFlutter] as Map;
       final platform = flutterConfig[kPlatforms] as Map;
@@ -204,16 +207,18 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
         case ProjectConfiguration.scheme:
           // We don't have access to the scheme name from Xcode env variables. We have scheme configuration names.
           // e.g. Debug-development. So we match the scheme name with configuration name e.g. "development" to "Debug-development"
-          final schemeKey = _keyForScheme(configurationMaps);
+          keyToConfig = _keyForScheme(configurationMaps);
           // ignore: cast_nullable_to_non_nullable
           configurationMap =
-              configurationMaps[schemeKey] as Map<String, dynamic>;
+              configurationMaps[keyToConfig] as Map<String, dynamic>;
           break;
         case ProjectConfiguration.target:
+          keyToConfig = target!;
           // ignore: cast_nullable_to_non_nullable
           configurationMap = configurationMaps[target] as Map<String, dynamic>;
           break;
         case ProjectConfiguration.defaultConfig:
+          keyToConfig = defaultConfig!;
           // There is no more nested maps in "default" configuration, it is one single default configuration map
           configurationMap = configurationMaps;
       }
@@ -233,7 +238,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       appId,
       projectId,
       uploadDebugSymbols,
-      _keyForScheme(configurationMaps),
+      keyToConfig,
     );
   }
 
@@ -243,13 +248,13 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     final uploadDebugSymbols = configuration.runDebugSymbolsScript;
     final appId = configuration.appId;
     final projectId = configuration.projectId;
-    final configurationKey = configuration.schemeConfigurationKey;
+    final configurationKey = configuration.keyToConfig;
 
     // Exit if the user chooses not to run debug upload symbol script
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
 
     final appIdFileDirectory =
-        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/ios/$configurationKey/$projectId';
+        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/ios/$configuration/$configurationKey/$projectId';
     final appIdFilePath =
         await _findOrCreateAppIdFile(appIdFileDirectory, appId, projectId);
     // Validation script
