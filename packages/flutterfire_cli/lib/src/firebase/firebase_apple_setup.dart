@@ -84,7 +84,7 @@ class FirebaseAppleSetup {
         command += r'--scheme=${CONFIGURATION}';
         break;
       case ProjectConfiguration.target:
-        command += "--target='$target";
+        command += '--target=$target';
         break;
       case ProjectConfiguration.defaultConfig:
         command += '--defaultConfig=default';
@@ -137,7 +137,8 @@ end
   ) async {
     final file = File('${flutterApp.package.path}/firebase.json');
 
-    final relativePathFromProject = path.relative(pathToServiceFile, from: flutterApp.package.path);
+    final relativePathFromProject =
+        path.relative(pathToServiceFile, from: flutterApp.package.path);
 
     // "schemes", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
