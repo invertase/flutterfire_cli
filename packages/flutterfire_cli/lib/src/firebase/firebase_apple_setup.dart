@@ -219,10 +219,8 @@ end
     bool? generateDebugSymbolScript,
     Logger logger,
   ) {
-    // ignore: use_if_null_to_convert_nulls_to_bools
-    if (generateDebugSymbolScript == true ||
-        generateDebugSymbolScript == false) {
-      return generateDebugSymbolScript!;
+    if (generateDebugSymbolScript != null) {
+      return generateDebugSymbolScript;
     } else {
       // Unspecified, so we prompt
       final addSymbolScript = promptBool(
