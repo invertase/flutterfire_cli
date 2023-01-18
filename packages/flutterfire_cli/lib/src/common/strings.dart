@@ -58,11 +58,8 @@ const logLearnMoreAboutCli =
     'Learn more about using this file and next steps from the documentation:\n'
     ' > $firebaseDocumentationUrl';
 
-const noPathVariableFound = r'There is no $PATH variable in your environment. '
-    "Please file an issue as your Crashlytic's upload debug "
-    'symbols script will not work without it';
-
-const serviceFileAlreadyExists = 'Your GoogleService-Info.plist already exists, skipping write... ';
+const serviceFileAlreadyExists =
+    'Your GoogleService-Info.plist already exists, skipping write... ';
 
 /// Prompts when Android Google Services JSON file already exists but contains
 /// configuration values for a different Firebase project.
@@ -93,9 +90,15 @@ const logSkippingGradleFilesUpdate =
     'Skipping applying Firebase gradle plugins for Android. This may cause '
     'issues with some Firebase services on Android in your application.';
 
-const noPathsToExecutables = 'Cannot find paths required to call flutterfire & dart executables';
+const noPathsToExecutables =
+    'Cannot find paths to flutterfire & dart executables';
 
-const successfullyBundledServiceFile = 'Successfully bundled GoogleService-Info.plist file with app bundle';
+const successfullyBundledServiceFile =
+    'Successfully bundled GoogleService-Info.plist file with app bundle';
+
+const noPathVariableFound = r'There is no $PATH variable in your environment. '
+    "Please file an issue as your Crashlytic's upload debug "
+    'symbols script will not work without it';
 
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
