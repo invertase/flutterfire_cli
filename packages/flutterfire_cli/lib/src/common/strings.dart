@@ -93,6 +93,10 @@ const logSkippingGradleFilesUpdate =
     'Skipping applying Firebase gradle plugins for Android. This may cause '
     'issues with some Firebase services on Android in your application.';
 
+const noPathsToExecutables = 'Cannot find paths required to call flutterfire & dart executables';
+
+const successfullyBundledServiceFile = 'Successfully bundled GoogleService-Info.plist file with app bundle';
+
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
 

@@ -47,7 +47,7 @@ class FirebaseAppleSetup {
     ProjectConfiguration projectConfiguration, {
     String target = 'Runner',
   }) async {
-    final paths = _addPathToExecutablesForDebugScript();
+    final paths = _addPathToExecutablesForBuildPhaseScripts();
     if (paths != null) {
       final debugSymbolScript = await Process.run('ruby', [
         '-e',
@@ -66,12 +66,16 @@ class FirebaseAppleSetup {
       if (debugSymbolScript.stdout != null) {
         logger.stdout(debugSymbolScript.stdout as String);
       }
+    } else {
+      logger.stdout(
+        noPathsToExecutables,
+      );
     }
   }
 
   String _debugSymbolsScript(
     String xcodeProjFilePath,
-    // Always "Runner" for "scheme" setup
+    // Always "Runner" for "build configuration" setup
     String target,
     String pathsToExecutables,
     ProjectConfiguration projectConfiguration,
@@ -93,7 +97,7 @@ class FirebaseAppleSetup {
     return '''
 require 'xcodeproj'
 xcodeFile='$xcodeProjFilePath'
-runScriptName='$runScriptName'
+runScriptName='$debugSymbolScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
 
@@ -124,7 +128,48 @@ end
 ''';
   }
 
-  final runScriptName = 'FlutterFire: "flutterfire upload-crashlytics-symbols"';
+  String _bundleServiceFileScript(String pathsToExecutables) {
+    const command =
+        r'flutterfire bundle-service-file --plistDestination=${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app --buildConfiguration=${CONFIGURATION} --iosProjectPath=${SRCROOT} ';
+
+    return '''
+require 'xcodeproj'
+xcodeFile='$xcodeProjFilePath'
+runScriptName='$bundleServiceScriptName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+
+# multi line argument for bash script
+bashScript = %q(
+#!/bin/bash
+PATH=\${PATH}:$pathsToExecutables
+$command
+)
+
+for target in project.targets 
+  if (target.name == 'Runner')
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == runScriptName
+      end
+    end
+
+    if (!phase.nil?)
+      phase.remove_from_project()
+    end
+    
+    phase = target.new_shell_script_build_phase(runScriptName)
+    phase.shell_script = bashScript
+    project.save()   
+  end  
+end
+    ''';
+  }
+
+  final debugSymbolScriptName =
+      'FlutterFire: "flutterfire upload-crashlytics-symbols"';
+  final bundleServiceScriptName =
+      'FlutterFire: "flutterfire bundle-service-file"';
 
   Future<void> _updateFirebaseJsonFile(
     FlutterApp flutterApp,
@@ -181,7 +226,7 @@ end
     } else {
       // Unspecified, so we prompt
       final addSymbolScript = promptBool(
-        "Do you want an '$runScriptName' adding to the build phases of your $platform project?",
+        "Do you want an '$debugSymbolScriptName' adding to the build phases of your $platform project?",
       );
 
       if (addSymbolScript == false) {
@@ -222,7 +267,7 @@ end
     );
   }
 
-  String? _addPathToExecutablesForDebugScript() {
+  String? _addPathToExecutablesForBuildPhaseScripts() {
     final envVars = Platform.environment;
     final paths = envVars['PATH'];
     if (paths != null) {
@@ -266,7 +311,7 @@ end
 
   String _promptForPathToServiceFile() {
     final pathToServiceFile = promptInput(
-      'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-scheme" argument. Example input: ${platform.toLowerCase()}/dev',
+      'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
       validator: (String x) {
         if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
             !path.basename(x).contains('.')) {
@@ -316,9 +361,39 @@ end
     }
   }
 
+  Future<void> _writeBundleServiceFileScriptToProject(
+    String xcodeProjFilePath,
+    String serviceFilePath,
+    String buildConfiguration,
+    Logger logger,
+  ) async {
+    final paths = _addPathToExecutablesForBuildPhaseScripts();
+    if (paths != null) {
+      final addBuildPhaseScript = _bundleServiceFileScript(paths);
+
+      // Add "bundle-service-file" script to Build Phases in Xcode project
+      final resultBuildPhase = await Process.run('ruby', [
+        '-e',
+        addBuildPhaseScript,
+      ]);
+
+      if (resultBuildPhase.exitCode != 0) {
+        throw Exception(resultBuildPhase.stderr);
+      }
+
+      if (resultBuildPhase.stdout != null) {
+        logger.stdout(resultBuildPhase.stdout as String);
+      }
+    } else {
+      logger.stdout(
+        noPathsToExecutables,
+      );
+    }
+  }
+
   Future<void> _buildConfigurationWrites(String pathToServiceFile) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
-    await writeSchemeScriptToProject(
+    await _writeBundleServiceFileScriptToProject(
       xcodeProjFilePath,
       fullPathToServiceFile!,
       buildConfiguration!,
@@ -362,10 +437,10 @@ end
 
       if (googleServiceFileName != platformOptions.optionsSourceFileName) {
         final response = promptBool(
-          'The file name must be "${platformOptions.optionsSourceFileName}" if you\'re bundling with your $platform target or scheme. Do you want to change filename to "${platformOptions.optionsSourceFileName}"?',
+          'The file name must be "${platformOptions.optionsSourceFileName}" if you\'re bundling with your $platform target or build configuration. Do you want to change filename to "${platformOptions.optionsSourceFileName}"?',
         );
 
-        // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or scheme setup
+        // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or build configuration setup
         if (response == true) {
           fullPathToServiceFile =
               '${path.dirname(fullPathToServiceFile!)}/${platformOptions.optionsSourceFileName}';
@@ -388,17 +463,17 @@ end
           ],
         );
 
-        // Add to scheme
+        // Add to build configuration
         if (response == 0) {
-          final schemes =
+          final buildConfigurations =
               await findBuildConfigurationsAvailable(xcodeProjFilePath);
 
           final response = promptSelect(
-            'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
-            schemes,
+            'Which build configuration would you like your $platform $fileName to be included within your $platform app bundle?',
+            buildConfigurations,
           );
 
-          buildConfiguration = schemes[response];
+          buildConfiguration = buildConfigurations[response];
           await _buildConfigurationWrites(fullPathToServiceFile!);
 
           // Add to target
@@ -414,7 +489,7 @@ end
         }
       }
     } else {
-      // Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "scheme" and "target" is provided
+      // Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
       final defaultProjectPath =
           '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';

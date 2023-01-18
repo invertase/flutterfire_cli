@@ -126,7 +126,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   ProjectConfiguration get projectConfiguration {
-    if (buildConfiguration != null){
+    if (buildConfiguration != null) {
       return ProjectConfiguration.buildConfiguration;
     }
 
@@ -183,12 +183,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   Future<ConfigurationResults> _getConfigurationFromFirebaseJsonFile() async {
-    // Pull values from firebase.json in root of project
-    final flutterAppPath = path.dirname(iosProjectPath);
-    final firebaseJson =
-        await File('$flutterAppPath/firebase.json').readAsString();
-
-    final parsedJson = json.decode(firebaseJson) as Map;
+    final iosConfig = await iosConfigFromFirebaseJson(iosProjectPath);
 
     String? appId;
     String? projectId;
@@ -196,9 +191,6 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     Map configurationMaps;
     String keyToConfig;
     try {
-      final flutterConfig = parsedJson[kFlutter] as Map;
-      final platform = flutterConfig[kPlatforms] as Map;
-      final iosConfig = platform[kIos] as Map;
       configurationMaps = iosConfig[configuration] as Map;
       Map configurationMap;
 
@@ -212,7 +204,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
         case ProjectConfiguration.target:
           keyToConfig = target!;
           // ignore: cast_nullable_to_non_nullable
-          configurationMap = configurationMaps[target] as Map<String, dynamic>;
+          configurationMap =
+              configurationMaps[keyToConfig] as Map<String, dynamic>;
           break;
         case ProjectConfiguration.defaultConfig:
           keyToConfig = defaultConfig!;

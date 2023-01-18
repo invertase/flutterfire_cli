@@ -22,7 +22,8 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:cli_util/cli_logging.dart';
 import 'package:interact/interact.dart' as interact;
-import 'package:path/path.dart' show relative, normalize, windows, joinAll;
+import 'package:path/path.dart'
+    show relative, normalize, windows, joinAll, dirname;
 
 import './strings.dart';
 import '../flutter_app.dart';
@@ -240,6 +241,21 @@ String removeForwardSlash(String input) {
   }
 }
 
+Future<Map> iosConfigFromFirebaseJson(String iosProjectPath) async {
+  // Pull values from firebase.json in root of project
+  final flutterAppPath = dirname(iosProjectPath);
+  final firebaseJson =
+      await File('$flutterAppPath/firebase.json').readAsString();
+
+  final decodedMap = json.decode(firebaseJson) as Map;
+
+  final flutterConfig = decodedMap[kFlutter] as Map;
+  final platform = flutterConfig[kPlatforms] as Map;
+  final iosConfig = platform[kIos] as Map;
+
+  return iosConfig;
+}
+
 Future<void> writeDebugScriptForScheme(
   String xcodeProjFilePath,
   String appId,
@@ -307,8 +323,10 @@ Future<void> writeDebugScriptForTarget(
   }
 }
 
-Future<List<String>> findBuildConfigurationsAvailable(String xcodeProjFilePath) async {
-  final buildConfigurationScript = findingBuildConfigurationsScript(xcodeProjFilePath);
+Future<List<String>> findBuildConfigurationsAvailable(
+    String xcodeProjFilePath) async {
+  final buildConfigurationScript =
+      findingBuildConfigurationsScript(xcodeProjFilePath);
 
   final result = await Process.run('ruby', [
     '-e',
@@ -339,37 +357,6 @@ Future<List<String>> findTargetsAvailable(String xcodeProjFilePath) async {
   final targets = (result.stdout as String).split(',');
 
   return targets;
-}
-
-Future<void> writeSchemeScriptToProject(
-  String xcodeProjFilePath,
-  String serviceFilePath,
-  String scheme,
-  Logger logger,
-) async {
-  final runScriptName =
-      '[firebase_core] add Firebase configuration to "$scheme" scheme';
-  // Create bash script for adding Google service file to app bundle
-  final addBuildPhaseScript = addServiceFileToSchemeScript(
-    xcodeProjFilePath,
-    scheme,
-    runScriptName,
-    serviceFilePath,
-  );
-
-  // Add script to Build Phases in Xcode project
-  final resultBuildPhase = await Process.run('ruby', [
-    '-e',
-    addBuildPhaseScript,
-  ]);
-
-  if (resultBuildPhase.exitCode != 0) {
-    throw Exception(resultBuildPhase.stderr);
-  }
-
-  if (resultBuildPhase.stdout != null) {
-    logger.stdout(resultBuildPhase.stdout as String);
-  }
 }
 
 Future<void> writeGoogleServiceFileToTargetProject(

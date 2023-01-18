@@ -54,8 +54,9 @@ Future<void> main(List<String> arguments) async {
 
   try {
     FlutterApp? flutterApp;
-    // Upload symbols script is ran from Xcode environment
-    if (!arguments.contains('upload-crashlytics-symbols')) {
+    // upload-crashlytics-symbols & bundle-service-file scripts are ran from Xcode environment
+    if (!arguments.contains('upload-crashlytics-symbols') &&
+        !arguments.contains('bundle-service-file')) {
       flutterApp = await FlutterApp.load(Directory.current);
     }
 
