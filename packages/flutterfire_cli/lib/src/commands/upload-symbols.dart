@@ -237,11 +237,11 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    final configuration = await _getConfigurationFromFirebaseJsonFile();
-    final uploadDebugSymbols = configuration.runDebugSymbolsScript;
-    final appId = configuration.appId;
-    final projectId = configuration.projectId;
-    final configurationKey = configuration.keyToConfig;
+    final configurationResults = await _getConfigurationFromFirebaseJsonFile();
+    final uploadDebugSymbols = configurationResults.runDebugSymbolsScript;
+    final appId = configurationResults.appId;
+    final projectId = configurationResults.projectId;
+    final configurationKey = configurationResults.keyToConfig;
 
     // Exit if the user chooses not to run debug upload symbol script
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
