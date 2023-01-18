@@ -269,14 +269,8 @@ String getProjectConfigurationProperty(
   }
 }
 
-Future<void> writeFirebaseJsonFile(
-  FlutterApp flutterApp,
-) async {
-  final file = File('${flutterApp.package.path}/firebase.json');
-  // Exit if it already exists
-  if (file.existsSync()) return;
-
-  final map = {
+Map<String, dynamic> _generateFlutterMap() {
+  return <String, dynamic>{
     kFlutter: {
       kPlatforms: {
         kIos: {
@@ -287,8 +281,34 @@ Future<void> writeFirebaseJsonFile(
       }
     }
   };
+}
 
-  final mapJson = json.encode(map);
+Future<void> writeFirebaseJsonFile(
+  FlutterApp flutterApp,
+) async {
+  final file = File('${flutterApp.package.path}/firebase.json');
 
-  file.writeAsStringSync(mapJson);
+  if (file.existsSync()) {
+    final decodedMap =
+        json.decode(await file.readAsString()) as Map<String, dynamic>;
+
+    // Flutter map exists, exit
+    if (decodedMap[kFlutter] != null) return;
+
+    // Update existing map with Flutter map
+    final updatedMap = <String, dynamic>{
+      ...decodedMap,
+      ..._generateFlutterMap(),
+    };
+
+    final mapJson = json.encode(updatedMap);
+
+    file.writeAsStringSync(mapJson);
+  } else {
+    final map = _generateFlutterMap();
+
+    final mapJson = json.encode(map);
+
+    file.writeAsStringSync(mapJson);
+  }
 }
