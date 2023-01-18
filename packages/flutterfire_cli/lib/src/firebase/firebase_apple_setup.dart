@@ -625,10 +625,10 @@ end
     } else {
       // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
-      final defaultProjectPath =
-          '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';
-      // Make target default "Runner"
       target = 'Runner';
+      final defaultProjectPath =
+          '${Directory.current.path}/${platform.toLowerCase()}/$target/${platformOptions.optionsSourceFileName}';
+      // Make target default "Runner"
       await _targetWrites(defaultProjectPath);
     }
   }
