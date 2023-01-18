@@ -291,6 +291,142 @@ end
     }
   }
 
+  Future<List<String>> _findTargetsAvailable(String xcodeProjFilePath) async {
+    final targetScript = _findingTargetsScript(xcodeProjFilePath);
+
+    final result = await Process.run('ruby', [
+      '-e',
+      targetScript,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr);
+    }
+    // Retrieve the targets to prompt the user to select one
+    final targets = (result.stdout as String).split(',');
+
+    return targets;
+  }
+
+  String _findingTargetsScript(
+    String xcodeProjFilePath,
+  ) {
+    return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+project = Xcodeproj::Project.open(xcodeProject)
+
+response = Array.new
+
+project.targets.each do |target|
+  response << target.name
+end
+
+if response.length == 0
+  abort("There are no targets in your Xcode workspace. Please create a target and try again.")
+end
+
+\$stdout.write response.join(',')
+''';
+  }
+
+  Future<List<String>> _findBuildConfigurationsAvailable(
+      String xcodeProjFilePath) async {
+    final buildConfigurationScript =
+        _findingBuildConfigurationsScript(xcodeProjFilePath);
+
+    final result = await Process.run('ruby', [
+      '-e',
+      buildConfigurationScript,
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr);
+    }
+    // Retrieve the build configurations to prompt the user to select one
+    final buildConfigurations = (result.stdout as String).split(',');
+
+    return buildConfigurations;
+  }
+
+  String _findingBuildConfigurationsScript(
+    String xcodeProjFilePath,
+  ) {
+    return '''
+require 'xcodeproj'
+xcodeProject='$xcodeProjFilePath'
+
+project = Xcodeproj::Project.open(xcodeProject)
+
+response = Array.new
+
+project.build_configurations.each do |configuration|
+  response << configuration
+end
+
+if response.length == 0
+  abort("There are no build configurations in your Xcode workspace. Please create a build configuration and try again.")
+end
+
+\$stdout.write response.join(',')
+''';
+  }
+
+  String _addServiceFileToTarget(
+    String xcodeProjFilePath,
+    String googleServiceInfoFile,
+    String targetName,
+  ) {
+    return '''
+require 'xcodeproj'
+googleFile='$googleServiceInfoFile'
+xcodeFile='$xcodeProjFilePath'
+targetName='$targetName'
+
+project = Xcodeproj::Project.open(xcodeFile)
+
+file = project.new_file(googleFile)
+target = project.targets.find { |target| target.name == targetName }
+
+if(target)
+  exists = target.resources_build_phase.files.find do |file|
+    if defined? file && file.file_ref && file.file_ref.path
+      if file.file_ref.path.is_a? String
+        file.file_ref.path.include? 'GoogleService-Info.plist'
+      end
+    end
+  end  
+  if !exists
+    target.add_resources([file])
+    project.save
+  end
+else
+  abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
+end  
+''';
+  }
+
+  Future<void> _writeGoogleServiceFileToTargetProject(
+    String xcodeProjFilePath,
+    String serviceFilePath,
+    String target,
+  ) async {
+    final addServiceFileToTargetScript = _addServiceFileToTarget(
+      xcodeProjFilePath,
+      serviceFilePath,
+      target,
+    );
+
+    final resultServiceFileToTarget = await Process.run('ruby', [
+      '-e',
+      addServiceFileToTargetScript,
+    ]);
+
+    if (resultServiceFileToTarget.exitCode != 0) {
+      throw Exception(resultServiceFileToTarget.stderr);
+    }
+  }
+
   Future<File> _createServiceFileToSpecifiedPath(
     String pathToServiceFile,
   ) async {
@@ -327,7 +463,7 @@ end
 
   Future<void> _createBuildConfigurationSetup(String pathToServiceFile) async {
     final buildConfigurations =
-        await findBuildConfigurationsAvailable(xcodeProjFilePath);
+        await _findBuildConfigurationsAvailable(xcodeProjFilePath);
 
     final buildConfigurationExists =
         buildConfigurations.contains(buildConfiguration);
@@ -345,7 +481,7 @@ end
   }
 
   Future<void> _createTargetSetup(String pathToServiceFile) async {
-    final targets = await findTargetsAvailable(xcodeProjFilePath);
+    final targets = await _findTargetsAvailable(xcodeProjFilePath);
 
     final targetExists = targets.contains(target);
 
@@ -408,7 +544,7 @@ end
 
   Future<void> _targetWrites(String pathToServiceFile) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
-    await writeGoogleServiceFileToTargetProject(
+    await _writeGoogleServiceFileToTargetProject(
       xcodeProjFilePath,
       pathToServiceFile,
       target!,
@@ -466,7 +602,7 @@ end
         // Add to build configuration
         if (response == 0) {
           final buildConfigurations =
-              await findBuildConfigurationsAvailable(xcodeProjFilePath);
+              await _findBuildConfigurationsAvailable(xcodeProjFilePath);
 
           final response = promptSelect(
             'Which build configuration would you like your $platform $fileName to be included within your $platform app bundle?',
@@ -478,7 +614,7 @@ end
 
           // Add to target
         } else if (response == 1) {
-          final targets = await findTargetsAvailable(xcodeProjFilePath);
+          final targets = await _findTargetsAvailable(xcodeProjFilePath);
 
           final response = promptSelect(
             'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
