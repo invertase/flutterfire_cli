@@ -269,8 +269,8 @@ String getProjectConfigurationProperty(
   }
 }
 
-Map<String, Object> _generateFlutterMap() {
-  return <String, Object>{
+Map<String, dynamic> _generateFlutterMap() {
+  return <String, dynamic>{
     kFlutter: {
       kPlatforms: {
         kIos: {
@@ -290,13 +290,13 @@ Future<void> writeFirebaseJsonFile(
 
   if (file.existsSync()) {
     final decodedMap =
-        json.decode(await file.readAsString()) as Map<String, Object>;
+        json.decode(await file.readAsString()) as Map<String, dynamic>;
 
     // Flutter map exists, exit
     if (decodedMap[kFlutter] != null) return;
 
     // Update existing map with Flutter map
-    final updatedMap = <String, Object>{
+    final updatedMap = <String, dynamic>{
       ...decodedMap,
       ..._generateFlutterMap(),
     };
