@@ -49,7 +49,7 @@ const String kWeb = 'web';
 // Keys for firebase.json
 const String kFlutter = 'flutter';
 const String kPlatforms = 'platforms';
-const String kSchemes = 'schemes';
+const String kBuildConfiguration = 'buildConfigurations';
 const String kTargets = 'targets';
 const String kUploadDebugSymbols = 'uploadDebugSymbols';
 const String kAppId = 'appId';
@@ -59,7 +59,7 @@ const String kDefaultConfig = 'default';
 
 enum ProjectConfiguration {
   target,
-  scheme,
+  buildConfiguration,
   defaultConfig,
 }
 
@@ -273,8 +273,8 @@ String getProjectConfigurationProperty(
   switch (projectConfiguration) {
     case ProjectConfiguration.defaultConfig:
       return kDefaultConfig;
-    case ProjectConfiguration.scheme:
-      return kSchemes;
+    case ProjectConfiguration.buildConfiguration:
+      return kBuildConfiguration;
     case ProjectConfiguration.target:
       return kTargets;
   }
@@ -307,21 +307,21 @@ Future<void> writeDebugScriptForTarget(
   }
 }
 
-Future<List<String>> findSchemesAvailable(String xcodeProjFilePath) async {
-  final schemeScript = findingSchemesScript(xcodeProjFilePath);
+Future<List<String>> findBuildConfigurationsAvailable(String xcodeProjFilePath) async {
+  final buildConfigurationScript = findingBuildConfigurationsScript(xcodeProjFilePath);
 
   final result = await Process.run('ruby', [
     '-e',
-    schemeScript,
+    buildConfigurationScript,
   ]);
 
   if (result.exitCode != 0) {
     throw Exception(result.stderr);
   }
-  // Retrieve the schemes to prompt the user to select one
-  final schemes = (result.stdout as String).split(',');
+  // Retrieve the build configurations to prompt the user to select one
+  final buildConfigurations = (result.stdout as String).split(',');
 
-  return schemes;
+  return buildConfigurations;
 }
 
 Future<List<String>> findTargetsAvailable(String xcodeProjFilePath) async {
@@ -404,7 +404,7 @@ Future<void> writeFirebaseJsonFile(
     kFlutter: {
       kPlatforms: {
         kIos: {
-          kSchemes: <String, Object>{},
+          kBuildConfiguration: <String, Object>{},
           kTargets: <String, Object>{},
           kDefaultConfig: <String, Object>{}
         }
@@ -417,23 +417,23 @@ Future<void> writeFirebaseJsonFile(
   file.writeAsStringSync(mapJson);
 }
 
-String findingSchemesScript(
+String findingBuildConfigurationsScript(
   String xcodeProjFilePath,
 ) {
   return '''
 require 'xcodeproj'
 xcodeProject='$xcodeProjFilePath'
 
-schemes = Xcodeproj::Project.schemes(xcodeProject)
+project = Xcodeproj::Project.open(xcodeProject)
 
 response = Array.new
 
-schemes.each do |scheme|
-  response << scheme.to_s
+project.build_configurations.each do |configuration|
+  response << configuration
 end
 
 if response.length == 0
-  abort("There are no schemes in your Xcode workspace. Please create a scheme and try again.")
+  abort("There are no build configurations in your Xcode workspace. Please create a build configuration and try again.")
 end
 
 \$stdout.write response.join(',')

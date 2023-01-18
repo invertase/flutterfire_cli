@@ -132,17 +132,17 @@ class ConfigCommand extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'ios-scheme',
-      valueHelp: 'iosSchemeName',
+      'ios-build-config',
+      valueHelp: 'iosBuildConfiguration',
       help:
-          'Name of iOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+          'Name of iOS build configuration to use for bundling `Google-Service-Info.plist` with your Xcode project',
     );
 
     argParser.addOption(
-      'macos-scheme',
-      valueHelp: 'macosSchemeName',
+      'macos-build-config',
+      valueHelp: 'macosBuildConfiguration',
       help:
-          'Name of macOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+          'Name of macOS build configuration to use for bundling `Google-Service-Info.plist` with your Xcode project',
     );
 
     argParser.addOption(
@@ -239,12 +239,12 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['debug-symbols-macos'] as bool?;
   }
 
-  String? get iosScheme {
-    return argResults!['ios-scheme'] as String?;
+  String? get iosBuildConfiguration {
+    return argResults!['ios-build-config'] as String?;
   }
 
-  String? get macosScheme {
-    return argResults!['macos-scheme'] as String?;
+  String? get macosBuildConfiguration {
+    return argResults!['macos-build-config'] as String?;
   }
 
   String? get iosTarget {
@@ -495,11 +495,11 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   void _checkTargetAndSchemeSetup() {
-    if (iosScheme != null && iosTarget != null) {
+    if (iosBuildConfiguration != null && iosTarget != null) {
       throw XcodeProjectException('ios');
     }
 
-    if (macosScheme != null && macosTarget != null) {
+    if (macosBuildConfiguration != null && macosTarget != null) {
       throw XcodeProjectException('macos');
     }
   }
@@ -617,7 +617,7 @@ class ConfigCommand extends FlutterFireCommand {
         fulliOSServicePath != null,
         logger,
         iosGenerateDebugSymbolScript,
-        iosScheme,
+        iosBuildConfiguration,
         iosTarget,
         'iOS',
       ).apply();
@@ -631,7 +631,7 @@ class ConfigCommand extends FlutterFireCommand {
         fullMacOSServicePath != null,
         logger,
         macosGenerateDebugSymbolScript,
-        macosScheme,
+        macosBuildConfiguration,
         macosTarget,
         'macOS',
       ).apply();

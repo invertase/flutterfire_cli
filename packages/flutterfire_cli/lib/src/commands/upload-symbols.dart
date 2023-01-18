@@ -60,9 +60,9 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'scheme',
-      valueHelp: 'schemeName',
-      help: 'The name of the scheme.',
+      'buildConfiguration',
+      valueHelp: 'buildConfiguration',
+      help: 'The name of the build configuration.',
     );
 
     argParser.addOption(
@@ -97,8 +97,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['infoPlistPath'] as String;
   }
 
-  String? get scheme {
-    return argResults!['scheme'] as String?;
+  String? get buildConfiguration {
+    return argResults!['buildConfiguration'] as String?;
   }
 
   String? get target {
@@ -126,21 +126,20 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   ProjectConfiguration get projectConfiguration {
-    if (scheme != null) return ProjectConfiguration.scheme;
-    if (target != null) return ProjectConfiguration.target;
+    if (buildConfiguration != null){
+      return ProjectConfiguration.buildConfiguration;
+    }
+
+    if (target != null) {
+      return ProjectConfiguration.target;
+    }
 
     return ProjectConfiguration.defaultConfig;
   }
 
-  // "schemes", "targets" or "default" property
+  // "buildConfigurations", "targets" or "default" property
   String get configuration {
     return getProjectConfigurationProperty(projectConfiguration);
-  }
-
-  String _keyForScheme(Map configurationMaps) {
-    return Map<String, dynamic>.from(configurationMaps)
-        .keys
-        .firstWhere((String element) => scheme!.contains(element));
   }
 
   Future<String> _findOrCreateAppIdFile(
@@ -204,10 +203,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       Map configurationMap;
 
       switch (projectConfiguration) {
-        case ProjectConfiguration.scheme:
-          // We don't have access to the scheme name from Xcode env variables. We have scheme configuration names.
-          // e.g. Debug-development. So we match the scheme name with configuration name e.g. "development" to "Debug-development"
-          keyToConfig = _keyForScheme(configurationMaps);
+        case ProjectConfiguration.buildConfiguration:
+          keyToConfig = buildConfiguration!;
           // ignore: cast_nullable_to_non_nullable
           configurationMap =
               configurationMaps[keyToConfig] as Map<String, dynamic>;

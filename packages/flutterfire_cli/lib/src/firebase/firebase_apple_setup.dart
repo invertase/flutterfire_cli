@@ -19,7 +19,7 @@ class FirebaseAppleSetup {
     this.googleServicePathSpecified,
     this.logger,
     this.generateDebugSymbolScript,
-    this.scheme,
+    this.buildConfiguration,
     this.target,
     this.platform,
   );
@@ -31,9 +31,9 @@ class FirebaseAppleSetup {
   bool googleServicePathSpecified;
   final Logger logger;
   final bool? generateDebugSymbolScript;
-// This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or scheme writes.
+// This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or build configuration writes.
   String? updatedServiceFilePath;
-  String? scheme;
+  String? buildConfiguration;
   String? target;
 
   String get xcodeProjFilePath {
@@ -80,8 +80,8 @@ class FirebaseAppleSetup {
         r'flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME} --infoPlistPath=${SRCROOT}/${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH} --iosProjectPath=${SRCROOT} ';
 
     switch (projectConfiguration) {
-      case ProjectConfiguration.scheme:
-        command += r'--scheme=${CONFIGURATION}';
+      case ProjectConfiguration.buildConfiguration:
+        command += r'--buildConfiguration=${CONFIGURATION}';
         break;
       case ProjectConfiguration.target:
         command += '--target=$target';
@@ -131,7 +131,7 @@ end
     String appId,
     String projectId,
     bool debugSymbolScript,
-    String schemeOrTargetName,
+    String targetOrBuildConfiguration,
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
   ) async {
@@ -140,7 +140,7 @@ end
     final relativePathFromProject =
         path.relative(pathToServiceFile, from: flutterApp.package.path);
 
-    // "schemes", "targets" or "default" property
+    // "buildConfiguration", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
 
     final fileAsString = await file.readAsString();
@@ -153,12 +153,13 @@ end
 
     final configurationMaps = iosConfig?[configuration] as Map?;
 
-    if (configurationMaps?[schemeOrTargetName] == null) {
+    if (configurationMaps?[targetOrBuildConfiguration] == null) {
       // ignore: implicit_dynamic_map_literal
-      configurationMaps?[schemeOrTargetName] = {};
+      configurationMaps?[targetOrBuildConfiguration] = {};
     }
 
-    final configurationMap = configurationMaps?[schemeOrTargetName] as Map;
+    final configurationMap =
+        configurationMaps?[targetOrBuildConfiguration] as Map;
     configurationMap[kProjectId] = projectId;
     configurationMap[kAppId] = appId;
     configurationMap[kUploadDebugSymbols] = debugSymbolScript;
@@ -195,7 +196,7 @@ end
   Future<void> _updateFirebaseJsonAndDebugSymbolScript(
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
-    String targetOrScheme,
+    String targetOrBuildConfiguration,
   ) async {
     final runDebugSymbolScript = _shouldRunUploadDebugSymbolScript(
       generateDebugSymbolScript,
@@ -215,7 +216,7 @@ end
       platformOptions.appId,
       platformOptions.projectId,
       runDebugSymbolScript,
-      targetOrScheme,
+      targetOrBuildConfiguration,
       pathToServiceFile,
       projectConfiguration,
     );
@@ -279,19 +280,21 @@ end
     return '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
   }
 
-  Future<void> _createSchemeSetup(String pathToServiceFile) async {
-    final schemes = await findSchemesAvailable(xcodeProjFilePath);
+  Future<void> _createBuildConfigurationSetup(String pathToServiceFile) async {
+    final buildConfigurations =
+        await findBuildConfigurationsAvailable(xcodeProjFilePath);
 
-    final schemeExists = schemes.contains(scheme);
+    final buildConfigurationExists =
+        buildConfigurations.contains(buildConfiguration);
 
-    if (schemeExists) {
-      await _schemeWrites(pathToServiceFile);
+    if (buildConfigurationExists) {
+      await _buildConfigurationWrites(pathToServiceFile);
     } else {
       throw MissingFromXcodeProjectException(
         platform,
-        'scheme',
-        scheme!,
-        schemes,
+        'build configuration',
+        buildConfiguration!,
+        buildConfigurations,
       );
     }
   }
@@ -313,18 +316,18 @@ end
     }
   }
 
-  Future<void> _schemeWrites(String pathToServiceFile) async {
+  Future<void> _buildConfigurationWrites(String pathToServiceFile) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
     await writeSchemeScriptToProject(
       xcodeProjFilePath,
       fullPathToServiceFile!,
-      scheme!,
+      buildConfiguration!,
       logger,
     );
     await _updateFirebaseJsonAndDebugSymbolScript(
       pathToServiceFile,
-      ProjectConfiguration.scheme,
-      scheme!,
+      ProjectConfiguration.buildConfiguration,
+      buildConfiguration!,
     );
   }
 
@@ -345,14 +348,14 @@ end
 
   Future<void> apply() async {
     if (!googleServicePathSpecified) {
-      // if the user has selected a  scheme but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
+      // if the user has selected a "build-config" but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
       fullPathToServiceFile = _promptForPathToServiceFile();
 
       if (target != null) {
         await _createTargetSetup(fullPathToServiceFile!);
       }
-      if (scheme != null) {
-        await _createSchemeSetup(fullPathToServiceFile!);
+      if (buildConfiguration != null) {
+        await _createBuildConfigurationSetup(fullPathToServiceFile!);
       }
     } else if (googleServicePathSpecified) {
       final googleServiceFileName = path.basename(fullPathToServiceFile!);
@@ -369,17 +372,17 @@ end
         }
       }
 
-      if (scheme != null) {
-        await _createSchemeSetup(fullPathToServiceFile!);
+      if (buildConfiguration != null) {
+        await _createBuildConfigurationSetup(fullPathToServiceFile!);
       } else if (target != null) {
         await _createTargetSetup(fullPathToServiceFile!);
       } else {
-        // We need to prompt user whether they want a scheme configured, target configured or to simply write to the path provided
+        // We need to prompt user whether they want a build configuration, a target configured or to simply write to the path provided
         final fileName = path.basename(fullPathToServiceFile!);
         final response = promptSelect(
-          'Would you like your $platform $fileName to be associated with your $platform Scheme or Target (use arrow keys & space to select)?',
+          'Would you like your $platform $fileName to be associated with your $platform Build configuration or Target (use arrow keys & space to select)?',
           [
-            'Scheme',
+            'Build configuration',
             'Target',
             'No, I want to write the file to the path I chose'
           ],
@@ -387,15 +390,16 @@ end
 
         // Add to scheme
         if (response == 0) {
-          final schemes = await findSchemesAvailable(xcodeProjFilePath);
+          final schemes =
+              await findBuildConfigurationsAvailable(xcodeProjFilePath);
 
           final response = promptSelect(
             'Which scheme would you like your $platform $fileName to be included within your $platform app bundle?',
             schemes,
           );
 
-          scheme = schemes[response];
-          await _schemeWrites(fullPathToServiceFile!);
+          buildConfiguration = schemes[response];
+          await _buildConfigurationWrites(fullPathToServiceFile!);
 
           // Add to target
         } else if (response == 1) {

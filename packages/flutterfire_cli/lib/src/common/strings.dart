@@ -109,7 +109,7 @@ class XcodeProjectException implements FlutterFireException {
   }
 }
 
-/// An exception that is thrown when you have selected a name for your scheme or target that does not exist on your project
+/// An exception that is thrown when you have selected a name for your build configuration or target that does not exist on your project
 class MissingFromXcodeProjectException implements FlutterFireException {
   MissingFromXcodeProjectException(
     this.platform,
@@ -119,7 +119,7 @@ class MissingFromXcodeProjectException implements FlutterFireException {
   ) : super();
 
   final String platform;
-  // Type is either "scheme" or "target"
+  // Type is either "build configuration" or "target"
   final String type;
   final String name;
   final List<String> listOfChoices;
