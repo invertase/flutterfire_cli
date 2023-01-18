@@ -46,6 +46,9 @@ class BundleServiceFile extends FlutterFireCommand {
   }
 
   @override
+  final bool hidden = true;
+  
+  @override
   final String description =
       'Bundles GoogleService-Info.plist file to the correct plist directory for Xcode for the correct build configuration.';
 

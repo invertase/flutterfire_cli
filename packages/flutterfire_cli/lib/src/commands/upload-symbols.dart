@@ -79,6 +79,9 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   @override
+  final bool hidden = true;
+
+  @override
   final String description =
       'Upload Crashlytics debug symbols to Firebase Crashlytics server upon building application.';
 
