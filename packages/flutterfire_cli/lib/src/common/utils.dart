@@ -269,10 +269,6 @@ String getProjectConfigurationProperty(
   }
 }
 
-
-
-
-
 Future<void> writeFirebaseJsonFile(
   FlutterApp flutterApp,
 ) async {

@@ -556,16 +556,12 @@ end
   }
 
   Future<void> apply() async {
-    if (!googleServicePathSpecified) {
-      // if the user has selected a "build-config" but no "[ios-macos]-out" argument, they need to specify the location of "GoogleService-Info.plist" so it can be used at build time.
+    if (!googleServicePathSpecified && target != null) {
       fullPathToServiceFile = _promptForPathToServiceFile();
-
-      if (target != null) {
-        await _createTargetSetup(fullPathToServiceFile!);
-      }
-      if (buildConfiguration != null) {
-        await _createBuildConfigurationSetup(fullPathToServiceFile!);
-      }
+      await _createTargetSetup(fullPathToServiceFile!);
+    } else if (!googleServicePathSpecified && buildConfiguration != null) {
+      fullPathToServiceFile = _promptForPathToServiceFile();
+      await _createBuildConfigurationSetup(fullPathToServiceFile!);
     } else if (googleServicePathSpecified) {
       final googleServiceFileName = path.basename(fullPathToServiceFile!);
 
@@ -586,7 +582,8 @@ end
       } else if (target != null) {
         await _createTargetSetup(fullPathToServiceFile!);
       } else {
-        // We need to prompt user whether they want a build configuration, a target configured or to simply write to the path provided
+        // User has specified an output for service file. We need to prompt user whether they
+        // want a build configuration, a target configured or to simply write to the path provided
         final fileName = path.basename(fullPathToServiceFile!);
         final response = promptSelect(
           'Would you like your $platform $fileName to be associated with your $platform Build configuration or Target (use arrow keys & space to select)?',
@@ -620,10 +617,13 @@ end
           );
           target = targets[response];
           await _targetWrites(fullPathToServiceFile!);
+        } else {
+          // Write the service file to the desired location. No other configuration
+          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
         }
       }
     } else {
-      // Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
+      // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
       final defaultProjectPath =
           '${Directory.current.path}/${platform.toLowerCase()}/Runner/${platformOptions.optionsSourceFileName}';
