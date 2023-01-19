@@ -38,7 +38,10 @@ class FirebaseAppleSetup {
 
   String get xcodeProjFilePath {
     return path.join(
-        Directory.current.path, platform.toLowerCase(), 'Runner.xcodeproj');
+      Directory.current.path,
+      platform.toLowerCase(),
+      'Runner.xcodeproj',
+    );
   }
 
   Future<void> _addFlutterFireDebugSymbolsScript(
@@ -338,7 +341,8 @@ end
   }
 
   Future<List<String>> _findBuildConfigurationsAvailable(
-      String xcodeProjFilePath) async {
+    String xcodeProjFilePath,
+  ) async {
     final buildConfigurationScript =
         _findingBuildConfigurationsScript(xcodeProjFilePath);
 

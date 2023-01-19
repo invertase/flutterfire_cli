@@ -20,12 +20,10 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
-import 'package:cli_util/cli_logging.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
     show relative, normalize, windows, joinAll, dirname;
 
-import './strings.dart';
 import '../flutter_app.dart';
 import 'platform.dart';
 
