@@ -38,10 +38,11 @@ class BundleServiceFile extends FlutterFireCommand {
           'The absolute path to the plist destination folder defined by Xcode environment variable.',
     );
 
-     argParser.addOption(
+    argParser.addOption(
       'appleProjectPath',
       valueHelp: 'appleProjectPath',
-      help: 'The absolute path to the flutter app apple directory (macos/ or ios/ directory).',
+      help:
+          'The absolute path to the flutter app apple directory (macos/ or ios/ directory).',
     );
 
     argParser.addOption(
@@ -53,7 +54,7 @@ class BundleServiceFile extends FlutterFireCommand {
 
   @override
   final bool hidden = true;
-  
+
   @override
   final String description =
       'Bundles GoogleService-Info.plist file to the correct plist directory for Xcode for the correct build configuration.';
@@ -79,7 +80,8 @@ class BundleServiceFile extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    final appleConfig = await appleConfigFromFirebaseJson(appleProjectPath, platform);
+    final appleConfig =
+        await appleConfigFromFirebaseJson(appleProjectPath, platform);
     final buildConfigurations =
         appleConfig[kBuildConfiguration] as Map<String, dynamic>;
 

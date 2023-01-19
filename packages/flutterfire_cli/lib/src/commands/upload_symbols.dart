@@ -74,7 +74,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     argParser.addOption(
       'appleProjectPath',
       valueHelp: 'appleProjectPath',
-      help: 'The absolute path to the flutter app apple directory (macOS or iOS directory).',
+      help:
+          'The absolute path to the flutter app apple directory (macOS or iOS directory).',
     );
 
     argParser.addOption(
@@ -82,11 +83,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       valueHelp: 'platformName',
       help: 'Either "macos" or "ios"',
     );
-    
+
     argParser.addOption(
       'defaultConfig',
       valueHelp: 'defaultConfigSetup',
-      help: 'Value is always ""default". This is for backwards compatibility of default configuration',
+      help:
+          'Value is always ""default". This is for backwards compatibility of default configuration',
     );
   }
 
@@ -202,7 +204,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   Future<ConfigurationResults> _getConfigurationFromFirebaseJsonFile() async {
-    final platformConfig = await appleConfigFromFirebaseJson(appleProjectPath, platform);
+    final platformConfig =
+        await appleConfigFromFirebaseJson(appleProjectPath, platform);
 
     String? appId;
     String? projectId;
