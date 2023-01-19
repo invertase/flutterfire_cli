@@ -192,24 +192,32 @@ end
 
     final map = jsonDecode(fileAsString) as Map;
 
-    final flutterConfig = map[kFlutter] as Map?;
-    final applePlatform = flutterConfig?[kPlatforms] as Map?;
+    final flutterConfig = map[kFlutter] as Map;
+    final applePlatform = flutterConfig[kPlatforms] as Map;
     final appleConfig =
-        applePlatform?[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map?;
+        applePlatform[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map;
 
-    final configurationMaps = appleConfig?[configuration] as Map?;
+    final configurationMaps = appleConfig[configuration] as Map?;
 
-    if (configurationMaps?[targetOrBuildConfiguration] == null) {
-      // ignore: implicit_dynamic_map_literal
-      configurationMaps?[targetOrBuildConfiguration] = {};
+    Map? configurationMap;
+    // For "build configuration" or "target" we need to create a nested map if it does not exist
+    if (ProjectConfiguration.target == projectConfiguration ||
+        ProjectConfiguration.buildConfiguration == projectConfiguration) {
+      if (configurationMaps?[targetOrBuildConfiguration] == null) {
+        // ignore: implicit_dynamic_map_literal
+        configurationMaps?[targetOrBuildConfiguration] = {};
+        configurationMap =
+            configurationMaps?[targetOrBuildConfiguration] as Map;
+      }
+    } else {
+      // Only a single map in "default" configuration.
+      configurationMap = configurationMaps;
     }
 
-    final configurationMap =
-        configurationMaps?[targetOrBuildConfiguration] as Map;
-    configurationMap[kProjectId] = projectId;
-    configurationMap[kAppId] = appId;
-    configurationMap[kUploadDebugSymbols] = debugSymbolScript;
-    configurationMap[kServiceFileOutput] = relativePathFromProject;
+    configurationMap?[kProjectId] = projectId;
+    configurationMap?[kAppId] = appId;
+    configurationMap?[kUploadDebugSymbols] = debugSymbolScript;
+    configurationMap?[kServiceFileOutput] = relativePathFromProject;
 
     final mapJson = json.encode(map);
 
@@ -541,7 +549,10 @@ end
     );
   }
 
-  Future<void> _targetWrites(String pathToServiceFile) async {
+  Future<void> _targetWrites(
+    String pathToServiceFile, {
+    ProjectConfiguration projectConfiguration = ProjectConfiguration.target,
+  }) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
     await _writeGoogleServiceFileToTargetProject(
       xcodeProjFilePath,
@@ -551,7 +562,7 @@ end
 
     await _updateFirebaseJsonAndDebugSymbolScript(
       pathToServiceFile,
-      ProjectConfiguration.target,
+      projectConfiguration,
       target!,
     );
   }
@@ -630,7 +641,10 @@ end
       final defaultProjectPath =
           '${Directory.current.path}/${platform.toLowerCase()}/$target/${platformOptions.optionsSourceFileName}';
       // Make target default "Runner"
-      await _targetWrites(defaultProjectPath);
+      await _targetWrites(
+        defaultProjectPath,
+        projectConfiguration: ProjectConfiguration.defaultConfig,
+      );
     }
   }
 }

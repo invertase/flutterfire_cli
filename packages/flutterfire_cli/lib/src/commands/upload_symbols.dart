@@ -82,6 +82,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       valueHelp: 'platformName',
       help: 'Either "macos" or "ios"',
     );
+    
+    argParser.addOption(
+      'defaultConfig',
+      valueHelp: 'defaultConfigSetup',
+      help: 'Value is always ""default". This is for backwards compatibility of default configuration',
+    );
   }
 
   @override
