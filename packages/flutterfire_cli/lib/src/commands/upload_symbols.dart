@@ -72,9 +72,15 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'iosProjectPath',
-      valueHelp: 'iosProjectPath',
-      help: 'The absolute path to the flutter app iOS directory.',
+      'appleProjectPath',
+      valueHelp: 'appleProjectPath',
+      help: 'The absolute path to the flutter app apple directory (macOS or iOS directory).',
+    );
+
+    argParser.addOption(
+      'platform',
+      valueHelp: 'platformName',
+      help: 'Either "macos" or "ios"',
     );
   }
 
@@ -112,8 +118,12 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['defaultConfig'] as String?;
   }
 
-  String get iosProjectPath {
-    return argResults!['iosProjectPath'] as String;
+  String get appleProjectPath {
+    return argResults!['appleProjectPath'] as String;
+  }
+
+  String get platform {
+    return argResults!['platform'] as String;
   }
 
   String get appIdFileName {
@@ -186,7 +196,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   Future<ConfigurationResults> _getConfigurationFromFirebaseJsonFile() async {
-    final iosConfig = await iosConfigFromFirebaseJson(iosProjectPath);
+    final platformConfig = await appleConfigFromFirebaseJson(appleProjectPath, platform);
 
     String? appId;
     String? projectId;
@@ -194,7 +204,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     Map configurationMaps;
     String keyToConfig;
     try {
-      configurationMaps = iosConfig[configuration] as Map;
+      configurationMaps = platformConfig[configuration] as Map;
       Map configurationMap;
 
       switch (projectConfiguration) {
@@ -247,7 +257,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
 
     final appIdFileDirectory =
-        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/ios/$configuration/$configurationKey/$projectId';
+        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/$platform/$configuration/$configurationKey/$projectId';
     final appIdFilePath =
         await _findOrCreateAppIdFile(appIdFileDirectory, appId, projectId);
     // Validation script

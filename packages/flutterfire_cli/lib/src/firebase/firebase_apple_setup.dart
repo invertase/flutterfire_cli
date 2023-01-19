@@ -81,7 +81,7 @@ class FirebaseAppleSetup {
     ProjectConfiguration projectConfiguration,
   ) {
     var command =
-        r'flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME} --infoPlistPath=${SRCROOT}/${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH} --iosProjectPath=${SRCROOT} ';
+        'flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=${platform.toLowerCase()} --appleProjectPath=\${SRCROOT} ';
 
     switch (projectConfiguration) {
       case ProjectConfiguration.buildConfiguration:
@@ -129,8 +129,8 @@ end
   }
 
   String _bundleServiceFileScript(String pathsToExecutables) {
-    const command =
-        r'flutterfire bundle-service-file --plistDestination=${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app --buildConfiguration=${CONFIGURATION} --iosProjectPath=${SRCROOT} ';
+    final command =
+        'flutterfire bundle-service-file --plistDestination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --buildConfiguration=\${CONFIGURATION} --platform=${platform.toLowerCase()} --appleProjectPath=\${SRCROOT}';
 
     return '''
 require 'xcodeproj'
@@ -193,10 +193,11 @@ end
     final map = jsonDecode(fileAsString) as Map;
 
     final flutterConfig = map[kFlutter] as Map?;
-    final platform = flutterConfig?[kPlatforms] as Map?;
-    final iosConfig = platform?[kIos] as Map?;
+    final applePlatform = flutterConfig?[kPlatforms] as Map?;
+    final appleConfig =
+        applePlatform?[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map?;
 
-    final configurationMaps = iosConfig?[configuration] as Map?;
+    final configurationMaps = appleConfig?[configuration] as Map?;
 
     if (configurationMaps?[targetOrBuildConfiguration] == null) {
       // ignore: implicit_dynamic_map_literal

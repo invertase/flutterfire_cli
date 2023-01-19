@@ -241,19 +241,23 @@ String removeForwardSlash(String input) {
   }
 }
 
-Future<Map> iosConfigFromFirebaseJson(String iosProjectPath) async {
+Future<Map> appleConfigFromFirebaseJson(
+  String appleProjectPath,
+  String platform,
+) async {
   // Pull values from firebase.json in root of project
-  final flutterAppPath = dirname(iosProjectPath);
+  final flutterAppPath = dirname(appleProjectPath);
   final firebaseJson =
       await File('$flutterAppPath/firebase.json').readAsString();
 
   final decodedMap = json.decode(firebaseJson) as Map;
 
   final flutterConfig = decodedMap[kFlutter] as Map;
-  final platform = flutterConfig[kPlatforms] as Map;
-  final iosConfig = platform[kIos] as Map;
+  final applePlatform = flutterConfig[kPlatforms] as Map;
+  final appleConfig =
+      applePlatform[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map;
 
-  return iosConfig;
+  return appleConfig;
 }
 
 String getProjectConfigurationProperty(
@@ -274,6 +278,11 @@ Map<String, dynamic> _generateFlutterMap() {
     kFlutter: {
       kPlatforms: {
         kIos: {
+          kBuildConfiguration: <String, Object>{},
+          kTargets: <String, Object>{},
+          kDefaultConfig: <String, Object>{}
+        },
+        kMacos: {
           kBuildConfiguration: <String, Object>{},
           kTargets: <String, Object>{},
           kDefaultConfig: <String, Object>{}

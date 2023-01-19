@@ -38,10 +38,16 @@ class BundleServiceFile extends FlutterFireCommand {
           'The absolute path to the plist destination folder defined by Xcode environment variable.',
     );
 
+     argParser.addOption(
+      'appleProjectPath',
+      valueHelp: 'appleProjectPath',
+      help: 'The absolute path to the flutter app apple directory (macos/ or ios/ directory).',
+    );
+
     argParser.addOption(
-      'iosProjectPath',
-      valueHelp: 'iosProjectPath',
-      help: 'The absolute path to the flutter app iOS directory.',
+      'platform',
+      valueHelp: 'platformName',
+      help: 'Either "macos" or "ios"',
     );
   }
 
@@ -63,15 +69,19 @@ class BundleServiceFile extends FlutterFireCommand {
     return argResults!['plistDestination'] as String?;
   }
 
-  String get iosProjectPath {
-    return argResults!['iosProjectPath'] as String;
+  String get appleProjectPath {
+    return argResults!['appleProjectPath'] as String;
+  }
+
+  String get platform {
+    return argResults!['platform'] as String;
   }
 
   @override
   Future<void> run() async {
-    final iosConfig = await iosConfigFromFirebaseJson(iosProjectPath);
+    final appleConfig = await appleConfigFromFirebaseJson(appleProjectPath, platform);
     final buildConfigurations =
-        iosConfig[kBuildConfiguration] as Map<String, dynamic>;
+        appleConfig[kBuildConfiguration] as Map<String, dynamic>;
 
     final configurationMap = buildConfigurations[buildConfiguration] as Map?;
 
@@ -86,7 +96,7 @@ class BundleServiceFile extends FlutterFireCommand {
         configurationMap[kServiceFileOutput] as String;
 
     final absoluteServiceFilePath =
-        '${path.dirname(iosProjectPath)}/$relativeServiceFilePath';
+        '${path.dirname(appleProjectPath)}/$relativeServiceFilePath';
 
     final copyServiceFileToPlistDestination = await Process.run(
       'bash',
