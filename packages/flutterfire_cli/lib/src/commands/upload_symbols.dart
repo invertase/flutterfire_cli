@@ -303,7 +303,13 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     if (uploadScript.exitCode != 0) {
+      logger.stderr(uploadScript.stderr as String);
+
       throw Exception(uploadScript.stderr);
+    }
+
+    if (uploadScript.stdout != null) {
+      logger.stdout(uploadScript.stdout as String);
     }
   }
 }
