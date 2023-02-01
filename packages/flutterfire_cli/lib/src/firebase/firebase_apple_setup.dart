@@ -84,17 +84,17 @@ class FirebaseAppleSetup {
     ProjectConfiguration projectConfiguration,
   ) {
     var command =
-        'flutterfire upload-crashlytics-symbols --uploadSymbolsScriptPath=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debugSymbolsPath=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --infoPlistPath=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=${platform.toLowerCase()} --appleProjectPath=\${SRCROOT} ';
+        'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=${platform.toLowerCase()} --apple-project-path=\${SRCROOT} ';
 
     switch (projectConfiguration) {
       case ProjectConfiguration.buildConfiguration:
-        command += r'--buildConfiguration=${CONFIGURATION}';
+        command += r'--build-configuration=${CONFIGURATION}';
         break;
       case ProjectConfiguration.target:
         command += '--target=$target';
         break;
       case ProjectConfiguration.defaultConfig:
-        command += '--defaultConfig=default';
+        command += '--default-config=default';
     }
 
     return '''

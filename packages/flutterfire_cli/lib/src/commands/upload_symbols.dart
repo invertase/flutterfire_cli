@@ -41,26 +41,26 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     setupDefaultFirebaseCliOptions();
 
     argParser.addOption(
-      'uploadSymbolsScriptPath',
+      'upload-symbols-script-path',
       valueHelp: 'uploadSymbolsScriptPath',
       help:
           'The absolute path to the upload symbols script path found in the Pod/FirebaseCrashlytics.',
     );
 
     argParser.addOption(
-      'debugSymbolsPath',
+      'debug-symbols-path',
       valueHelp: 'debugSymbolsPath',
       help: 'The absolute path to the debug symbols directory.',
     );
 
     argParser.addOption(
-      'infoPlistPath',
+      'info-plist-path',
       valueHelp: 'infoPlistPath',
       help: 'The absolute path to the Info.plist file.',
     );
 
     argParser.addOption(
-      'buildConfiguration',
+      'build-configuration',
       valueHelp: 'buildConfiguration',
       help: 'The name of the build configuration.',
     );
@@ -72,7 +72,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'appleProjectPath',
+      'apple-project-path',
       valueHelp: 'appleProjectPath',
       help:
           'The absolute path to the flutter app apple directory (macOS or iOS directory).',
@@ -85,7 +85,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'defaultConfig',
+      'default-config',
       valueHelp: 'defaultConfigSetup',
       help:
           'Value is always ""default". This is for backwards compatibility of default configuration',
@@ -103,19 +103,19 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   final String name = 'upload-crashlytics-symbols';
 
   String get uploadSymbolsScriptPath {
-    return argResults!['uploadSymbolsScriptPath'] as String;
+    return argResults!['upload-symbols-script-path'] as String;
   }
 
   String get debugSymbolsPath {
-    return argResults!['debugSymbolsPath'] as String;
+    return argResults!['debug-symbols-path'] as String;
   }
 
   String get infoPlistPath {
-    return argResults!['infoPlistPath'] as String;
+    return argResults!['info-plist-path'] as String;
   }
 
   String? get buildConfiguration {
-    return argResults!['buildConfiguration'] as String?;
+    return argResults!['build-configuration'] as String?;
   }
 
   String? get target {
@@ -123,11 +123,11 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   }
 
   String? get defaultConfig {
-    return argResults!['defaultConfig'] as String?;
+    return argResults!['default-config'] as String?;
   }
 
   String get appleProjectPath {
-    return argResults!['appleProjectPath'] as String;
+    return argResults!['apple-project-path'] as String;
   }
 
   String get platform {
