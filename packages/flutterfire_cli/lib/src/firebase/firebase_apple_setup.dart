@@ -45,7 +45,6 @@ class FirebaseAppleSetup {
   }
 
   Future<void> _addFlutterFireDebugSymbolsScript(
-    String xcodeProjFilePath,
     Logger logger,
     ProjectConfiguration projectConfiguration, {
     String target = 'Runner',
@@ -55,7 +54,6 @@ class FirebaseAppleSetup {
       final debugSymbolScript = await Process.run('ruby', [
         '-e',
         _debugSymbolsScript(
-          xcodeProjFilePath,
           target,
           paths,
           projectConfiguration,
@@ -77,7 +75,6 @@ class FirebaseAppleSetup {
   }
 
   String _debugSymbolsScript(
-    String xcodeProjFilePath,
     // Always "Runner" for "build configuration" setup
     String target,
     String pathsToExecutables,
@@ -260,7 +257,6 @@ end
 
     if (runDebugSymbolScript) {
       await _addFlutterFireDebugSymbolsScript(
-        xcodeProjFilePath,
         logger,
         projectConfiguration,
       );
@@ -301,8 +297,8 @@ end
     }
   }
 
-  Future<List<String>> _findTargetsAvailable(String xcodeProjFilePath) async {
-    final targetScript = _findingTargetsScript(xcodeProjFilePath);
+  Future<List<String>> _findTargetsAvailable() async {
+    final targetScript = _findingTargetsScript();
 
     final result = await Process.run('ruby', [
       '-e',
@@ -318,9 +314,7 @@ end
     return targets;
   }
 
-  String _findingTargetsScript(
-    String xcodeProjFilePath,
-  ) {
+  String _findingTargetsScript() {
     return '''
 require 'xcodeproj'
 xcodeProject='$xcodeProjFilePath'
@@ -340,11 +334,8 @@ end
 ''';
   }
 
-  Future<List<String>> _findBuildConfigurationsAvailable(
-    String xcodeProjFilePath,
-  ) async {
-    final buildConfigurationScript =
-        _findingBuildConfigurationsScript(xcodeProjFilePath);
+  Future<List<String>> _findBuildConfigurationsAvailable() async {
+    final buildConfigurationScript = _findingBuildConfigurationsScript();
 
     final result = await Process.run('ruby', [
       '-e',
@@ -360,9 +351,7 @@ end
     return buildConfigurations;
   }
 
-  String _findingBuildConfigurationsScript(
-    String xcodeProjFilePath,
-  ) {
+  String _findingBuildConfigurationsScript() {
     return '''
 require 'xcodeproj'
 xcodeProject='$xcodeProjFilePath'
@@ -384,7 +373,6 @@ end
   }
 
   String _addServiceFileToTarget(
-    String xcodeProjFilePath,
     String googleServiceInfoFile,
     String targetName,
   ) {
@@ -418,12 +406,10 @@ end
   }
 
   Future<void> _writeGoogleServiceFileToTargetProject(
-    String xcodeProjFilePath,
     String serviceFilePath,
     String target,
   ) async {
     final addServiceFileToTargetScript = _addServiceFileToTarget(
-      xcodeProjFilePath,
       serviceFilePath,
       target,
     );
@@ -476,8 +462,7 @@ end
   }
 
   Future<void> _createBuildConfigurationSetup(String pathToServiceFile) async {
-    final buildConfigurations =
-        await _findBuildConfigurationsAvailable(xcodeProjFilePath);
+    final buildConfigurations = await _findBuildConfigurationsAvailable();
 
     final buildConfigurationExists =
         buildConfigurations.contains(buildConfiguration);
@@ -495,7 +480,7 @@ end
   }
 
   Future<void> _createTargetSetup(String pathToServiceFile) async {
-    final targets = await _findTargetsAvailable(xcodeProjFilePath);
+    final targets = await _findTargetsAvailable();
 
     final targetExists = targets.contains(target);
 
@@ -512,7 +497,6 @@ end
   }
 
   Future<void> _writeBundleServiceFileScriptToProject(
-    String xcodeProjFilePath,
     String serviceFilePath,
     String buildConfiguration,
     Logger logger,
@@ -544,7 +528,6 @@ end
   Future<void> _buildConfigurationWrites(String pathToServiceFile) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
     await _writeBundleServiceFileScriptToProject(
-      xcodeProjFilePath,
       fullPathToServiceFile!,
       buildConfiguration!,
       logger,
@@ -562,7 +545,6 @@ end
   }) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
     await _writeGoogleServiceFileToTargetProject(
-      xcodeProjFilePath,
       pathToServiceFile,
       target!,
     );
@@ -619,8 +601,7 @@ end
 
         // Add to build configuration
         if (response == 0) {
-          final buildConfigurations =
-              await _findBuildConfigurationsAvailable(xcodeProjFilePath);
+          final buildConfigurations = await _findBuildConfigurationsAvailable();
 
           final response = promptSelect(
             'Which build configuration would you like your $platform $fileName to be included within your $platform app bundle?',
@@ -632,7 +613,7 @@ end
 
           // Add to target
         } else if (response == 1) {
-          final targets = await _findTargetsAvailable(xcodeProjFilePath);
+          final targets = await _findTargetsAvailable();
 
           final response = promptSelect(
             'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
