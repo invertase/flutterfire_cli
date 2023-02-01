@@ -278,7 +278,11 @@ end
     final paths = envVars['PATH'];
     if (paths != null) {
       final array = paths.split(':');
-
+      // Need to add paths to PATH variable in Xcode environment to execute FlutterFire & Dart executables.
+      // The resulting output will be paths specific to your machine. Here is how it might look in the Build Phase script in Xcode:
+      // e.g. PATH=${PATH}:/Users/yourname/sdks/flutter/bin/cache/dart-sdk/bin:/Users/yourname/sdks/flutter/bin:/Users/yourname/.pub-cache/bin
+      // This script is replaced every time you call `flutterfire configure` so the path variable is always specific to the machine
+      // This does work on the presumption that you have the Dart & FlutterFire CLI (in .pub-cache/ directory) on your path on your machine setup
       final pathsToAddToScript = array.where((path) {
         if (path.contains('dart-sdk') ||
             path.contains('flutter') ||
