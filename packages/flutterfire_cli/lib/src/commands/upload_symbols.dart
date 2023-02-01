@@ -256,6 +256,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    if (!Platform.isMacOS) return;
+
     final configurationResults = await _getConfigurationFromFirebaseJsonFile();
     final uploadDebugSymbols = configurationResults.runDebugSymbolsScript;
     final appId = configurationResults.appId;

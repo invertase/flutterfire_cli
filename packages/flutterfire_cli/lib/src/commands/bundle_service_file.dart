@@ -80,6 +80,8 @@ class BundleServiceFile extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    if (!Platform.isMacOS) return;
+
     final appleConfig =
         await appleConfigFromFirebaseJson(appleProjectPath, platform);
     final buildConfigurations =

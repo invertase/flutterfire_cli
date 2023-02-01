@@ -572,6 +572,8 @@ end
   }
 
   Future<void> apply() async {
+    if (!Platform.isMacOS) return;
+
     if (!googleServicePathSpecified && target != null) {
       fullPathToServiceFile = _promptForPathToServiceFile();
       await _createTargetSetup(fullPathToServiceFile!);
