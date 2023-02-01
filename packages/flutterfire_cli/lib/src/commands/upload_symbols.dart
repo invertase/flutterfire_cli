@@ -170,7 +170,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   ) async {
     // Will do nothing if it already exists
     await Directory(pathToAppIdFile).create(recursive: true);
-    
+
     final file = File(path.join(pathToAppIdFile, appIdFileName));
 
     if (file.existsSync()) {
