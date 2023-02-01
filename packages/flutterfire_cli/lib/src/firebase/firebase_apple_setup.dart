@@ -468,8 +468,11 @@ end
         }
       },
     );
-
-    return '${flutterApp!.package.path}/$pathToServiceFile/${platformOptions.optionsSourceFileName}';
+    return path.join(
+      flutterApp!.package.path,
+      pathToServiceFile,
+      platformOptions.optionsSourceFileName,
+    );
   }
 
   Future<void> _createBuildConfigurationSetup(String pathToServiceFile) async {
@@ -590,8 +593,10 @@ end
 
         // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or build configuration setup
         if (response == true) {
-          fullPathToServiceFile =
-              '${path.dirname(fullPathToServiceFile!)}/${platformOptions.optionsSourceFileName}';
+          fullPathToServiceFile = path.join(
+            path.dirname(fullPathToServiceFile!),
+            platformOptions.optionsSourceFileName,
+          );
         }
       }
 
@@ -644,8 +649,13 @@ end
       // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
       target = 'Runner';
-      final defaultProjectPath =
-          '${Directory.current.path}/${platform.toLowerCase()}/$target/${platformOptions.optionsSourceFileName}';
+      final defaultProjectPath = path.join(
+        Directory.current.path,
+        platform.toLowerCase(),
+        target,
+        platformOptions.optionsSourceFileName,
+      );
+
       // Make target default "Runner"
       await _targetWrites(
         defaultProjectPath,

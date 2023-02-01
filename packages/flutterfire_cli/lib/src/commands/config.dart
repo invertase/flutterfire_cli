@@ -16,6 +16,7 @@
  */
 
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -263,7 +264,11 @@ class ConfigCommand extends FlutterFireCommand {
     if (relativeMacosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}/${removeForwardSlash(relativeMacosServiceFilePath!)}';
+
+    return path.join(
+      flutterApp!.package.path,
+      removeForwardSlash(relativeMacosServiceFilePath!),
+    );
   }
 
   String? get relativeIosServiceFilePath {
@@ -274,7 +279,11 @@ class ConfigCommand extends FlutterFireCommand {
     if (relativeIosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}/${removeForwardSlash(relativeIosServiceFilePath!)}';
+
+    return path.join(
+      flutterApp!.package.path,
+      removeForwardSlash(relativeIosServiceFilePath!),
+    );
   }
 
   String? get androidServiceFilePath {

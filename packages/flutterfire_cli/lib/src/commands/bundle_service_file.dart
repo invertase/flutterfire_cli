@@ -100,7 +100,7 @@ class BundleServiceFile extends FlutterFireCommand {
         configurationMap[kServiceFileOutput] as String;
 
     final absoluteServiceFilePath =
-        '${path.dirname(appleProjectPath)}/$relativeServiceFilePath';
+        path.join(path.dirname(appleProjectPath), relativeServiceFilePath);
 
     final copyServiceFileToPlistDestination = await Process.run(
       'bash',

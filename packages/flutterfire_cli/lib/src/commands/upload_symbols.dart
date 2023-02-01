@@ -170,7 +170,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   ) async {
     // Will do nothing if it already exists
     await Directory(pathToAppIdFile).create(recursive: true);
-    final file = File('$pathToAppIdFile/$appIdFileName');
+    
+    final file = File(path.join(pathToAppIdFile, appIdFileName));
 
     if (file.existsSync()) {
       final fileAsString = await file.readAsString();
@@ -266,9 +267,14 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
 
     // Exit if the user chooses not to run debug upload symbol script
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
-
-    final appIdFileDirectory =
-        '${path.dirname(Directory.current.path)}/.dart_tool/flutterfire/platforms/$platform/$configuration/$configurationKey/$projectId';
+    final appIdFileDirectory = path.join(
+      path.dirname(Directory.current.path),
+      '.dart_tool/flutterfire/platforms',
+      platform,
+      configuration,
+      configurationKey,
+      projectId,
+    );
     final appIdFilePath =
         await _findOrCreateAppIdFile(appIdFileDirectory, appId, projectId);
     // Validation script
