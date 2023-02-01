@@ -26,20 +26,20 @@ class BundleServiceFile extends FlutterFireCommand {
     setupDefaultFirebaseCliOptions();
 
     argParser.addOption(
-      'buildConfiguration',
+      'build-configuration',
       valueHelp: 'buildConfiguration',
       help: 'The name of the build configuration.',
     );
 
     argParser.addOption(
-      'plistDestination',
+      'plist-destination',
       valueHelp: 'plistDestination',
       help:
           'The absolute path to the plist destination folder defined by Xcode environment variable.',
     );
 
     argParser.addOption(
-      'appleProjectPath',
+      'apple-project-path',
       valueHelp: 'appleProjectPath',
       help:
           'The absolute path to the flutter app apple directory (macos/ or ios/ directory).',
@@ -63,15 +63,15 @@ class BundleServiceFile extends FlutterFireCommand {
   final String name = 'bundle-service-file';
 
   String get buildConfiguration {
-    return argResults!['buildConfiguration'] as String;
+    return argResults!['build-configuration'] as String;
   }
 
   String? get plistDestination {
-    return argResults!['plistDestination'] as String?;
+    return argResults!['plist-destination'] as String?;
   }
 
   String get appleProjectPath {
-    return argResults!['appleProjectPath'] as String;
+    return argResults!['apple-project-path'] as String;
   }
 
   String get platform {

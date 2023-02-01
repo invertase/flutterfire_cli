@@ -133,7 +133,7 @@ end
 
   String _bundleServiceFileScript(String pathsToExecutables) {
     final command =
-        'flutterfire bundle-service-file --plistDestination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --buildConfiguration=\${CONFIGURATION} --platform=${platform.toLowerCase()} --appleProjectPath=\${SRCROOT}';
+        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=${platform.toLowerCase()} --apple-project-path=\${SRCROOT}';
 
     return '''
 require 'xcodeproj'
