@@ -305,8 +305,6 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
         '--flutter-project',
         appIdFilePath,
         debugSymbolsPath,
-        // Removed this argument as debug symbols cannot be found with it
-        // infoPlistPath,
       ],
     );
 
