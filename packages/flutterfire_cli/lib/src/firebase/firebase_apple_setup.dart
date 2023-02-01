@@ -183,7 +183,7 @@ end
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
   ) async {
-    final file = File('${flutterApp.package.path}/firebase.json');
+    final file = File(path.join(flutterApp.package.path, 'firebase.json'));
 
     final relativePathFromProject =
         path.relative(pathToServiceFile, from: flutterApp.package.path);
