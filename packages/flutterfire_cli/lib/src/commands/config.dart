@@ -503,7 +503,7 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
-  void _checkTargetAndSchemeSetup() {
+  void _checkTargetAndBuildConfigurationSetup() {
     if (iosBuildConfiguration != null && iosTarget != null) {
       throw XcodeProjectException('ios');
     }
@@ -516,7 +516,7 @@ class ConfigCommand extends FlutterFireCommand {
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
-    _checkTargetAndSchemeSetup();
+    _checkTargetAndBuildConfigurationSetup();
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
 
