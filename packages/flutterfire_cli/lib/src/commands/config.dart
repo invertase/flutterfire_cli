@@ -594,20 +594,6 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    final futures = <Future>[];
-
-    final configFile = FirebaseConfigurationFile(
-      outputFilePath,
-      androidOptions: androidOptions,
-      iosOptions: iosOptions,
-      macosOptions: macosOptions,
-      webOptions: webOptions,
-      windowsOptions: windowsOptions,
-      linuxOptions: linuxOptions,
-      force: isCI || yes,
-      overwriteFirebaseOptions: overwriteFirebaseOptions,
-    );
-    futures.add(configFile.write());
 
     if (androidOptions != null && applyGradlePlugins) {
       await FirebaseAndroidGradlePlugins(
@@ -646,7 +632,18 @@ class ConfigCommand extends FlutterFireCommand {
       ).apply();
     }
 
-    await Future.wait<void>(futures);
+    await FirebaseConfigurationFile(
+      outputFilePath,
+      androidOptions: androidOptions,
+      iosOptions: iosOptions,
+      macosOptions: macosOptions,
+      webOptions: webOptions,
+      windowsOptions: windowsOptions,
+      linuxOptions: linuxOptions,
+      force: isCI || yes,
+      overwriteFirebaseOptions: overwriteFirebaseOptions,
+    ).write();
+    
 
     logger.stdout('');
     logger.stdout(
