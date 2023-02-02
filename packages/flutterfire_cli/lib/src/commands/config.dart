@@ -594,7 +594,6 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-
     if (androidOptions != null && applyGradlePlugins) {
       await FirebaseAndroidGradlePlugins(
         flutterApp!,
@@ -643,7 +642,6 @@ class ConfigCommand extends FlutterFireCommand {
       force: isCI || yes,
       overwriteFirebaseOptions: overwriteFirebaseOptions,
     ).write();
-    
 
     logger.stdout('');
     logger.stdout(
