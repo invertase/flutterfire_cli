@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-02-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.15`](#flutterfire_cli---v030-dev15)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.15`
+
+ - **REFACTOR**: allow macOS configuration for scripts. ([7384bd9f](https://github.com/invertase/flutterfire_cli/commit/7384bd9f89c00326a1aedf71c02151fd856416f3))
+ - **REFACTOR**: remove dead code and move other to apple file. ([781fad2d](https://github.com/invertase/flutterfire_cli/commit/781fad2d4da4a49bdb408026eb696447df3729c5))
+ - **REFACTOR**: use build configuration & call FF bundle-service-file. ([4836124a](https://github.com/invertase/flutterfire_cli/commit/4836124ae180d57be0f47d38fcbbfaf1ad440524))
+ - **REFACTOR**: make functions out of reusable code. ([86e82d72](https://github.com/invertase/flutterfire_cli/commit/86e82d72d96cdb05734aabacaefd51c5731e5e68))
+ - **REFACTOR**: remove unnecessary code. ([38c62ee9](https://github.com/invertase/flutterfire_cli/commit/38c62ee96529f39e7fea30057544e7e95b14e4f2))
+ - **REFACTOR**: big refactor to clean up code. ([f8c42643](https://github.com/invertase/flutterfire_cli/commit/f8c426434f1b5f618d093c1a8bdd5e40edb2b833))
+ - **REFACTOR**: cleaned up code. ([99a92de1](https://github.com/invertase/flutterfire_cli/commit/99a92de1ce96e8a780234eadfaa2d4a707baaced))
+ - **FIX**: stop `default/default` path to default app_id_file in .dart_tools. ([24730e15](https://github.com/invertase/flutterfire_cli/commit/24730e154dd4beda9850ce27ecb7ba1a9cc57efe))
+ - **FIX**: default config so it writes to default map & default/ app id file. ([9542cc69](https://github.com/invertase/flutterfire_cli/commit/9542cc694dd4a83ea9c27a4df234885f67cd5ee2))
+ - **FIX**: conditions for writing service file. ([4113cdb8](https://github.com/invertase/flutterfire_cli/commit/4113cdb850f943ea1e5810d075318366f6f20bb8))
+ - **FIX**: output should be relative to project. ([5f9f824c](https://github.com/invertase/flutterfire_cli/commit/5f9f824c487a273240505b4455587b0b2a74e116))
+ - **FIX**: bug writing firebase.json. ([2f4f3dc4](https://github.com/invertase/flutterfire_cli/commit/2f4f3dc4af9e5d45849c7edf48473aec4d9c3676))
+ - **FIX**: update scheme. ([25a8cb23](https://github.com/invertase/flutterfire_cli/commit/25a8cb23e36ed617ed4a6c1be5a3cdb150af32f4))
+ - **FIX**: add filename to path. ([962eb2af](https://github.com/invertase/flutterfire_cli/commit/962eb2af5904db4c7d1d6edae5975fe767ea79a8))
+ - **FIX**: add paths to debug script to find executables. ([6e7495b6](https://github.com/invertase/flutterfire_cli/commit/6e7495b6b32f398559294aa0b39fe51af7c63513))
+ - **FIX**: use iOS path as FlutterApp is not available when running from xcode. ([8074f966](https://github.com/invertase/flutterfire_cli/commit/8074f96670dd83553c9f51fb217b6ed8984b66d7))
+ - **FEAT**: create serviceFileOutput property on firebase.json. ([6f16b972](https://github.com/invertase/flutterfire_cli/commit/6f16b9722948bf8fee5dee7525306c207990c472))
+ - **FEAT**: upload debug symbols script. ([b7512b46](https://github.com/invertase/flutterfire_cli/commit/b7512b465a6563dd86ef5e5fc9dd869f002485c1))
+
+
 ## 2023-01-05
 
 ### Changes
