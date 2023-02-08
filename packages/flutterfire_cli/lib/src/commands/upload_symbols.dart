@@ -269,7 +269,9 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     if (uploadDebugSymbols == false || uploadDebugSymbols == null) return;
     final appIdFileDirectory = path.join(
       path.dirname(Directory.current.path),
-      '.dart_tool/flutterfire/platforms',
+      '.dart_tool',
+      'flutterfire',
+      'platforms',
       platform,
       // We don't want the path to be "default/default" so we remove if it is
       configuration == 'default' ? '' : configuration,
