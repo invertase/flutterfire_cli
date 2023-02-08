@@ -16,6 +16,7 @@
  */
 
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -24,9 +25,8 @@ import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
 import '../firebase/firebase_apple_options.dart';
+import '../firebase/firebase_apple_setup.dart';
 import '../firebase/firebase_configuration_file.dart';
-import '../firebase/firebase_ios_setup.dart';
-import '../firebase/firebase_macos_setup.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/firebase_project.dart';
 import '../firebase/firebase_web_options.dart';
@@ -133,17 +133,17 @@ class ConfigCommand extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      'ios-scheme',
-      valueHelp: 'iosSchemeName',
+      'ios-build-config',
+      valueHelp: 'iosBuildConfiguration',
       help:
-          'Name of iOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+          'Name of iOS build configuration to use for bundling `Google-Service-Info.plist` with your Xcode project',
     );
 
     argParser.addOption(
-      'macos-scheme',
-      valueHelp: 'macosSchemeName',
+      'macos-build-config',
+      valueHelp: 'macosBuildConfiguration',
       help:
-          'Name of macOS scheme to use for bundling `Google-Service-Info.plist` with your Xcode project',
+          'Name of macOS build configuration to use for bundling `Google-Service-Info.plist` with your Xcode project',
     );
 
     argParser.addOption(
@@ -240,12 +240,12 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['debug-symbols-macos'] as bool?;
   }
 
-  String? get iosScheme {
-    return argResults!['ios-scheme'] as String?;
+  String? get iosBuildConfiguration {
+    return argResults!['ios-build-config'] as String?;
   }
 
-  String? get macosScheme {
-    return argResults!['macos-scheme'] as String?;
+  String? get macosBuildConfiguration {
+    return argResults!['macos-build-config'] as String?;
   }
 
   String? get iosTarget {
@@ -256,26 +256,34 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-target'] as String?;
   }
 
-  String? get macosServiceFilePath {
+  String? get relativeMacosServiceFilePath {
     return argResults!['macos-out'] as String?;
   }
 
   String? get fullMacOSServicePath {
-    if (macosServiceFilePath == null) {
+    if (relativeMacosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}${macosServiceFilePath!}';
+
+    return path.join(
+      flutterApp!.package.path,
+      removeForwardSlash(relativeMacosServiceFilePath!),
+    );
   }
 
-  String? get iosServiceFilePath {
+  String? get relativeIosServiceFilePath {
     return argResults!['ios-out'] as String?;
   }
 
   String? get fulliOSServicePath {
-    if (iosServiceFilePath == null) {
+    if (relativeIosServiceFilePath == null) {
       return null;
     }
-    return '${flutterApp!.package.path}${iosServiceFilePath!}';
+
+    return path.join(
+      flutterApp!.package.path,
+      removeForwardSlash(relativeIosServiceFilePath!),
+    );
   }
 
   String? get androidServiceFilePath {
@@ -495,12 +503,12 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
-  void _checkTargetAndSchemeSetup() {
-    if (iosScheme != null && iosTarget != null) {
+  void _checkTargetAndBuildConfigurationSetup() {
+    if (iosBuildConfiguration != null && iosTarget != null) {
       throw XcodeProjectException('ios');
     }
 
-    if (macosScheme != null && macosTarget != null) {
+    if (macosBuildConfiguration != null && macosTarget != null) {
       throw XcodeProjectException('macos');
     }
   }
@@ -508,13 +516,16 @@ class ConfigCommand extends FlutterFireCommand {
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
-    _checkTargetAndSchemeSetup();
+    _checkTargetAndBuildConfigurationSetup();
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
 
     if (!selectedPlatforms.containsValue(true)) {
       throw NoFlutterPlatformsSelectedException();
     }
+
+    // Write this early so it can be used in whatever setup has been configured
+    await writeFirebaseJsonFile(flutterApp!);
 
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
@@ -583,21 +594,6 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    final futures = <Future>[];
-
-    final configFile = FirebaseConfigurationFile(
-      outputFilePath,
-      androidOptions: androidOptions,
-      iosOptions: iosOptions,
-      macosOptions: macosOptions,
-      webOptions: webOptions,
-      windowsOptions: windowsOptions,
-      linuxOptions: linuxOptions,
-      force: isCI || yes,
-      overwriteFirebaseOptions: overwriteFirebaseOptions,
-    );
-    futures.add(configFile.write());
-
     if (androidOptions != null && applyGradlePlugins) {
       await FirebaseAndroidGradlePlugins(
         flutterApp!,
@@ -608,32 +604,44 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (iosOptions != null) {
-      await FirebaseIOSSetup(
+      await FirebaseAppleSetup(
         iosOptions,
         flutterApp,
         fulliOSServicePath,
-        iosServiceFilePath,
+        fulliOSServicePath != null,
         logger,
         iosGenerateDebugSymbolScript,
-        iosScheme,
+        iosBuildConfiguration,
         iosTarget,
+        'iOS',
       ).apply();
     }
 
     if (macosOptions != null) {
-      await FirebaseMacOSSetup(
+      await FirebaseAppleSetup(
         macosOptions,
         flutterApp,
         fullMacOSServicePath,
-        macosServiceFilePath,
+        fullMacOSServicePath != null,
         logger,
         macosGenerateDebugSymbolScript,
-        macosScheme,
+        macosBuildConfiguration,
         macosTarget,
+        'macOS',
       ).apply();
     }
 
-    await Future.wait<void>(futures);
+    await FirebaseConfigurationFile(
+      outputFilePath,
+      androidOptions: androidOptions,
+      iosOptions: iosOptions,
+      macosOptions: macosOptions,
+      webOptions: webOptions,
+      windowsOptions: windowsOptions,
+      linuxOptions: linuxOptions,
+      force: isCI || yes,
+      overwriteFirebaseOptions: overwriteFirebaseOptions,
+    ).write();
 
     logger.stdout('');
     logger.stdout(

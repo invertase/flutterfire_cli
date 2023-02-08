@@ -58,6 +58,9 @@ const logLearnMoreAboutCli =
     'Learn more about using this file and next steps from the documentation:\n'
     ' > $firebaseDocumentationUrl';
 
+const serviceFileAlreadyExists =
+    'Your GoogleService-Info.plist already exists, skipping write... ';
+
 /// Prompts when Android Google Services JSON file already exists but contains
 /// configuration values for a different Firebase project.
 String logPromptReplaceGoogleServicesJson(
@@ -87,6 +90,16 @@ const logSkippingGradleFilesUpdate =
     'Skipping applying Firebase gradle plugins for Android. This may cause '
     'issues with some Firebase services on Android in your application.';
 
+const noPathsToExecutables =
+    'Cannot find paths to flutterfire & dart executables';
+
+const successfullyBundledServiceFile =
+    'Successfully bundled GoogleService-Info.plist file with app bundle';
+
+const noPathVariableFound = r'There is no $PATH variable in your environment. '
+    "Please file an issue as your Crashlytic's upload debug "
+    'symbols script will not work without it';
+
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
 
@@ -103,7 +116,7 @@ class XcodeProjectException implements FlutterFireException {
   }
 }
 
-/// An exception that is thrown when you have selected a name for your scheme or target that does not exist on your project
+/// An exception that is thrown when you have selected a name for your build configuration or target that does not exist on your project
 class MissingFromXcodeProjectException implements FlutterFireException {
   MissingFromXcodeProjectException(
     this.platform,
@@ -113,7 +126,7 @@ class MissingFromXcodeProjectException implements FlutterFireException {
   ) : super();
 
   final String platform;
-  // Type is either "scheme" or "target"
+  // Type is either "build configuration" or "target"
   final String type;
   final String name;
   final List<String> listOfChoices;
@@ -121,6 +134,14 @@ class MissingFromXcodeProjectException implements FlutterFireException {
   @override
   String toString() {
     return 'MissingFromXcodeProjectException: The $name does not exist as a $type for your $platform project. Please choose from one of the following: ${listOfChoices.join(', ')} ';
+  }
+}
+
+/// An exception that is thrown when you do not have a firebase.json file at the root of your project or it does not have values required
+class FirebaseJsonException implements FlutterFireException {
+  @override
+  String toString() {
+    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values.';
   }
 }
 
