@@ -112,12 +112,17 @@ class FirebaseAndroidGradlePlugins {
     var existingProjectId = '';
     var shouldPromptOverwriteGoogleServicesJson = false;
     if (androidGoogleServicesJsonFile.existsSync()) {
-      final existingGoogleServicesJsonContents =
-          await androidGoogleServicesJsonFile.readAsString();
-      existingProjectId = FirebaseAndroidOptions.projectIdFromFileContents(
-        existingGoogleServicesJsonContents,
-      );
-      if (existingProjectId != firebaseOptions.projectId) {
+      final existingGoogleServicesJsonContents = await androidGoogleServicesJsonFile.readAsString();
+
+      try {
+        existingProjectId = FirebaseAndroidOptions.projectIdFromFileContents(
+          existingGoogleServicesJsonContents,
+        );
+        if (existingProjectId != firebaseOptions.projectId) {
+          shouldPromptOverwriteGoogleServicesJson = true;
+        }
+      } catch (e) {
+        // parsing of existing google services file failed.
         shouldPromptOverwriteGoogleServicesJson = true;
       }
     }
