@@ -69,6 +69,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   List<String> commandAndArgs, {
   String? project,
   String? account,
+  String? serviceAccount,
 }) async {
   final cliExists = await exists();
   if (!cliExists) {
@@ -89,6 +90,9 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     'firebase',
     execArgs,
     workingDirectory: workingDirectoryPath,
+    environment: {
+      if (serviceAccount != null) 'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
+    },
     runInShell: true,
   );
 
@@ -112,6 +116,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
 Future<List<FirebaseProject>> getProjects({
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -119,6 +124,7 @@ Future<List<FirebaseProject>> getProjects({
       if (token != null) '--token=$token',
     ],
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = List<Map<String, dynamic>>.from(response['result'] as List);
   return result
@@ -136,6 +142,7 @@ Future<FirebaseProject> createProject({
   String? displayName,
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -145,6 +152,7 @@ Future<FirebaseProject> createProject({
       if (token != null) '--token=$token',
     ],
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseProject.fromJson(<String, dynamic>{
@@ -159,6 +167,7 @@ Future<List<FirebaseApp>> getApps({
   String? account,
   String? platform,
   String? token,
+  String? serviceAccount,
 }) async {
   if (platform != null) _assertFirebaseSupportedPlatform(platform);
   final response = await runFirebaseCommand(
@@ -169,6 +178,7 @@ Future<List<FirebaseApp>> getApps({
     ],
     project: project,
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = List<Map<String, dynamic>>.from(response['result'] as List);
   return result
@@ -194,6 +204,7 @@ Future<FirebaseAppSdkConfig> getAppSdkConfig({
   required String platform,
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final platformFirebase = platform == kMacos ? kIos : platform;
   _assertFirebaseSupportedPlatform(platformFirebase);
@@ -205,6 +216,7 @@ Future<FirebaseAppSdkConfig> getAppSdkConfig({
       if (token != null) '--token=$token',
     ],
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
   final fileContents = result['fileContents'] as String;
@@ -228,6 +240,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   String? packageNameOrBundleIdentifier,
   String? account,
   String? token,
+  String? serviceAccount,
   String? webAppId,
 }) async {
   var foundFirebaseApp = false;
@@ -262,6 +275,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     account: account,
     platform: platformFirebase,
     token: token,
+    serviceAccount: serviceAccount,
   );
   var filteredFirebaseApps = unfilteredFirebaseApps.where(
     (firebaseApp) {
@@ -306,6 +320,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         packageName: packageNameOrBundleIdentifier!,
         account: account,
         token: token,
+        serviceAccount: serviceAccount,
       );
       break;
     case kIos:
@@ -315,6 +330,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         bundleId: packageNameOrBundleIdentifier!,
         account: account,
         token: token,
+        serviceAccount: serviceAccount,
       );
       break;
     case kWeb:
@@ -323,6 +339,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
         displayName: displayNameWithPlatform,
         account: account,
         token: token,
+        serviceAccount: serviceAccount,
       );
       break;
     default:
@@ -352,11 +369,13 @@ Future<FirebaseApp> createWebApp({
   required String displayName,
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final response = await runFirebaseCommand(
     ['apps:create', 'web', displayName, if (token != null) '--token=$token'],
     project: project,
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
@@ -372,6 +391,7 @@ Future<FirebaseApp> createAndroidApp({
   required String packageName,
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -383,6 +403,7 @@ Future<FirebaseApp> createAndroidApp({
     ],
     project: project,
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
@@ -398,6 +419,7 @@ Future<FirebaseApp> createAppleApp({
   required String bundleId,
   String? account,
   String? token,
+  String? serviceAccount,
 }) async {
   final response = await runFirebaseCommand(
     [
@@ -409,6 +431,7 @@ Future<FirebaseApp> createAppleApp({
     ],
     project: project,
     account: account,
+    serviceAccount: serviceAccount,
   );
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
