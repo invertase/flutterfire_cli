@@ -38,6 +38,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     required String firebaseProjectId,
     String? firebaseAccount,
     required String? token,
+    required String? serviceAccount,
   }) async {
     var selectedAndroidApplicationId =
         androidApplicationId ?? flutterApp.androidApplicationId;
@@ -52,12 +53,14 @@ extension FirebaseAndroidOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
       appId: firebaseApp.appId,
       platform: kAndroid,
       account: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
     );
 
     return convertConfigToOptions(
