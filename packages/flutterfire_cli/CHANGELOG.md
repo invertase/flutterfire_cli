@@ -1,3 +1,7 @@
+## 0.3.0-dev.16
+
+ - **FIX**: update json after 2nd run of `flutterfire configure`. ([bb285236](https://github.com/invertase/flutterfire_cli/commit/bb285236e4e3622fddfa5cbccdebd17e7af82c51))
+
 ## 0.3.0-dev.15
 
  - **REFACTOR**: allow macOS configuration for scripts. ([7384bd9f](https://github.com/invertase/flutterfire_cli/commit/7384bd9f89c00326a1aedf71c02151fd856416f3))

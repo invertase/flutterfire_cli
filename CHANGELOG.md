@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-02-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.16`](#flutterfire_cli---v030-dev16)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.16`
+
+ - **FIX**: update json after 2nd run of `flutterfire configure`. ([bb285236](https://github.com/invertase/flutterfire_cli/commit/bb285236e4e3622fddfa5cbccdebd17e7af82c51))
+
+
 ## 2023-02-08
 
 ### Changes
