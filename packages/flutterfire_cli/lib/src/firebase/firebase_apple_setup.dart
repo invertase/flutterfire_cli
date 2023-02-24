@@ -206,9 +206,8 @@ end
       if (configurationMaps?[targetOrBuildConfiguration] == null) {
         // ignore: implicit_dynamic_map_literal
         configurationMaps?[targetOrBuildConfiguration] = {};
-        configurationMap =
-            configurationMaps?[targetOrBuildConfiguration] as Map;
       }
+      configurationMap = configurationMaps?[targetOrBuildConfiguration] as Map;
     } else {
       // Only a single map in "default" configuration.
       configurationMap = configurationMaps;
