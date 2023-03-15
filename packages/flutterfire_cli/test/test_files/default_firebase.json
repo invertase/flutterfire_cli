@@ -1,0 +1,26 @@
+{
+  "flutter": {
+    "platforms": {
+      "ios": {
+        "buildConfigurations": {},
+        "targets": {},
+        "default": {
+          "projectId": "flutterfire-cli-test-f6f57",
+          "appId": "1:262904632156:ios:58c61e319713c6142f2799",
+          "uploadDebugSymbols": true,
+          "serviceFileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "buildConfigurations": {},
+        "targets": {},
+        "default": {
+          "projectId": "flutterfire-cli-test-f6f57",
+          "appId": "1:262904632156:ios:58c61e319713c6142f2799",
+          "uploadDebugSymbols": true,
+          "serviceFileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      }
+    }
+  }
+}
