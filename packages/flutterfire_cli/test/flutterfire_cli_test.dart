@@ -17,7 +17,7 @@ void main() {
     );
     addTearDown(() => tempDir.delete(recursive: true));
 
-    final updatedPath = '${tempDir.path}/$flutterProject';
+    final updatedPath = p.join(tempDir.path, flutterProject);
     return updatedPath;
   }
 
@@ -78,7 +78,7 @@ void main() {
       () async {
     final projectPath = await createFlutterProject();
     // the most basic 'flutterfire configure' command that can be run without command line prompts
-    final result = Process.runSync(
+    Process.runSync(
       'flutterfire',
       [
         'configure',
@@ -245,7 +245,21 @@ void main() {
     expect(macosResult.stdout, 'success');
   });
 
-  test('Run "flutterfire configure" to update values', () {
-    // TODO
+  test('Run "flutterfire configure" to update values', () async {
+    final projectPath = await createFlutterProject();
+    // initial setup before updating values
+    Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos'
+      ],
+      workingDirectory: projectPath,
+    );
+
+    // TODO - update values
   });
 }
