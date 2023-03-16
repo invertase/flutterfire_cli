@@ -36,6 +36,8 @@ class FirebaseAppleSetup {
   String? buildConfiguration;
   String? target;
 
+  final String googleServiceFile = 'GoogleService-Info.plist';
+
   String get xcodeProjFilePath {
     return path.join(
       Directory.current.path,
@@ -497,7 +499,6 @@ end
   }
 
   Future<void> _writeBundleServiceFileScriptToProject(
-    String serviceFilePath,
     String buildConfiguration,
     Logger logger,
   ) async {
@@ -528,7 +529,6 @@ end
   Future<void> _buildConfigurationWrites(String pathToServiceFile) async {
     await _writeGoogleServiceFileToPath(pathToServiceFile);
     await _writeBundleServiceFileScriptToProject(
-      fullPathToServiceFile!,
       buildConfiguration!,
       logger,
     );
