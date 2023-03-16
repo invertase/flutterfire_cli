@@ -58,8 +58,6 @@ const logLearnMoreAboutCli =
     'Learn more about using this file and next steps from the documentation:\n'
     ' > $firebaseDocumentationUrl';
 
-const serviceFileAlreadyExists =
-    'Your GoogleService-Info.plist already exists, skipping write... ';
 
 /// Prompts when Android Google Services JSON file already exists but contains
 /// configuration values for a different Firebase project.
