@@ -89,7 +89,7 @@ void main() {
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
-        '--android-bundle-id=com.example.flutter_test_cli',
+        '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
