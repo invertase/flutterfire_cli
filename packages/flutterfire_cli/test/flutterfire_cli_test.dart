@@ -90,6 +90,18 @@ void main() {
       workingDirectory: projectPath,
     );
 
+    //Check contents of Dir for debugging
+    var dir = Directory(p.join(projectPath, 'ios', 'Runner'));
+
+    List contents = dir.listSync();
+    for (final fileOrDir in contents) {
+      if (fileOrDir is File) {
+        print('FFFFFF: ${fileOrDir.path}');
+      } else if (fileOrDir is Directory) {
+        print('DDDDDD: ${fileOrDir.path}');
+      }
+    }
+
     // check Apple service files were created and have correct content
     final iosPath = p.join(projectPath, 'ios');
     final macosPath = p.join(projectPath, 'macos');
