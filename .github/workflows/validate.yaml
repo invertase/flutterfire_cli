@@ -73,7 +73,7 @@ jobs:
         run: |
           sudo npm i -g firebase-tools     
       - name: "Firebase login"
-      - shell: bash
+        shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
