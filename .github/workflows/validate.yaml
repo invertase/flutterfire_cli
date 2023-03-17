@@ -72,12 +72,12 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools     
-      # - name: "Firebase login"
-      # - shell: bash
-      #   env:
+      - name: "Firebase login"
+      - shell: bash
+        run: |
+          firebase login --no-localhost               
+        # env:
       #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      #   run: |
-      #     firebase login --no-localhost               
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
@@ -102,12 +102,12 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
-      # - name: "Firebase login"
-      # - shell: bash
-      #   env:
-      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      #   run: |
-      #     firebase login --no-localhost   
+      - name: "Firebase login"
+      - shell: bash
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase login --no-localhost   
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
