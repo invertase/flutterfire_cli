@@ -102,7 +102,6 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
-      - name: "Firebase login"
       - shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
