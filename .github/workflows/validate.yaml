@@ -47,7 +47,7 @@ jobs:
         run: |
           sudo npm i -g firebase-tools
       - name: "Firebase login"
-        run: firebase login          
+        run: firebase login --no-localhost          
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
       - name: "Run Tests"
@@ -68,7 +68,7 @@ jobs:
         run: |
           sudo npm i -g firebase-tools     
       - name: "Firebase login"
-        run: firebase login               
+        run: firebase login --no-localhost               
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
@@ -93,7 +93,7 @@ jobs:
         run: |
           sudo npm i -g firebase-tools
       - name: "Firebase login"
-        run: firebase login
+        run: firebase login --no-localhost
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - uses: actions/checkout@v2
