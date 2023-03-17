@@ -50,9 +50,11 @@ jobs:
       - shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase login --no-localhost   
+        run: |
+          firebase login --no-localhost   
       - name: Install FlutterFire
-        run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
+        run: |
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
       - name: "Run Tests"
         run: melos run test --no-select
 
@@ -74,9 +76,11 @@ jobs:
       - shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase login --no-localhost               
+        run: |
+          firebase login --no-localhost               
       - name: Install FlutterFire
-        run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
+        run: |
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
         run: melos run test --no-select
 
@@ -102,9 +106,11 @@ jobs:
       - shell: bash
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase login --no-localhost   
+        run: |
+          firebase login --no-localhost   
       - name: Install FlutterFire
-        run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
+        run: |
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - uses: actions/checkout@v2
       - name: "Run Tests"
         run: cmd /K melos run test --no-select
