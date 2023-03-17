@@ -78,7 +78,7 @@ void main() {
       () async {
     final projectPath = await createFlutterProject();
     // the most basic 'flutterfire configure' command that can be run without command line prompts
-    Process.runSync(
+    final result = Process.runSync(
       'flutterfire',
       [
         'configure',
@@ -89,6 +89,9 @@ void main() {
       ],
       workingDirectory: projectPath,
     );
+
+    print('STDOUT: ${result.stdout}');
+    print('STDERR: ${result.stderr}');
 
     //Check contents of Dir for debugging
     var dir = Directory(p.join(projectPath, 'ios', 'Runner'));
