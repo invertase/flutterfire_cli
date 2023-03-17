@@ -46,6 +46,8 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
+      - name: "Firebase token"
+        run: firebase --token=${{ secrets.FIREBASE_TOKEN }} projects:list          
       - name: "Firebase login"
         run: firebase login --no-localhost          
       - name: Install FlutterFire
@@ -67,6 +69,8 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools     
+      - name: "Firebase token"
+        run: firebase --token=${{ secrets.FIREBASE_TOKEN }} projects:list          
       - name: "Firebase login"
         run: firebase login --no-localhost               
       - name: Install FlutterFire
@@ -92,6 +96,8 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
+      - name: "Firebase token"
+        run: firebase --token=${{ secrets.FIREBASE_TOKEN }} projects:list
       - name: "Firebase login"
         run: firebase login --no-localhost
       - name: Install FlutterFire
