@@ -42,7 +42,10 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0-dev.0'      
+          melos-version: '3.0.0-dev.0'   
+      - name: "Install Firebase CLI"
+        run: |
+          sudo npm i -g firebase-tools            
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
       - name: "Run Tests"
@@ -59,6 +62,9 @@ jobs:
       - uses: bluefireteam/melos-action@v2
         with:
           melos-version: '3.0.0-dev.0'
+      - name: "Install Firebase CLI"
+        run: |
+          sudo npm i -g firebase-tools          
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
@@ -74,7 +80,14 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0-dev.0'      
+          melos-version: '3.0.0-dev.0'  
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
+        name: Install Node.js 16
+        with:
+          node-version: "16"       
+      - name: "Install Firebase CLI"
+        run: |
+          sudo npm i -g firebase-tools       
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - uses: actions/checkout@v2
