@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -71,13 +74,7 @@ jobs:
           melos-version: '3.0.0-dev.0'
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools     
-      - shell: bash
-        name: "Firebase login"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: |
-          firebase login --no-localhost               
+          sudo npm i -g firebase-tools                  
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
