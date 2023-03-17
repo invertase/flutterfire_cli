@@ -45,7 +45,9 @@ jobs:
           melos-version: '3.0.0-dev.0'   
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools            
+          sudo npm i -g firebase-tools
+      - name: "Firebase login"
+        run: firebase login          
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
       - name: "Run Tests"
@@ -64,7 +66,9 @@ jobs:
           melos-version: '3.0.0-dev.0'
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools          
+          sudo npm i -g firebase-tools     
+      - name: "Firebase login"
+        run: firebase login               
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
@@ -87,7 +91,9 @@ jobs:
           node-version: "16"       
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools       
+          sudo npm i -g firebase-tools
+      - name: "Firebase login"
+        run: firebase login
       - name: Install FlutterFire
         run: dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - uses: actions/checkout@v2
