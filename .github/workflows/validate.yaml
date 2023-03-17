@@ -61,7 +61,7 @@ jobs:
   test_macos:
     runs-on: macos-latest
     env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v2
