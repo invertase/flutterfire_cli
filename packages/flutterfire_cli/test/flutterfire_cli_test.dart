@@ -85,7 +85,12 @@ void main() {
         '--yes',
         '--project=$firebaseProjectId',
         '--debug-symbols-ios',
-        '--debug-symbols-macos'
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-bundle-id=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
     );
