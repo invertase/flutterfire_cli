@@ -5,9 +5,6 @@ on:
     branches:
       - main
 
-env:
-  FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -63,6 +60,8 @@ jobs:
 
   test_macos:
     runs-on: macos-latest
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v2
