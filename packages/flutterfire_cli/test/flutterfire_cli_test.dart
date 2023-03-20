@@ -87,6 +87,9 @@ void main() {
       ).readAsString();
     }
 
+    String mySecret = Platform.environment['FIREBASE_TOKEN'];
+    print('MY_SECRET: ${mySecret.length}');
+
     if (token == '') {
       print('FFFFF 11111');
     } else if (token == null) {
