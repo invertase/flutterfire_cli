@@ -58,7 +58,8 @@ jobs:
 
   test_macos:
     runs-on: macos-latest
-    timeout-minutes: 25 
+    timeout-minutes: 25
+    environment: Configure CI Environment 
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
