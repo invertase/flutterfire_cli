@@ -47,9 +47,9 @@ jobs:
         run: |
           sudo npm i -g firebase-tools
       - name: Set Firebase service account environment variable
-        run: echo "export FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT" >> $GITHUB_ENV
+        run: echo "export FIREBASE_TOKEN=$FIREBASE_TOKEN" >> $GITHUB_ENV
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}          
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}          
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
