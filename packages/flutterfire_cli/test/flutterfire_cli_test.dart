@@ -77,6 +77,13 @@ void main() {
     // the most basic 'flutterfire configure' command that can be run without command line prompts
     final token = Platform.environment['FIREBASE_TOKEN'];
 
+if(token == ''){
+  print('FFFFF 11111');
+} else if (token == null) {
+  print('FFFFF 2222');
+} else {
+  print('FFFFF 3333');
+}
     final result = Process.runSync(
       'flutterfire',
       [
