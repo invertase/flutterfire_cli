@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -75,15 +76,24 @@ void main() {
       () async {
     final projectPath = await createFlutterProject();
     // the most basic 'flutterfire configure' command that can be run without command line prompts
-    final token = Platform.environment['FIREBASE_TOKEN'];
+    String? token;
+    if (utils.isCI) {
+      final getTokenPath = p.join(
+        Directory.current.path,
+        'firebase_token.dart',
+      );
+      token = await File(
+        getTokenPath,
+      ).readAsString();
+    }
 
-if(token == ''){
-  print('FFFFF 11111');
-} else if (token == null) {
-  print('FFFFF 2222');
-} else {
-  print('FFFFF 3333');
-}
+    if (token == '') {
+      print('FFFFF 11111');
+    } else if (token == null) {
+      print('FFFFF 2222');
+    } else {
+      print('FFFFF 3333');
+    }
     final result = Process.runSync(
       'flutterfire',
       [
@@ -97,7 +107,7 @@ if(token == ''){
         '--ios-bundle-id=com.example.flutterTestCli',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
-        '--token=$token',
+        if (token != null && token.isNotEmpty) '--token=$token',
       ],
       workingDirectory: projectPath,
     );
