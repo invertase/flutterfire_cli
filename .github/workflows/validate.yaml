@@ -35,6 +35,9 @@ jobs:
   test_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    environment: CI Environment 
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
@@ -45,16 +48,14 @@ jobs:
           melos-version: '3.0.0-dev.0'   
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools
-      - name: Set Firebase service account environment variable
-        run: echo "export FIREBASE_TOKEN=$FIREBASE_TOKEN" >> $GITHUB_ENV
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}          
+          sudo npm i -g firebase-tools      
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
       - name: "Run Tests"
         run: melos run test --no-select
+        env:
+          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
 
   test_macos:
     runs-on: macos-latest
@@ -84,6 +85,9 @@ jobs:
   test_windows:
     runs-on: windows-latest
     timeout-minutes: 25
+    environment: CI Environment 
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
@@ -99,13 +103,11 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
-      - name: Set Firebase service account environment variable
-        run: echo "export FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT" >> $GITHUB_ENV
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite
       - uses: actions/checkout@v2
       - name: "Run Tests"
         run: cmd /K melos run test --no-select
+        env:
+          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
