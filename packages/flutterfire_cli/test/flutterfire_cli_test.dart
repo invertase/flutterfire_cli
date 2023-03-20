@@ -100,7 +100,7 @@ void main() {
     print('STDERR: ${result.stderr}');
 
     //Check contents of Dir for debugging
-    var dir = Directory(p.join(projectPath, 'ios', 'Runner'));
+    var dir = Directory(p.join(projectPath, 'macos', 'Runner'));
 
     List contents = dir.listSync();
     for (final fileOrDir in contents) {

@@ -72,12 +72,7 @@ jobs:
           melos-version: '3.0.0-dev.0'
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools 
-      - name: Set Firebase token as environment variable
-        run: |
-          echo $FIREBASE_TOKEN  > packages/flutterfire_cli/firebase_token.txt
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}  
+          sudo npm i -g firebase-tools  
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
