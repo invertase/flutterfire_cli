@@ -97,6 +97,8 @@ void main() {
       token = await File(
         getTokenPath,
       ).readAsString();
+
+      print('IIII: ${token}');
     }
 
     String? mySecret = Platform.environment['FIREBASE_TOKEN'];
