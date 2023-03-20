@@ -77,42 +77,7 @@ void main() {
       () async {
     final projectPath = await createFlutterProject();
     // the most basic 'flutterfire configure' command that can be run without command line prompts
-    String? token;
-    if (utils.isCI) {
-      final debugDirectory = Directory(Directory.current.path);
-      print('THIS PATH: ${debugDirectory.path}');
-      List contents = debugDirectory.listSync();
-      for (final fileOrDir in contents) {
-        if (fileOrDir is File) {
-          print('AAAAAAA: ${fileOrDir.path}');
-        } else if (fileOrDir is Directory) {
-          print('BBBBBBBB: ${fileOrDir.path}');
-        }
-      }
-
-      final getTokenPath = p.join(
-        Directory.current.path,
-        'firebase_token.txt',
-      );
-      token = await File(
-        getTokenPath,
-      ).readAsString();
-
-      print('IIII: ${token}');
-    }
-
-    String? mySecret = Platform.environment['FIREBASE_TOKEN'];
-    print('MY_SECRET: ${mySecret?.length}');
-
-    if (token == '') {
-      print('FFFFF 11111');
-    } else if (token == null) {
-      print('FFFFF 2222');
-    } else {
-      token = '--token=$token';
-      print('FFFFF 3333 ${token}');
-    }
-
+  
     final result = Process.runSync(
       'flutterfire',
       [
@@ -126,7 +91,7 @@ void main() {
         '--ios-bundle-id=com.example.flutterTestCli',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
-        token!,
+        '--web-app-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
     );
