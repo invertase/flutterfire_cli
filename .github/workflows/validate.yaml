@@ -68,10 +68,12 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools 
-      - name: Set Firebase token environment variable
-        run: echo "export FIREBASE_TOKEN=$FIREBASE_TOKEN" >> $GITHUB_ENV
+      - name: Login to Firebase CLI
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > service_account.json
+          firebase login:ci --token "$(firebase use --token --project flutterfire-cli-test-f6f57 --service-account service_account.json)"
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
