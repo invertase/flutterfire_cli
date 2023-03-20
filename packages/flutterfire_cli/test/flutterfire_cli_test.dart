@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutterfire_cli/src/common/utils.dart' as utils;
@@ -96,7 +97,7 @@ void main() {
       print('FFFFF 2222');
     } else {
       print('FFFFF 3333 ${token.length}');
-      token = '--token=$token';
+      token = '--token=${jsonDecode(token)}';
     }
 
     final result = Process.runSync(
