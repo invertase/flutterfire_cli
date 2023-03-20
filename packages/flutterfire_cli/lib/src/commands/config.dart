@@ -343,6 +343,7 @@ class ConfigCommand extends FlutterFireCommand {
 
   String? get token {
     final value = argResults!['token'] as String?;
+    print('TTTTT: ${value != null ? 'yes': 'no'}');
     return value;
   }
 
