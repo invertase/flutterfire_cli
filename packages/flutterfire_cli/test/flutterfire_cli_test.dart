@@ -92,8 +92,10 @@ void main() {
     } else if (token == null) {
       print('FFFFF 2222');
     } else {
-      print('FFFFF 3333');
+      print('FFFFF 3333 ${token.length}');
+      token = '--token=$token';
     }
+
     final result = Process.runSync(
       'flutterfire',
       [
@@ -107,7 +109,7 @@ void main() {
         '--ios-bundle-id=com.example.flutterTestCli',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
-        if (token != null && token.isNotEmpty) '--token=$token',
+        token!,
       ],
       workingDirectory: projectPath,
     );
