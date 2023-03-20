@@ -58,9 +58,7 @@ jobs:
 
   test_macos:
     runs-on: macos-latest
-    timeout-minutes: 25
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} 
+    timeout-minutes: 25 
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
@@ -75,6 +73,8 @@ jobs:
       - name: Set Firebase token as environment variable
         run: |
           echo "${{ env.FIREBASE_TOKEN }}" > packages/flutterfire_cli/firebase_token.txt
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}  
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
