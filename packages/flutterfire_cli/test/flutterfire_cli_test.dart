@@ -92,7 +92,7 @@ void main() {
 
       final getTokenPath = p.join(
         Directory.current.path,
-        'firebase_token.dart',
+        'firebase_token.txt',
       );
       token = await File(
         getTokenPath,
