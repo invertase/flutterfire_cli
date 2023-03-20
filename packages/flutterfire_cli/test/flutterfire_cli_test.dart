@@ -74,6 +74,8 @@ void main() {
       'flutterfire configure --yes --project=$firebaseProjectId --debug-symbols-ios --debug-symbols-macos',
       () async {
     final projectPath = await createFlutterProject();
+    // the most basic 'flutterfire configure' command that can be run without command line prompts
+    final token = Platform.environment['FIREBASE_TOKEN'];
 
     final result = Process.runSync(
       'flutterfire',
@@ -88,6 +90,7 @@ void main() {
         '--ios-bundle-id=com.example.flutterTestCli',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
+        '--token=$token',
       ],
       workingDirectory: projectPath,
     );
