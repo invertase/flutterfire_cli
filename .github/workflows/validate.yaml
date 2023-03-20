@@ -60,6 +60,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     environment: CI Environment 
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
