@@ -72,7 +72,7 @@ jobs:
           sudo npm i -g firebase-tools 
       - name: Set Firebase token as environment variable
         run: |
-          echo "${{ env.FIREBASE_TOKEN }}" > packages/flutterfire_cli/firebase_token.txt
+          echo $FIREBASE_TOKEN  > packages/flutterfire_cli/firebase_token.txt
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}  
       - name: Install FlutterFire
