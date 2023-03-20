@@ -79,6 +79,16 @@ void main() {
     // the most basic 'flutterfire configure' command that can be run without command line prompts
     String? token;
     if (utils.isCI) {
+      final debugDirectory = Directory(Directory.current.path);
+      List contents = debugDirectory.listSync();
+      for (final fileOrDir in contents) {
+        if (fileOrDir is File) {
+          print('AAAAAAA: ${fileOrDir.path}');
+        } else if (fileOrDir is Directory) {
+          print('BBBBBBBB: ${fileOrDir.path}');
+        }
+      }
+
       final getTokenPath = p.join(
         Directory.current.path,
         'firebase_token.dart',
