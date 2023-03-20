@@ -46,6 +46,10 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
+      - name: Set Firebase service account environment variable
+        run: echo "export FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT" >> $GITHUB_ENV
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}          
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
@@ -96,11 +100,10 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
-      - shell: bash
+      - name: Set Firebase service account environment variable
+        run: echo "export FIREBASE_SERVICE_ACCOUNT=$FIREBASE_SERVICE_ACCOUNT" >> $GITHUB_ENV
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: |
-          firebase login --no-localhost   
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
