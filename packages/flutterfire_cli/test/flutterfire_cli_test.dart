@@ -80,6 +80,7 @@ void main() {
     String? token;
     if (utils.isCI) {
       final debugDirectory = Directory(Directory.current.path);
+      print('THIS PATH: ${debugDirectory.path}');
       List contents = debugDirectory.listSync();
       for (final fileOrDir in contents) {
         if (fileOrDir is File) {
