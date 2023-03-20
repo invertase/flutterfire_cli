@@ -96,8 +96,8 @@ void main() {
     } else if (token == null) {
       print('FFFFF 2222');
     } else {
-      print('FFFFF 3333 ${token.length}');
-      token = '--token=${jsonDecode(token)}';
+      token = '--token=$token';
+      print('FFFFF 3333 ${token}');
     }
 
     final result = Process.runSync(
