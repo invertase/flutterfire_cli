@@ -129,22 +129,15 @@ void main() {
       'GoogleService-Info.plist',
     );
 
-    final file = File(iosServiceFile);
-    final stat = await file.stat();
-
-    final filemac = File(iosServiceFile);
-    final statmac = await filemac.stat();
-
-    print('stat IOS: ${stat.mode}');
-    print('stat MACOS: ${statmac.mode}');
-    // await file.setPosixPermissions(FileSystemEntity.permissionRead |
-    //     FileSystemEntity.permissionWrite |
-    //     FileSystemEntity.permissionExecute);
-
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
-    final macosServiceFileBytes = await File(macosServiceFile).readAsBytes();
 
-    final macosServiceFileContent = utf8.decode(macosServiceFileBytes);
+    if (File(macosServiceFile).existsSync() == true) {
+      print('YESSSSSS');
+    } else {
+      print('NOOOOOOO');
+    }
+    final macosServiceFileContent = await File(macosServiceFile).readAsString();
+
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
     expect(iosServiceFileContent, testServiceFileContent);
