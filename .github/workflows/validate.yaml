@@ -31,7 +31,6 @@ jobs:
       - uses: bluefireteam/melos-action@v2
       - name: "Check formatting"
         run: melos run format-check
-
   test_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 25
