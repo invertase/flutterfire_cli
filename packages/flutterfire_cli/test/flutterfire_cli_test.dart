@@ -6,23 +6,17 @@ import 'package:test/test.dart';
 void main() {
   const firebaseProjectId = 'flutterfire-cli-test-f6f57';
   const testFileDirectory = 'test_files';
-  Directory? tempDir;
 
   Future<String> createFlutterProject() async {
-    final tempCI = Platform.environment['RUNNER_TEMP'];
-    print('TTTTT: $tempCI');
-    tempDir = utils.isCI && tempCI is String
-        ? Directory(tempCI)
-        : Directory.systemTemp.createTempSync();
+    final tempDir = Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
       'flutter',
       ['create', flutterProject],
-      workingDirectory: tempDir!.path,
+      workingDirectory: tempDir.path,
     );
 
-    final updatedPath = p.join(tempDir!.path, flutterProject);
-    return updatedPath;
+    return p.join(tempDir.path, flutterProject);
   }
 
   String removeWhitepaceAndNewLines(String string) {
@@ -82,13 +76,6 @@ void main() {
     if (directory.existsSync()) {
       final contents = directory.listSync();
       for (final entity in contents) {
-        if (entity is File) {
-          print('FFFFFF: ${entity.path}');
-        } else if (entity is Directory) {
-          print('DDDDD: ${entity.path}');
-        } else {
-          print('SSSSS: $entity');
-        }
         if (entity is File && entity.path.endsWith(fileName)) {
           return entity;
         }
@@ -124,48 +111,99 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      // check Apple service files were created and have correct content
-      final iosPath = p.join(projectPath, 'ios');
-      final macosPath = p.join(projectPath, 'macos', 'Runner');
-      const defaultServiceFile = 'Runner/GoogleService-Info.plist';
-      final iosServiceFile = p.join(iosPath, defaultServiceFile);
+      if (Platform.isMacOS) {
+        // check Apple service files were created and have correct content
+        final iosPath = p.join(projectPath, 'ios');
+        final macosPath = p.join(projectPath, 'macos', 'Runner');
+        const defaultServiceFile = 'Runner/GoogleService-Info.plist';
+        final iosServiceFile = p.join(iosPath, defaultServiceFile);
 
-      final testServiceFile = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'GoogleService-Info.plist',
-      );
-      // Need to find mac file like this for it to work on CI
-      final macFile =
-          await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+        final testServiceFile = p.join(
+          Directory.current.path,
+          'test',
+          testFileDirectory,
+          'GoogleService-Info.plist',
+        );
+        // Need to find mac file like this for it to work on CI
+        final macFile =
+            await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
-      final iosServiceFileContent = await File(iosServiceFile).readAsString();
-      final macosServiceFileContent = await macFile.readAsString();
+        final iosServiceFileContent = await File(iosServiceFile).readAsString();
+        final macosServiceFileContent = await macFile.readAsString();
 
-      final testServiceFileContent = await File(testServiceFile).readAsString();
+        final testServiceFileContent =
+            await File(testServiceFile).readAsString();
 
-      expect(iosServiceFileContent, testServiceFileContent);
-      expect(macosServiceFileContent, testServiceFileContent);
+        expect(iosServiceFileContent, testServiceFileContent);
+        expect(macosServiceFileContent, testServiceFileContent);
 
-      // check default "firebase.json" was created and has correct content
-      final firebaseJsonFile = p.join(projectPath, 'firebase.json');
+        // check default "firebase.json" was created and has correct content
+        final firebaseJsonFile = p.join(projectPath, 'firebase.json');
 
-      final testFirebaseJsonFile = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'default_firebase.json',
-      );
-      final firebaseJsonFileContent =
-          await File(firebaseJsonFile).readAsString();
-      final testFirebaseJsonFileContent =
-          await File(testFirebaseJsonFile).readAsString();
-      // need to remove whitespace and newline characters to compare
-      expect(
-        firebaseJsonFileContent,
-        removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
-      );
+        final testFirebaseJsonFile = p.join(
+          Directory.current.path,
+          'test',
+          testFileDirectory,
+          'default_firebase.json',
+        );
+        final firebaseJsonFileContent =
+            await File(firebaseJsonFile).readAsString();
+        final testFirebaseJsonFileContent =
+            await File(testFirebaseJsonFile).readAsString();
+        // need to remove whitespace and newline characters to compare
+        expect(
+          firebaseJsonFileContent,
+          removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
+        );
+
+        // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
+        final iosXcodeProject = p.join(
+          projectPath,
+          'ios',
+          'Runner.xcodeproj',
+        );
+
+        final scriptToCheckIosPbxprojFile =
+            generateRubyScriptForTesting(iosXcodeProject);
+
+        final iosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckIosPbxprojFile,
+          ],
+        );
+
+        if (iosResult.exitCode != 0) {
+          fail(iosResult.stderr as String);
+        }
+
+        expect(iosResult.stdout, 'success');
+
+        final macosXcodeProject = p.join(
+          projectPath,
+          'macos',
+          'Runner.xcodeproj',
+        );
+
+        final scriptToCheckMacosPbxprojFile = generateRubyScriptForTesting(
+          macosXcodeProject,
+        );
+
+        final macosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckMacosPbxprojFile,
+          ],
+        );
+
+        if (macosResult.exitCode != 0) {
+          fail(macosResult.stderr as String);
+        }
+
+        expect(macosResult.stdout, 'success');
+      }
 
       // check google-services.json was created and has correct content
       final androidServiceFilePath = p.join(
@@ -236,57 +274,10 @@ void main() {
 
       expect(firebaseOptionsContent, testFirebaseOptionsContent);
 
-      // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
-      final iosXcodeProject = p.join(
-        projectPath,
-        'ios',
-        'Runner.xcodeproj',
-      );
-
-      final scriptToCheckIosPbxprojFile =
-          generateRubyScriptForTesting(iosXcodeProject);
-
-      final iosResult = Process.runSync(
-        'ruby',
-        [
-          '-e',
-          scriptToCheckIosPbxprojFile,
-        ],
-      );
-
-      if (iosResult.exitCode != 0) {
-        fail(iosResult.stderr as String);
-      }
-
-      expect(iosResult.stdout, 'success');
-
-      final macosXcodeProject = p.join(
-        projectPath,
-        'macos',
-        'Runner.xcodeproj',
-      );
-
-      final scriptToCheckMacosPbxprojFile = generateRubyScriptForTesting(
-        macosXcodeProject,
-      );
-
-      final macosResult = Process.runSync(
-        'ruby',
-        [
-          '-e',
-          scriptToCheckMacosPbxprojFile,
-        ],
-      );
-
-      if (macosResult.exitCode != 0) {
-        fail(macosResult.stderr as String);
-      }
-
-      expect(macosResult.stdout, 'success');
-
-      addTearDown(() => tempDir!.delete(recursive: true));
+      addTearDown(
+          () => Directory(p.dirname(projectPath)).delete(recursive: true));
     },
-    timeout: const Timeout(Duration(minutes: 5)),
+    timeout: const Timeout(Duration(minutes: 4)),
   );
 
   test('Run "flutterfire configure" to update values', () async {
