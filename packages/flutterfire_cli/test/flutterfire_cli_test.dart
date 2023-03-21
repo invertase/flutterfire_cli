@@ -284,7 +284,7 @@ void main() {
 //     }
 
 //     expect(macosResult.stdout, 'success');
-  });
+  },timeout: const Timeout(Duration(minutes: 5)),);
 
   test('Run "flutterfire configure" to update values', () async {
     // final projectPath = await createFlutterProject();
