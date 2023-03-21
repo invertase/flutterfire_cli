@@ -137,10 +137,10 @@ void main() {
       final macFile =
           await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
-          print('MMMMMM: ${macFile.path}');
+      print('MMMMMM: ${macFile.path}');
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
       final macosServiceFileContent = await macFile.readAsString();
-
+      print('MMMMM 1111: ${macosServiceFileContent.substring(0, 100)}');
       final testServiceFileContent = await File(testServiceFile).readAsString();
 
       expect(iosServiceFileContent, testServiceFileContent);
