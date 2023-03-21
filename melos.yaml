@@ -22,7 +22,8 @@ scripts:
         - "*monorepo*"
 
   format-check:
-    run: melos exec dart format . --set-exit-if-changed
+    # Necessary to stop it formatting `firebase_options.dart` file which breaks comparison in tests
+    run: melos exec -- "find . -iname \"*.dart\" ! -name \"firebase_options.dart\" -exec dart format {} --set-exit-if-changed \;" 
     description: Run `dart format` checks for all packages.
     select-package:
       ignore:
