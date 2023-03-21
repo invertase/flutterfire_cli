@@ -118,7 +118,6 @@ void main() {
       final macosPath = p.join(projectPath, 'macos', 'Runner');
       const defaultServiceFile = 'Runner/GoogleService-Info.plist';
       final iosServiceFile = p.join(iosPath, defaultServiceFile);
-      final macosServiceFile = p.join(macosPath, defaultServiceFile);
 
       final testServiceFile = p.join(
         Directory.current.path,
@@ -127,11 +126,11 @@ void main() {
         'GoogleService-Info.plist',
       );
 
-      // final macFile =
-      //     await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+      final macFile =
+          await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
-      final macosServiceFileContent = await File(macosServiceFile).readAsString();
+      final macosServiceFileContent = await macFile.readAsString();
 
       final testServiceFileContent = await File(testServiceFile).readAsString();
 
