@@ -11,10 +11,6 @@ void main() {
   Directory? tempDir;
 
   Future<String> createFlutterProject() async {
-    // final tempDir = utils.isCI
-    //     ? Directory(Platform.environment['RUNNER_TEMP'] ?? '.')
-    //     : Directory.systemTemp.createTempSync();
-
     tempDir = Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
@@ -99,7 +95,7 @@ void main() {
       final projectPath = await createFlutterProject();
       // the most basic 'flutterfire configure' command that can be run without command line prompts
 
-      final result = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -117,9 +113,6 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      print('STDOUT: ${result.stdout}');
-      print('STDERR: ${result.stderr}');
-
       // check Apple service files were created and have correct content
       final iosPath = p.join(projectPath, 'ios');
       final macosPath = p.join(projectPath, 'macos', 'Runner');
@@ -134,11 +127,11 @@ void main() {
         'GoogleService-Info.plist',
       );
 
-      final macFile =
-          await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+      // final macFile =
+      //     await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
-      final macosServiceFileContent = await macFile.readAsString();
+      final macosServiceFileContent = await File(macosServiceFile).readAsString();
 
       final testServiceFileContent = await File(testServiceFile).readAsString();
 
