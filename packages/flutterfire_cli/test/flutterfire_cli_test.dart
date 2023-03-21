@@ -8,22 +8,22 @@ import 'package:test/test.dart';
 void main() {
   const firebaseProjectId = 'flutterfire-cli-test-f6f57';
   const testFileDirectory = 'test_files';
+  Directory? tempDir;
 
   Future<String> createFlutterProject() async {
     // final tempDir = utils.isCI
     //     ? Directory(Platform.environment['RUNNER_TEMP'] ?? '.')
     //     : Directory.systemTemp.createTempSync();
 
-    final tempDir = Directory.systemTemp.createTempSync();
+    tempDir = Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
       'flutter',
       ['create', flutterProject],
-      workingDirectory: tempDir.path,
+      workingDirectory: tempDir!.path,
     );
-    // addTearDown(() => tempDir.delete(recursive: true));
 
-    final updatedPath = p.join(tempDir.path, flutterProject);
+    final updatedPath = p.join(tempDir!.path, flutterProject);
     return updatedPath;
   }
 
@@ -82,11 +82,6 @@ void main() {
     if (directory.existsSync()) {
       List contents = directory.listSync();
       for (final entity in contents) {
-        if (entity is File) {
-          print('FFFFFF: ${entity.path}');
-        } else if (entity is Directory) {
-          print('DDDDDD: ${entity.path}');
-        }
         if (entity is File && entity.path.endsWith(fileName)) {
           return entity;
         }
@@ -141,6 +136,8 @@ void main() {
 
       final macFile =
           await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+
+          print('MMMMMM: ${macFile.path}');
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
       // final macosServiceFileContent = await macFile.readAsString();
 
@@ -283,6 +280,8 @@ void main() {
 //     }
 
 //     expect(macosResult.stdout, 'success');
+
+      addTearDown(() => tempDir!.delete(recursive: true));
     },
     timeout: const Timeout(Duration(minutes: 5)),
   );
