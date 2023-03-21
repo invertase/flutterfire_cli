@@ -138,7 +138,9 @@ void main() {
     //     FileSystemEntity.permissionExecute);
 
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
-    final macosServiceFileContent = await File(macosServiceFile).readAsString();
+    final macosServiceFileBytes = await File(macosServiceFile).readAsBytes();
+
+    final macosServiceFileContent= utf8.decode(macosServiceFileBytes);
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
     expect(iosServiceFileContent, testServiceFileContent);
