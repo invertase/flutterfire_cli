@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -9,7 +9,11 @@ void main() {
   Directory? tempDir;
 
   Future<String> createFlutterProject() async {
-    tempDir = Directory.systemTemp.createTempSync();
+    final tempCI = Platform.environment['RUNNER_TEMP'];
+    print('TTTTT: $tempCI');
+    tempDir = utils.isCI && tempCI is String
+        ? Directory(tempCI)
+        : Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
       'flutter',
@@ -78,6 +82,13 @@ void main() {
     if (directory.existsSync()) {
       final contents = directory.listSync();
       for (final entity in contents) {
+        if(entity is File){
+          print('FFFFFF: ${entity.path}');
+        } else if(entity is Directory) {
+          print('DDDDD: ${entity.path}');
+        } else {
+          print('SSSSS: $entity');
+        }
         if (entity is File && entity.path.endsWith(fileName)) {
           return entity;
         }
