@@ -113,11 +113,6 @@ Future<List<FirebaseProject>> getProjects({
   String? account,
   String? token,
 }) async {
-  if(token !=null){
-    print('QQQQQQQQ 1111111');
-  } else {
-    print('QQQQQQQQ 22222222');
-  }
   final response = await runFirebaseCommand(
     [
       'projects:list',
