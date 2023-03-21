@@ -12,9 +12,11 @@ void main() {
   Future<String> createFlutterProject() async {
     print('PPPP GITHUB_WORKSPACE: ${Platform.environment['GITHUB_WORKSPACE']}');
     print('PPPP RUNNER_TEMP: ${Platform.environment['RUNNER_TEMP']}');
-    final tempDir = utils.isCI
-        ? Directory(Platform.environment['RUNNER_TEMP'] ?? '.')
-        : Directory.systemTemp.createTempSync();
+    // final tempDir = utils.isCI
+    //     ? Directory(Platform.environment['RUNNER_TEMP'] ?? '.')
+    //     : Directory.systemTemp.createTempSync();
+
+    final tempDir = Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
       'flutter',
