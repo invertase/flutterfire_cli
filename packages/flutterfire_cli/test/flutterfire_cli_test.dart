@@ -21,7 +21,7 @@ void main() {
       ['create', flutterProject],
       workingDirectory: tempDir.path,
     );
-    addTearDown(() => tempDir.delete(recursive: true));
+    // addTearDown(() => tempDir.delete(recursive: true));
 
     final updatedPath = p.join(tempDir.path, flutterProject);
     return updatedPath;
