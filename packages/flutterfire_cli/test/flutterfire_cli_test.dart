@@ -10,7 +10,9 @@ void main() {
   const testFileDirectory = 'test_files';
 
   Future<String> createFlutterProject() async {
-    final tempDir = Directory.systemTemp.createTempSync();
+    final tempDir = utils.isCI
+        ? Directory(Platform.environment['GITHUB_WORKSPACE'] ?? '.')
+        : Directory.systemTemp.createTempSync();
     const flutterProject = 'flutter_test_cli';
     await Process.run(
       'flutter',
@@ -140,7 +142,7 @@ void main() {
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
     final macosServiceFileBytes = await File(macosServiceFile).readAsBytes();
 
-    final macosServiceFileContent= utf8.decode(macosServiceFileBytes);
+    final macosServiceFileContent = utf8.decode(macosServiceFileBytes);
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
     expect(iosServiceFileContent, testServiceFileContent);
