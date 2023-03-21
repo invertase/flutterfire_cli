@@ -14,14 +14,8 @@ void main() {
       ['create', flutterProject],
       workingDirectory: tempDir.path,
     );
-    final flutterProjectPath = p.join(tempDir.path, flutterProject);
-    await Process.run(
-      'dart',
-      ['format', '.'],
-      workingDirectory: flutterProjectPath,
-    );
 
-    return flutterProjectPath;
+    return p.join(tempDir.path, flutterProject);
   }
 
   String removeWhitepaceAndNewLines(String string) {
