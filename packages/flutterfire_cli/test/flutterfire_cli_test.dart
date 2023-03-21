@@ -77,7 +77,7 @@ void main() {
       () async {
     final projectPath = await createFlutterProject();
     // the most basic 'flutterfire configure' command that can be run without command line prompts
-  
+
     final result = Process.runSync(
       'flutterfire',
       [
@@ -124,12 +124,25 @@ void main() {
       testFileDirectory,
       'GoogleService-Info.plist',
     );
+
+    final file = File(iosServiceFile);
+    final stat = await file.stat();
+
+    final filemac = File(iosServiceFile);
+    final statmac = await filemac.stat();
+
+    print('stat IOS: ${stat.mode}');
+    print('stat MACOS: ${statmac.mode}');
+    // await file.setPosixPermissions(FileSystemEntity.permissionRead |
+    //     FileSystemEntity.permissionWrite |
+    //     FileSystemEntity.permissionExecute);
+
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
-    // final macosServiceFileContent = await File(macosServiceFile).readAsString();
+    final macosServiceFileContent = await File(macosServiceFile).readAsString();
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
     expect(iosServiceFileContent, testServiceFileContent);
-    // expect(macosServiceFileContent, testServiceFileContent);
+    expect(macosServiceFileContent, testServiceFileContent);
 
     // check default "firebase.json" was created and has correct content
     final firebaseJsonFile = p.join(projectPath, 'firebase.json');
