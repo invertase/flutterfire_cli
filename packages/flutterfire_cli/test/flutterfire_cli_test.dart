@@ -154,7 +154,8 @@ void main() {
         testFileDirectory,
         'default_firebase.json',
       );
-      final firebaseJsonFileContent = await File(firebaseJsonFile).readAsString();
+      final firebaseJsonFileContent =
+          await File(firebaseJsonFile).readAsString();
       final testFirebaseJsonFileContent =
           await File(testFirebaseJsonFile).readAsString();
       // need to remove whitespace and newline characters to compare
@@ -163,122 +164,122 @@ void main() {
         removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
       );
 
-      print('HHHHHHHHH');
       // check google-services.json was created and has correct content
-//     final androidServiceFilePath = p.join(
-//       projectPath,
-//       'android',
-//       'app',
-//       'google-services.json',
-//     );
-//     final testAndroidServiceFilePath = p.join(
-//       Directory.current.path,
-//       'test',
-//       testFileDirectory,
-//       'google-services.json',
-//     );
-//     final androidServiceFileContent =
-//         await File(androidServiceFilePath).readAsString();
+      final androidServiceFilePath = p.join(
+        projectPath,
+        'android',
+        'app',
+        'google-services.json',
+      );
+      final testAndroidServiceFilePath = p.join(
+        Directory.current.path,
+        'test',
+        testFileDirectory,
+        'google-services.json',
+      );
+      final androidServiceFileContent =
+          await File(androidServiceFilePath).readAsString();
 
-//     final testAndroidServiceFileContent =
-//         await File(testAndroidServiceFilePath).readAsString();
+      final testAndroidServiceFileContent =
+          await File(testAndroidServiceFilePath).readAsString();
 
-//     expect(androidServiceFileContent, testAndroidServiceFileContent);
+      expect(androidServiceFileContent, testAndroidServiceFileContent);
 
-//     // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-//     const androidGradleUpdate = '''
-//         // START: FlutterFire Configuration
-//         classpath 'com.google.gms:google-services:4.3.10'
-//         // END: FlutterFire Configuration
-// ''';
+      // Check android "android/build.gradle" & "android/app/build.gradle" were updated
+      const androidGradleUpdate = '''
+        // START: FlutterFire Configuration
+        classpath 'com.google.gms:google-services:4.3.10'
+        // END: FlutterFire Configuration
+''';
 
-//     const androidAppGradleUpdate = '''
-//         // START: FlutterFire Configuration
-//         apply plugin: 'com.google.gms.google-services'
-//         // END: FlutterFire Configuration
-//         ''';
+      const androidAppGradleUpdate = '''
+        // START: FlutterFire Configuration
+        apply plugin: 'com.google.gms.google-services'
+        // END: FlutterFire Configuration
+        ''';
 
-//     final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
-//     final androidAppBuildGradle =
-//         p.join(projectPath, 'android', 'app', 'build.gradle');
+      final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
+      final androidAppBuildGradle =
+          p.join(projectPath, 'android', 'app', 'build.gradle');
 
-//     final androidBuildGradleContent =
-//         await File(androidBuildGradle).readAsString();
+      final androidBuildGradleContent =
+          await File(androidBuildGradle).readAsString();
 
-//     final androidAppBuildGradleContent =
-//         await File(androidAppBuildGradle).readAsString();
+      final androidAppBuildGradleContent =
+          await File(androidAppBuildGradle).readAsString();
 
-//     expect(
-//       removeWhitepaceAndNewLines(androidBuildGradleContent),
-//       contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
-//     );
-//     expect(
-//       removeWhitepaceAndNewLines(androidAppBuildGradleContent),
-//       contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
-//     );
+      expect(
+        removeWhitepaceAndNewLines(androidBuildGradleContent),
+        contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
+      );
+      expect(
+        removeWhitepaceAndNewLines(androidAppBuildGradleContent),
+        contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
+      );
 
-//     // check "firebase_options.dart" file is created in lib directory
-//     final firebaseOptions = p.join(projectPath, 'lib', 'firebase_options.dart');
-//     final testFirebaseOptions = p.join(
-//       Directory.current.path,
-//       'test',
-//       testFileDirectory,
-//       'firebase_options.dart',
-//     );
+      // check "firebase_options.dart" file is created in lib directory
+      final firebaseOptions =
+          p.join(projectPath, 'lib', 'firebase_options.dart');
+      final testFirebaseOptions = p.join(
+        Directory.current.path,
+        'test',
+        testFileDirectory,
+        'firebase_options.dart',
+      );
 
-//     final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-//     final testFirebaseOptionsContent =
-//         await File(testFirebaseOptions).readAsString();
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+      final testFirebaseOptionsContent =
+          await File(testFirebaseOptions).readAsString();
 
-//     expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      expect(firebaseOptionsContent, testFirebaseOptionsContent);
 
-//     // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
-//     final iosXcodeProject = p.join(
-//       projectPath,
-//       'ios',
-//       'Runner.xcodeproj',
-//     );
+      // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
+      final iosXcodeProject = p.join(
+        projectPath,
+        'ios',
+        'Runner.xcodeproj',
+      );
 
-//     final scriptToCheckIosPbxprojFile =
-//         generateRubyScriptForTesting(iosXcodeProject);
+      final scriptToCheckIosPbxprojFile =
+          generateRubyScriptForTesting(iosXcodeProject);
 
-//     final iosResult = Process.runSync(
-//       'ruby',
-//       [
-//         '-e',
-//         scriptToCheckIosPbxprojFile,
-//       ],
-//     );
+      final iosResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptToCheckIosPbxprojFile,
+        ],
+      );
 
-//     if (iosResult.exitCode != 0) {
-//       fail(iosResult.stderr as String);
-//     }
+      if (iosResult.exitCode != 0) {
+        fail(iosResult.stderr as String);
+      }
 
-//     expect(iosResult.stdout, 'success');
+      expect(iosResult.stdout, 'success');
 
-//     final macosXcodeProject = p.join(
-//       projectPath,
-//       'macos',
-//       'Runner.xcodeproj',
-//     );
+      final macosXcodeProject = p.join(
+        projectPath,
+        'macos',
+        'Runner.xcodeproj',
+      );
 
-//     final scriptToCheckMacosPbxprojFile = generateRubyScriptForTesting(
-//       macosXcodeProject,
-//     );
+      final scriptToCheckMacosPbxprojFile = generateRubyScriptForTesting(
+        macosXcodeProject,
+      );
 
-//     final macosResult = Process.runSync(
-//       'ruby',
-//       [
-//         '-e',
-//         scriptToCheckMacosPbxprojFile,
-//       ],
-//     );
+      final macosResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptToCheckMacosPbxprojFile,
+        ],
+      );
 
-//     if (macosResult.exitCode != 0) {
-//       fail(macosResult.stderr as String);
-//     }
+      if (macosResult.exitCode != 0) {
+        fail(macosResult.stderr as String);
+      }
 
-//     expect(macosResult.stdout, 'success');
+      expect(macosResult.stdout, 'success');
 
       addTearDown(() => tempDir!.delete(recursive: true));
     },
