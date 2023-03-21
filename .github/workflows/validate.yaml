@@ -45,13 +45,13 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0-dev.0'   
+          melos-version: '3.0.0-dev.0'
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools      
+          sudo npm i -g firebase-tools  
       - name: Install FlutterFire
         run: |
-          dart pub global activate --source="path" . --executable="flutterfire" --overwrite  
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
         run: melos run test --no-select
         env:
