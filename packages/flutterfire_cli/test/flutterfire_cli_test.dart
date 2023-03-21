@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -15,8 +14,14 @@ void main() {
       ['create', flutterProject],
       workingDirectory: tempDir.path,
     );
+    final flutterProjectPath = p.join(tempDir.path, flutterProject);
+    await Process.run(
+      'dart',
+      ['format', '.'],
+      workingDirectory: flutterProjectPath,
+    );
 
-    return p.join(tempDir.path, flutterProject);
+    return flutterProjectPath;
   }
 
   String removeWhitepaceAndNewLines(String string) {
@@ -275,7 +280,8 @@ void main() {
       expect(firebaseOptionsContent, testFirebaseOptionsContent);
 
       addTearDown(
-          () => Directory(p.dirname(projectPath)).delete(recursive: true));
+        () => Directory(p.dirname(projectPath)).delete(recursive: true),
+      );
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
