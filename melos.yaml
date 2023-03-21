@@ -31,7 +31,7 @@ scripts:
 
   test:
     description: Run tests in a specific package.
-    run: melos exec --concurrency=1 -- "dart pub get && dart pub run test --reporter expanded"
+    run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart pub run test --reporter expanded"
     select-package:
       ignore:
         - "flutterfire_starter"

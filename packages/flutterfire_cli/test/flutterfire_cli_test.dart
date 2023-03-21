@@ -82,9 +82,9 @@ void main() {
     if (directory.existsSync()) {
       final contents = directory.listSync();
       for (final entity in contents) {
-        if(entity is File){
+        if (entity is File) {
           print('FFFFFF: ${entity.path}');
-        } else if(entity is Directory) {
+        } else if (entity is Directory) {
           print('DDDDD: ${entity.path}');
         } else {
           print('SSSSS: $entity');
