@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutterfire_cli/src/common/utils.dart' as utils;
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -73,10 +71,12 @@ void main() {
   }
 
   Future<File> findFileInDirectory(
-      String directoryPath, String fileName) async {
+    String directoryPath,
+    String fileName,
+  ) async {
     final directory = Directory(directoryPath);
     if (directory.existsSync()) {
-      List contents = directory.listSync();
+      final contents = directory.listSync();
       for (final entity in contents) {
         if (entity is File && entity.path.endsWith(fileName)) {
           return entity;
@@ -86,7 +86,7 @@ void main() {
       throw Exception('Directory does not exist: ${directory.path}}');
     }
 
-    throw Exception('File not found: ${fileName}}');
+    throw Exception('File not found: $fileName');
   }
 
   test(
@@ -125,7 +125,7 @@ void main() {
         testFileDirectory,
         'GoogleService-Info.plist',
       );
-
+      // Need to find mac file like this for it to work on CI
       final macFile =
           await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
