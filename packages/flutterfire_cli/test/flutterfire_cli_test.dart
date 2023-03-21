@@ -125,7 +125,6 @@ void main() {
     print('STDOUT: ${result.stdout}');
     print('STDERR: ${result.stderr}');
 
-
     // check Apple service files were created and have correct content
     final iosPath = p.join(projectPath, 'ios');
     final macosPath = p.join(projectPath, 'macos', 'Runner');
@@ -140,12 +139,12 @@ void main() {
       'GoogleService-Info.plist',
     );
 
-    // final macFile =
-    //     await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+    final macFile =
+        await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
-    final macosServiceFileContent = await File(macosServiceFile).readAsString();
+    final macosServiceFileContent = await macFile.readAsString();
 
-
+    print('HHHHHHHHH');
 
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
@@ -193,7 +192,7 @@ void main() {
 
 //     // Check android "android/build.gradle" & "android/app/build.gradle" were updated
 //     const androidGradleUpdate = '''
-//         // START: FlutterFire Configuration 
+//         // START: FlutterFire Configuration
 //         classpath 'com.google.gms:google-services:4.3.10'
 //         // END: FlutterFire Configuration
 // ''';
