@@ -76,6 +76,28 @@ void main() {
 ''';
   }
 
+  Future<File> findFileInDirectory(
+      String directoryPath, String fileName) async {
+    final directory = Directory(directoryPath);
+    if (directory.existsSync()) {
+      List contents = directory.listSync();
+      for (final entity in contents) {
+        if (entity is File) {
+          print('FFFFFF: ${entity.path}');
+        } else if (entity is Directory) {
+          print('DDDDDD: ${entity.path}');
+        }
+        if (entity is File && entity.path.endsWith(fileName)) {
+          return entity;
+        }
+      }
+    } else {
+      throw Exception('Directory does not exist: ${directory.path}}');
+    }
+
+    throw Exception('File not found: ${fileName}}');
+  }
+
   test(
       'flutterfire configure --yes --project=$firebaseProjectId --debug-symbols-ios --debug-symbols-macos',
       () async {
@@ -117,7 +139,7 @@ void main() {
 
     // check Apple service files were created and have correct content
     final iosPath = p.join(projectPath, 'ios');
-    final macosPath = p.join(projectPath, 'macos');
+    final macosPath = p.join(projectPath, 'macos', 'Runner');
     const defaultServiceFile = 'Runner/GoogleService-Info.plist';
     final iosServiceFile = p.join(iosPath, defaultServiceFile);
     final macosServiceFile = p.join(macosPath, defaultServiceFile);
@@ -131,12 +153,10 @@ void main() {
 
     final iosServiceFileContent = await File(iosServiceFile).readAsString();
 
-    if (File(macosServiceFile).existsSync() == true) {
-      print('YESSSSSS');
-    } else {
-      print('NOOOOOOO');
-    }
-    final macosServiceFileContent = await File(macosServiceFile).readAsString();
+    final macFile =
+        await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+
+    final macosServiceFileContent = await macFile.readAsString();
 
     final testServiceFileContent = await File(testServiceFile).readAsString();
 
