@@ -137,34 +137,33 @@ void main() {
       final macFile =
           await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
 
-      print('MMMMMM: ${macFile.path}');
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
       final macosServiceFileContent = await macFile.readAsString();
-      print('MMMMM 1111: ${macosServiceFileContent.substring(0, 100)}');
+
       final testServiceFileContent = await File(testServiceFile).readAsString();
 
       expect(iosServiceFileContent, testServiceFileContent);
-      // expect(macosServiceFileContent, testServiceFileContent);
+      expect(macosServiceFileContent, testServiceFileContent);
+
+      // check default "firebase.json" was created and has correct content
+      final firebaseJsonFile = p.join(projectPath, 'firebase.json');
+
+      final testFirebaseJsonFile = p.join(
+        Directory.current.path,
+        'test',
+        testFileDirectory,
+        'default_firebase.json',
+      );
+      final firebaseJsonFileContent = await File(firebaseJsonFile).readAsString();
+      final testFirebaseJsonFileContent =
+          await File(testFirebaseJsonFile).readAsString();
+      // need to remove whitespace and newline characters to compare
+      expect(
+        firebaseJsonFileContent,
+        removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
+      );
 
       print('HHHHHHHHH');
-      // check default "firebase.json" was created and has correct content
-      // final firebaseJsonFile = p.join(projectPath, 'firebase.json');
-
-      // final testFirebaseJsonFile = p.join(
-      //   Directory.current.path,
-      //   'test',
-      //   testFileDirectory,
-      //   'default_firebase.json',
-      // );
-      // final firebaseJsonFileContent = await File(firebaseJsonFile).readAsString();
-      // final testFirebaseJsonFileContent =
-      //     await File(testFirebaseJsonFile).readAsString();
-      // // need to remove whitespace and newline characters to compare
-      // expect(
-      //   firebaseJsonFileContent,
-      //   removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
-      // );
-
       // check google-services.json was created and has correct content
 //     final androidServiceFilePath = p.join(
 //       projectPath,
