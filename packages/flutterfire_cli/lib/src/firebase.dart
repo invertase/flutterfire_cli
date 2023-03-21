@@ -83,8 +83,6 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     if (account != null) '--account=$account',
   ];
 
-
-
   final process = await Process.run(
     'firebase',
     execArgs,
