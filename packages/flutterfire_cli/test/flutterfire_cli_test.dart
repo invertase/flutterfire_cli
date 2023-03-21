@@ -139,7 +139,7 @@ void main() {
 
     // check Apple service files were created and have correct content
     final iosPath = p.join(projectPath, 'ios');
-    final macosPath = p.join(projectPath, 'macos');
+    final macosPath = p.join(projectPath, 'macos', 'Runner');
     const defaultServiceFile = 'Runner/GoogleService-Info.plist';
     final iosServiceFile = p.join(iosPath, defaultServiceFile);
     final macosServiceFile = p.join(macosPath, defaultServiceFile);
