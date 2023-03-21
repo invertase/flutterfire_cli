@@ -139,7 +139,7 @@ void main() {
 
           print('MMMMMM: ${macFile.path}');
       final iosServiceFileContent = await File(iosServiceFile).readAsString();
-      // final macosServiceFileContent = await macFile.readAsString();
+      final macosServiceFileContent = await macFile.readAsString();
 
       final testServiceFileContent = await File(testServiceFile).readAsString();
 
