@@ -67,8 +67,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '262904632156',
     projectId: 'flutterfire-cli-test-f6f57',
     storageBucket: 'flutterfire-cli-test-f6f57.appspot.com',
-    iosClientId:
-        '262904632156-v78rpqiosrn4i201sl1r75u8qt9egdl3.apps.googleusercontent.com',
+    iosClientId: '262904632156-v78rpqiosrn4i201sl1r75u8qt9egdl3.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterTestCli',
   );
 
@@ -78,8 +77,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '262904632156',
     projectId: 'flutterfire-cli-test-f6f57',
     storageBucket: 'flutterfire-cli-test-f6f57.appspot.com',
-    iosClientId:
-        '262904632156-v78rpqiosrn4i201sl1r75u8qt9egdl3.apps.googleusercontent.com',
+    iosClientId: '262904632156-v78rpqiosrn4i201sl1r75u8qt9egdl3.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterTestCli',
   );
 }
