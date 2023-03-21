@@ -10,8 +10,6 @@ void main() {
   const testFileDirectory = 'test_files';
 
   Future<String> createFlutterProject() async {
-    print('PPPP GITHUB_WORKSPACE: ${Platform.environment['GITHUB_WORKSPACE']}');
-    print('PPPP RUNNER_TEMP: ${Platform.environment['RUNNER_TEMP']}');
     // final tempDir = utils.isCI
     //     ? Directory(Platform.environment['RUNNER_TEMP'] ?? '.')
     //     : Directory.systemTemp.createTempSync();
@@ -128,7 +126,7 @@ void main() {
     print('STDERR: ${result.stderr}');
 
     //Check contents of Dir for debugging
-    var dir = Directory(p.join(projectPath, 'macos', 'Runner'));
+    var dir = Directory(p.join(projectPath));
 
     List contents = dir.listSync();
     for (final fileOrDir in contents) {
