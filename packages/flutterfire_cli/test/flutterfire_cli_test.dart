@@ -281,20 +281,6 @@ void main() {
   );
 
   test('Run "flutterfire configure" to update values', () async {
-    // final projectPath = await createFlutterProject();
-    // // initial setup before updating values
-    // Process.runSync(
-    //   'flutterfire',
-    //   [
-    //     'configure',
-    //     '--yes',
-    //     '--project=$firebaseProjectId',
-    //     '--debug-symbols-ios',
-    //     '--debug-symbols-macos'
-    //   ],
-    //   workingDirectory: projectPath,
-    // );
-
     // TODO - update values and test they are updated correctly
   });
 }
