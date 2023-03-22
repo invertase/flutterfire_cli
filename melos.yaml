@@ -36,7 +36,6 @@ scripts:
     select-package:
       ignore:
         - "flutterfire_starter"
-        - "flutterfire_starter_hooks"
       dir-exists:
         - "test/"
       scope:
