@@ -31,40 +31,82 @@ jobs:
       - uses: bluefireteam/melos-action@v2
       - name: "Check formatting"
         run: melos run format-check
-
   test_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    environment: CI Environment 
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: '3.0.0'
+      - name: "Install Firebase CLI"
+        run: |
+          sudo npm i -g firebase-tools  
+      - name: Install FlutterFire
+        run: |
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
         run: melos run test --no-select
+        env:
+          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
 
   test_macos:
     runs-on: macos-latest
     timeout-minutes: 25
+    environment: CI Environment 
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: '3.0.0'
+      - name: "Install Firebase CLI"
+        run: |
+          sudo npm i -g firebase-tools  
+      - name: Install FlutterFire
+        run: |
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
       - name: "Run Tests"
         run: melos run test --no-select
-
-  test_windows:
-    runs-on: windows-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - uses: bluefireteam/melos-action@v2
-      - uses: actions/checkout@v2
-      - name: "Run Tests"
-        run: cmd /K melos run test --no-select
+        env:
+          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
+  # Temporarily disabled windows test run until there is time and a machine to test this environment
+  # test_windows:
+  #   runs-on: windows-latest
+  #   timeout-minutes: 25
+  #   environment: CI Environment 
+  #   env:
+  #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: 'stable'
+  #     - uses: bluefireteam/melos-action@v2
+  #       with:
+  #         melos-version: '3.0.0-dev.0'  
+  #     - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
+  #       name: Install Node.js 16
+  #       with:
+  #         node-version: "16"
+  #     - name: "Install Firebase CLI"
+  #       run: |
+  #         sudo npm i -g firebase-tools
+  #     - name: Install FlutterFire
+  #       run: |
+  #         dart pub global activate --source="path" . --executable="flutterfire" --overwrite
+  #     - uses: actions/checkout@v2
+  #     - name: "Run Tests"
+  #       run: cmd /K melos run test --no-select
+  #       env:
+  #         FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
