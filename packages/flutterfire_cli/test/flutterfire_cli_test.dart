@@ -462,7 +462,7 @@ void main() {
       workingDirectory: projectPath,
     );
 
-    final result1 = Process.runSync(
+    Process.runSync(
       'flutterfire',
       [
         'configure',

@@ -59,8 +59,10 @@ class FirebaseAppleSetup {
 
       final packages = packageConfig['packages'] as List<dynamic>;
 
-      crashlyticsDependencyExists = packages.any((dynamic package) =>
-          package is Map && package['name'] == 'firebase_crashlytics');
+      crashlyticsDependencyExists = packages.any(
+        (dynamic package) =>
+            package is Map && package['name'] == 'firebase_crashlytics',
+      );
     } else {
       final pubspecContents =
           await File('${flutterApp!.package.path}/pubspec.yaml').readAsString();
