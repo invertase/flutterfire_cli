@@ -454,75 +454,77 @@ void main() {
   });
 
   test(
-      'Validate `flutterfire upload-crashlytics-symbols` script is included when `firebase_crashlytics` is a dependency',
-      () {
-    Process.runSync(
-      'flutter',
-      ['pub', 'add', 'firebase_crashlytics'],
-      workingDirectory: projectPath,
-    );
+    'Validate `flutterfire upload-crashlytics-symbols` script is included when `firebase_crashlytics` is a dependency',
+    () {
+      Process.runSync(
+        'flutter',
+        ['pub', 'add', 'firebase_crashlytics'],
+        workingDirectory: projectPath,
+      );
 
-    Process.runSync(
-      'flutterfire',
-      [
-        'configure',
-        '--yes',
-        '--project=$firebaseProjectId',
-        // The below args aren't needed unless running from CI. We need for Github actions to run command.
-        '--platforms=android,ios,macos,web',
-        '--ios-bundle-id=com.example.flutterTestCli',
-        '--android-package-name=com.example.flutter_test_cli',
-        '--macos-bundle-id=com.example.flutterTestCli',
-        '--web-app-id=com.example.flutterTestCli',
-      ],
-      workingDirectory: projectPath,
-    );
-    final iosXcodeProject = p.join(
-      projectPath!,
-      'ios',
-      'Runner.xcodeproj',
-    );
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
+      final iosXcodeProject = p.join(
+        projectPath!,
+        'ios',
+        'Runner.xcodeproj',
+      );
 
-    final scriptToCheckIosPbxprojFile =
-        rubyScriptForTestingDebugSymbolScriptExists(iosXcodeProject);
+      final scriptToCheckIosPbxprojFile =
+          rubyScriptForTestingDebugSymbolScriptExists(iosXcodeProject);
 
-    final iosResult = Process.runSync(
-      'ruby',
-      [
-        '-e',
-        scriptToCheckIosPbxprojFile,
-      ],
-    );
+      final iosResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptToCheckIosPbxprojFile,
+        ],
+      );
 
-    if (iosResult.exitCode != 0) {
-      fail(iosResult.stderr as String);
-    }
+      if (iosResult.exitCode != 0) {
+        fail(iosResult.stderr as String);
+      }
 
-    expect(iosResult.stdout, 'success');
+      expect(iosResult.stdout, 'success');
 
-    final macosXcodeProject = p.join(
-      projectPath!,
-      'macos',
-      'Runner.xcodeproj',
-    );
+      final macosXcodeProject = p.join(
+        projectPath!,
+        'macos',
+        'Runner.xcodeproj',
+      );
 
-    final scriptToCheckMacosPbxprojFile =
-        rubyScriptForTestingDebugSymbolScriptExists(
-      macosXcodeProject,
-    );
+      final scriptToCheckMacosPbxprojFile =
+          rubyScriptForTestingDebugSymbolScriptExists(
+        macosXcodeProject,
+      );
 
-    final macosResult = Process.runSync(
-      'ruby',
-      [
-        '-e',
-        scriptToCheckMacosPbxprojFile,
-      ],
-    );
+      final macosResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptToCheckMacosPbxprojFile,
+        ],
+      );
 
-    if (macosResult.exitCode != 0) {
-      fail(macosResult.stderr as String);
-    }
+      if (macosResult.exitCode != 0) {
+        fail(macosResult.stderr as String);
+      }
 
-    expect(macosResult.stdout, 'success');
-  });
+      expect(macosResult.stdout, 'success');
+    },
+    skip: !Platform.isMacOS,
+  );
 }
