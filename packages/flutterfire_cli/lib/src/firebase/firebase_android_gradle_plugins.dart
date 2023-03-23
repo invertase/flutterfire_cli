@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
@@ -68,7 +69,7 @@ class FirebaseAndroidGradlePlugins {
 
   File get androidGoogleServicesJsonFile {
     if (androidServiceFilePath != null) {
-      return File('${flutterApp.package.path}${androidServiceFilePath!}');
+      return File('${flutterApp.package.path}/${androidServiceFilePath!}');
     } else {
       return File(
         path.join(
@@ -83,9 +84,70 @@ class FirebaseAndroidGradlePlugins {
   Future<void> createAndroidGoogleServicesJsonFile() async {
     if (androidServiceFilePath != null) {
       final updatedPath =
-          '${flutterApp.package.path}${androidServiceFilePath!}';
+          '${flutterApp.package.path}/${androidServiceFilePath!}';
       await File(updatedPath).create(recursive: true);
     }
+  }
+
+  Future<void> _updateFirebaseJsonFile(String? configKey) async {
+    final file = File(path.join(flutterApp.package.path, 'firebase.json'));
+
+    final fileAsString = await file.readAsString();
+
+    final map = jsonDecode(fileAsString) as Map;
+
+    if (map[kFlutter] == null) {
+      map[kFlutter] = <Object, dynamic>{};
+    }
+    final flutterConfig = map[kFlutter] as Map;
+
+    if (flutterConfig[kPlatforms] == null) {
+      flutterConfig[kPlatforms] = <Object, dynamic>{};
+    }
+    final platform = flutterConfig[kPlatforms] as Map;
+
+    if (platform[kAndroid] == null) {
+      platform[kAndroid] = <Object, dynamic>{};
+    }
+    final androidConfig = platform[kAndroid] as Map;
+
+    final configurationKey =
+        androidServiceFilePath != null ? kBuildConfiguration : kDefaultConfig;
+
+    if (androidConfig[configurationKey] == null) {
+      androidConfig[configurationKey] = <Object, dynamic>{};
+    }
+    final configurationMaps = androidConfig[configurationKey] as Map?;
+
+    Map? configurationMap;
+
+    if (androidServiceFilePath != null) {
+      if (configurationMaps?[configKey] == null) {
+        // ignore: implicit_dynamic_map_literal
+        configurationMaps?[configKey] = {};
+      }
+      configurationMap = configurationMaps?[configKey] as Map;
+    } else {
+      // Only a single map in "default" configuration.
+      configurationMap = configurationMaps;
+    }
+
+    configurationMap?[kProjectId] = firebaseOptions.projectId;
+    configurationMap?[kAppId] = firebaseOptions.appId;
+
+    if (androidServiceFilePath != null) {
+      configurationMap?[kServiceFileOutput] = androidServiceFilePath;
+    } else {
+      configurationMap?[kServiceFileOutput] = path.join(
+        'android',
+        'app',
+        firebaseOptions.optionsSourceFileName,
+      );
+    }
+
+    final mapJson = json.encode(map);
+
+    file.writeAsStringSync(mapJson);
   }
 
   File get androidBuildGradleFile =>
@@ -142,6 +204,25 @@ class FirebaseAndroidGradlePlugins {
     await androidGoogleServicesJsonFile.writeAsString(
       firebaseOptions.optionsSourceContent,
     );
+
+    if (androidServiceFilePath != null) {
+      final segments = path.split(androidServiceFilePath!);
+      final appIndex = segments.indexOf('app');
+
+      if (appIndex != -1 && appIndex + 1 < segments.length) {
+        final newPath = path.joinAll(segments.sublist(appIndex + 1));
+        // The key used for "firebase.json"
+        final configKey = path.dirname(newPath);
+        await _updateFirebaseJsonFile(configKey);
+      } else {
+        // Internal exception
+        throw Exception(
+          'The "app" segment was not found or is the last segment in the path. The path should look like "android/app/development/google-services.json". "development" is the key used in "firebase.json".',
+        );
+      }
+    } else {
+      await _updateFirebaseJsonFile(null);
+    }
 
     if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
       final hasMatch =

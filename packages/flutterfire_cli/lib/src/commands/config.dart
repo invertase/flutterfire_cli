@@ -287,7 +287,10 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get androidServiceFilePath {
-    return argResults!['android-out'] as String?;
+    if(argResults!['android-out'] == null) {
+      return null;
+    }
+    return removeForwardSlash(argResults!['android-out'] as String);
   }
 
   String? get androidApplicationId {
