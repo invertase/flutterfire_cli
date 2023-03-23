@@ -636,6 +636,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     await FirebaseConfigurationFile(
       outputFilePath,
+      flutterApp!,
       androidOptions: androidOptions,
       iosOptions: iosOptions,
       macosOptions: macosOptions,

@@ -15,6 +15,7 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
@@ -22,11 +23,13 @@ import 'package:path/path.dart';
 
 import '../common/strings.dart';
 import '../common/utils.dart';
+import '../flutter_app.dart';
 import 'firebase_options.dart';
 
 class FirebaseConfigurationFile {
   FirebaseConfigurationFile(
-    this.outputFilePath, {
+    this.outputFilePath,
+    this.flutterApp, {
     this.androidOptions,
     this.iosOptions,
     this.macosOptions,
@@ -38,8 +41,8 @@ class FirebaseConfigurationFile {
   });
 
   final StringBuffer _stringBuffer = StringBuffer();
-
   final String outputFilePath;
+  final FlutterApp flutterApp;
 
   /// Whether to skip prompts and force write output file.
   final bool force;
@@ -89,6 +92,37 @@ class FirebaseConfigurationFile {
 
     outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(_stringBuffer.toString());
+    await _updateFirebaseJsonFile();
+  }
+
+  Future<void> _updateFirebaseJsonFile() async {
+    final file = File(join(flutterApp.package.path, 'firebase.json'));
+
+    final fileAsString = await file.readAsString();
+
+    final map = jsonDecode(fileAsString) as Map;
+
+    final flutterConfig = map[kFlutter] as Map;
+
+    final platform = flutterConfig[kPlatforms] as Map;
+
+    if (platform[kWeb] == null) {
+      platform[kWeb] = <String, Object>{};
+    }
+    final webConfig = platform[kWeb] as Map;
+
+
+    if (webConfig[outputFilePath] == null) {
+      webConfig[outputFilePath] = <String, Object>{};
+    }
+    final configurationMap = webConfig[outputFilePath] as Map?;
+
+    configurationMap?[kProjectId] = webOptions?.projectId;
+    configurationMap?[kAppId] = webOptions?.appId;
+
+    final mapJson = json.encode(map);
+
+    file.writeAsStringSync(mapJson);
   }
 
   void _writeHeader() {
