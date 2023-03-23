@@ -325,7 +325,7 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
     final segments = path.split(serviceFilePath);
-    if (!segments.contains('android') && !segments.contains('app')) {
+    if (!segments.contains('android') || !segments.contains('app')) {
       throw ServiceFileRequirementException(
         kAndroid,
         'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
