@@ -194,9 +194,17 @@ end
 
     final flutterConfig = map[kFlutter] as Map;
     final applePlatform = flutterConfig[kPlatforms] as Map;
-    final appleConfig =
-        applePlatform[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map;
 
+    final platformKey = platform.toLowerCase() == 'ios' ? kIos : kMacos;
+
+    if (applePlatform[platformKey] == null) {
+      applePlatform[platformKey] = <String, Object>{};
+    }
+    final appleConfig = applePlatform[platformKey] as Map;
+
+    if (appleConfig[configuration] == null) {
+      appleConfig[configuration] = <String, Object>{};
+    }
     final configurationMaps = appleConfig[configuration] as Map?;
 
     Map? configurationMap;

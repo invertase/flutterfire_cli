@@ -274,18 +274,7 @@ String getProjectConfigurationProperty(
 Map<String, dynamic> _generateFlutterMap() {
   return <String, dynamic>{
     kFlutter: {
-      kPlatforms: {
-        kIos: {
-          kBuildConfiguration: <String, Object>{},
-          kTargets: <String, Object>{},
-          kDefaultConfig: <String, Object>{}
-        },
-        kMacos: {
-          kBuildConfiguration: <String, Object>{},
-          kTargets: <String, Object>{},
-          kDefaultConfig: <String, Object>{}
-        }
-      }
+      kPlatforms: <String, Object>{}
     }
   };
 }
