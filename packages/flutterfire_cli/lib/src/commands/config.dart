@@ -257,7 +257,20 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get relativeMacosServiceFilePath {
-    return argResults!['macos-out'] as String?;
+    final serviceFilePath = argResults!['macos-out'] as String?;
+
+    if (serviceFilePath == null) {
+      return null;
+    }
+    final fileName = path.basename(serviceFilePath);
+    
+    if (fileName != 'GoogleService-Info.plist') {
+      throw ServiceFileRequirementException(
+        kMacos,
+        'The file name for the macOS service file must be `GoogleService-Info.plist`',
+      );
+    }
+    return serviceFilePath;
   }
 
   String? get fullMacOSServicePath {
@@ -284,7 +297,7 @@ class ConfigCommand extends FlutterFireCommand {
         'The file name for the iOS service file must be `GoogleService-Info.plist`',
       );
     }
-    return argResults!['ios-out'] as String?;
+    return serviceFilePath;
   }
 
   String? get fulliOSServicePath {
@@ -318,7 +331,7 @@ class ConfigCommand extends FlutterFireCommand {
         'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
       );
     }
-    return removeForwardSlash(argResults!['android-out'] as String);
+    return removeForwardSlash(serviceFilePath);
   }
 
   String? get androidApplicationId {
