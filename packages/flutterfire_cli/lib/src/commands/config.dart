@@ -272,6 +272,18 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get relativeIosServiceFilePath {
+    final serviceFilePath = argResults!['ios-out'] as String?;
+    if (serviceFilePath == null) {
+      return null;
+    }
+    final fileName = path.basename(serviceFilePath);
+
+    if (fileName != 'GoogleService-Info.plist') {
+      throw ServiceFileRequirementException(
+        kIos,
+        'The file name for the iOS service file must be `GoogleService-Info.plist`',
+      );
+    }
     return argResults!['ios-out'] as String?;
   }
 
@@ -287,8 +299,24 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get androidServiceFilePath {
-    if(argResults!['android-out'] == null) {
+    final serviceFilePath = argResults!['android-out'] as String?;
+    if (serviceFilePath == null) {
       return null;
+    }
+
+    final fileName = path.basename(serviceFilePath);
+    if (fileName != 'google-services.json') {
+      throw ServiceFileRequirementException(
+        kAndroid,
+        'The file name for the Android service file must be `google-services.json`',
+      );
+    }
+    final segments = path.split(serviceFilePath);
+    if (!segments.contains('android') && !segments.contains('app')) {
+      throw ServiceFileRequirementException(
+        kAndroid,
+        'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
+      );
     }
     return removeForwardSlash(argResults!['android-out'] as String);
   }

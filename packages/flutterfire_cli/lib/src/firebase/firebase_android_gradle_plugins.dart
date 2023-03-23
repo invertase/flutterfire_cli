@@ -209,9 +209,9 @@ class FirebaseAndroidGradlePlugins {
         final configKey = path.dirname(newPath);
         await _updateFirebaseJsonFile(configKey);
       } else {
-        // Internal exception
-        throw Exception(
-          'The "app" segment was not found or is the last segment in the path. The path should look like "android/app/development/google-services.json". "development" is the key used in "firebase.json".',
+        throw ServiceFileRequirementException(
+          kAndroid,
+          'Your service file does not have "app" as a path segment in the "--android-out" path input. See Firebase documentation for more details: https://firebase.google.com/docs/projects/multiprojects',
         );
       }
     } else {

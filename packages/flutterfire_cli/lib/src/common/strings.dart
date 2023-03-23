@@ -250,3 +250,15 @@ class FirebaseCommandException implements FlutterFireException {
         '\nERROR: $error';
   }
 }
+
+class ServiceFileRequirementException implements FlutterFireException {
+  ServiceFileRequirementException(this.platform, this.message) : super();
+
+  final String platform;
+  final String message;
+
+  @override
+  String toString() {
+    return 'ServiceFileRequirementException: $platform - $message';
+  }
+}
