@@ -86,10 +86,18 @@ void main() {
     throw Exception('File not found: $fileName');
   }
 
+  String? projectPath;
+  setUpAll(() async {
+    projectPath = await createFlutterProject();
+  });
+
+  tearDownAll(() {
+    Directory(p.dirname(projectPath!)).delete(recursive: true);
+  });
+
   test(
     'flutterfire configure --yes --project=$firebaseProjectId --debug-symbols-ios --debug-symbols-macos',
     () async {
-      final projectPath = await createFlutterProject();
       // the most basic 'flutterfire configure' command that can be run without command line prompts
 
       Process.runSync(
@@ -112,8 +120,8 @@ void main() {
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
-        final iosPath = p.join(projectPath, 'ios');
-        final macosPath = p.join(projectPath, 'macos', 'Runner');
+        final iosPath = p.join(projectPath!, 'ios');
+        final macosPath = p.join(projectPath!, 'macos', 'Runner');
         const defaultServiceFile = 'Runner/GoogleService-Info.plist';
         final iosServiceFile = p.join(iosPath, defaultServiceFile);
 
@@ -137,7 +145,7 @@ void main() {
         expect(macosServiceFileContent, testServiceFileContent);
 
         // check default "firebase.json" was created and has correct content
-        final firebaseJsonFile = p.join(projectPath, 'firebase.json');
+        final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
 
         final testFirebaseJsonFile = p.join(
           Directory.current.path,
@@ -157,7 +165,7 @@ void main() {
 
         // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
-          projectPath,
+          projectPath!,
           'ios',
           'Runner.xcodeproj',
         );
@@ -180,7 +188,7 @@ void main() {
         expect(iosResult.stdout, 'success');
 
         final macosXcodeProject = p.join(
-          projectPath,
+          projectPath!,
           'macos',
           'Runner.xcodeproj',
         );
@@ -206,7 +214,7 @@ void main() {
 
       // check google-services.json was created and has correct content
       final androidServiceFilePath = p.join(
-        projectPath,
+        projectPath!,
         'android',
         'app',
         'google-services.json',
@@ -238,9 +246,10 @@ void main() {
         // END: FlutterFire Configuration
         ''';
 
-      final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
+      final androidBuildGradle =
+          p.join(projectPath!, 'android', 'build.gradle');
       final androidAppBuildGradle =
-          p.join(projectPath, 'android', 'app', 'build.gradle');
+          p.join(projectPath!, 'android', 'app', 'build.gradle');
 
       final androidBuildGradleContent =
           await File(androidBuildGradle).readAsString();
@@ -259,7 +268,7 @@ void main() {
 
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
-          p.join(projectPath, 'lib', 'firebase_options.dart');
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
       final testFirebaseOptions = p.join(
         Directory.current.path,
         'test',
@@ -272,15 +281,154 @@ void main() {
           await File(testFirebaseOptions).readAsString();
 
       expect(firebaseOptionsContent, testFirebaseOptionsContent);
-
-      addTearDown(
-        () => Directory(p.dirname(projectPath)).delete(recursive: true),
-      );
     },
-    timeout: const Timeout(Duration(minutes: 4)),
+    timeout: const Timeout(Duration(minutes: 2)),
   );
 
-  test('Run "flutterfire configure" to update values', () async {
-    // TODO - update values and test they are updated correctly
+  test('Validate service file requirements for iOS platform', () async {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        // Incorrect service file name
+        '--ios-out=something/not-service-file.plist',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr,
+      contains(
+        'The file name for the iOS service file must be `GoogleService-Info.plist`',
+      ),
+    );
+  });
+  test('Validate service file requirements for macOS platform', () {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        // Incorrect service file name
+        '--macos-out=something/not-service-file.plist',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr,
+      contains(
+        'The file name for the macOS service file must be `GoogleService-Info.plist`',
+      ),
+    );
+  });
+
+  test('Validate service file requirements for android platform', () {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        // Incorrect service file name
+        '--android-out=android/app/not-service-file.json',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode, 1);
+    expect(
+      result.stderr,
+      contains(
+        'The file name for the Android service file must be `google-services.json`',
+      ),
+    );
+  });
+
+  test('Validate service file path for android platform', () {
+    final result1 = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        // Requires "app" path segment
+        '--android-out=android/google-services.json',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result1.exitCode, 1);
+    expect(
+      result1.stderr,
+      contains(
+        'The file path for the Android service file must contain `android/app`',
+      ),
+    );
+
+    final result2 = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        // Requires "android" path segment
+        '--android-out=app/google-services.json',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--debug-symbols-ios',
+        '--debug-symbols-macos',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result2.exitCode, 1);
+    expect(
+      result2.stderr,
+      contains(
+        'The file path for the Android service file must contain `android/app`',
+      ),
+    );
   });
 }
