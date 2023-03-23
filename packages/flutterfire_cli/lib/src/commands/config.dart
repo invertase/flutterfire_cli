@@ -116,21 +116,6 @@ class ConfigCommand extends FlutterFireCommand {
           "Whether to add the Firebase related Gradle plugins (such as Crashlytics and Performance) to your Android app's build.gradle files "
           'and create the google-services.json file in your ./android/app folder.',
     );
-    argParser.addFlag(
-      'debug-symbols-ios',
-      abbr: 'r',
-      defaultsTo: null,
-      help:
-          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
-    );
-
-    argParser.addFlag(
-      'debug-symbols-macos',
-      abbr: 's',
-      defaultsTo: null,
-      help:
-          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your macOS project.",
-    );
 
     argParser.addOption(
       'ios-build-config',
@@ -232,14 +217,6 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['apply-gradle-plugins'] as bool;
   }
 
-  bool? get iosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-ios'] as bool?;
-  }
-
-  bool? get macosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-macos'] as bool?;
-  }
-
   String? get iosBuildConfiguration {
     return argResults!['ios-build-config'] as String?;
   }
@@ -263,7 +240,7 @@ class ConfigCommand extends FlutterFireCommand {
       return null;
     }
     final fileName = path.basename(serviceFilePath);
-    
+
     if (fileName != 'GoogleService-Info.plist') {
       throw ServiceFileRequirementException(
         kMacos,
@@ -654,7 +631,6 @@ class ConfigCommand extends FlutterFireCommand {
         fulliOSServicePath,
         fulliOSServicePath != null,
         logger,
-        iosGenerateDebugSymbolScript,
         iosBuildConfiguration,
         iosTarget,
         'iOS',
@@ -668,7 +644,6 @@ class ConfigCommand extends FlutterFireCommand {
         fullMacOSServicePath,
         fullMacOSServicePath != null,
         logger,
-        macosGenerateDebugSymbolScript,
         macosBuildConfiguration,
         macosTarget,
         'macOS',
