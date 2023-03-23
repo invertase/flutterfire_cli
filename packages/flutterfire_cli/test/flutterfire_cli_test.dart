@@ -22,7 +22,52 @@ void main() {
     return string.replaceAll(RegExp(r'\s+|\n'), '');
   }
 
-  String generateRubyScriptForTesting(
+  String rubyScriptForTestingDefaultConfigure(
+    String projectPath, {
+    String targetName = 'Runner',
+    String debugSymbolScriptName =
+        'FlutterFire: "flutterfire upload-crashlytics-symbols"',
+  }) {
+    return '''
+      require 'xcodeproj'
+      xcodeFile='$projectPath'
+      debugSymbolScriptName='$debugSymbolScriptName'
+      targetName='$targetName'
+      project = Xcodeproj::Project.open(xcodeFile)
+      target = project.targets.find { |target| target.name == targetName }
+      if(target)
+        # ensure debug symbol script does not exist in build phase scripts
+        debugSymbolScript = target.shell_script_build_phases().find do |script|
+          if defined? script && script.name
+            script.name == debugSymbolScriptName
+          end
+        end
+        
+        # find "GoogleService-Info.plist" bundled with resources
+        serviceFileInResources = target.resources_build_phase.files.find do |file|
+          if defined? file && file.file_ref && file.file_ref.path
+            if file.file_ref.path.is_a? String
+              file.file_ref.path.include? 'GoogleService-Info.plist'
+            end
+          end
+        end
+        if(serviceFileInResources && !debugSymbolScript)
+          \$stdout.write("success")
+        else
+          if(debugSymbolScript)
+            abort("failed, debug symbol script #{debugSymbolScriptName} exists in run script build phases")
+          end
+          if(!serviceFileInResources)
+            abort("failed, cannot find 'GoogleService-Info.plist' bundled in resources")
+          end
+        end
+      else
+        abort("failed, #{targetName} target not found.")
+      end
+''';
+  }
+
+  String rubyScriptForTestingDebugSymbolScriptExists(
     String projectPath, {
     String targetName = 'Runner',
     String debugSymbolScriptName =
@@ -43,23 +88,10 @@ void main() {
           end
         end
         
-        # find "GoogleService-Info.plist" bundled with resources
-        serviceFileInResources = target.resources_build_phase.files.find do |file|
-          if defined? file && file.file_ref && file.file_ref.path
-            if file.file_ref.path.is_a? String
-              file.file_ref.path.include? 'GoogleService-Info.plist'
-            end
-          end
-        end
-        if(serviceFileInResources && debugSymbolScript)
+        if(debugSymbolScript)
           \$stdout.write("success")
         else
-          if(!debugSymbolScript)
-            abort("failed, cannot find debug symbol script #{debugSymbolScriptName} in run script build phases")
-          end
-          if(!serviceFileInResources)
-            abort("failed, cannot find 'GoogleService-Info.plist' bundled in resources")
-          end
+          abort("failed, cannot find debug symbol script #{debugSymbolScriptName} in run script build phases")
         end
       else
         abort("failed, #{targetName} target not found.")
@@ -106,8 +138,6 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          '--debug-symbols-ios',
-          '--debug-symbols-macos',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--platforms=android,ios,macos,web',
           '--ios-bundle-id=com.example.flutterTestCli',
@@ -163,7 +193,7 @@ void main() {
           removeWhitepaceAndNewLines(testFirebaseJsonFileContent),
         );
 
-        // check GoogleService-Info.plist file & debug symbols script is added to Apple "project.pbxproj" files
+        // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
           projectPath!,
           'ios',
@@ -171,7 +201,7 @@ void main() {
         );
 
         final scriptToCheckIosPbxprojFile =
-            generateRubyScriptForTesting(iosXcodeProject);
+            rubyScriptForTestingDefaultConfigure(iosXcodeProject);
 
         final iosResult = Process.runSync(
           'ruby',
@@ -193,7 +223,8 @@ void main() {
           'Runner.xcodeproj',
         );
 
-        final scriptToCheckMacosPbxprojFile = generateRubyScriptForTesting(
+        final scriptToCheckMacosPbxprojFile =
+            rubyScriptForTestingDefaultConfigure(
           macosXcodeProject,
         );
 
@@ -294,8 +325,6 @@ void main() {
         '--ios-out=something/not-service-file.plist',
         '--yes',
         '--project=$firebaseProjectId',
-        '--debug-symbols-ios',
-        '--debug-symbols-macos',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
@@ -323,8 +352,6 @@ void main() {
         '--macos-out=something/not-service-file.plist',
         '--yes',
         '--project=$firebaseProjectId',
-        '--debug-symbols-ios',
-        '--debug-symbols-macos',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
@@ -353,8 +380,6 @@ void main() {
         '--android-out=android/app/not-service-file.json',
         '--yes',
         '--project=$firebaseProjectId',
-        '--debug-symbols-ios',
-        '--debug-symbols-macos',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
@@ -383,8 +408,6 @@ void main() {
         '--android-out=android/google-services.json',
         '--yes',
         '--project=$firebaseProjectId',
-        '--debug-symbols-ios',
-        '--debug-symbols-macos',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
@@ -411,8 +434,6 @@ void main() {
         '--android-out=app/google-services.json',
         '--yes',
         '--project=$firebaseProjectId',
-        '--debug-symbols-ios',
-        '--debug-symbols-macos',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--platforms=android,ios,macos,web',
         '--ios-bundle-id=com.example.flutterTestCli',
@@ -430,5 +451,78 @@ void main() {
         'The file path for the Android service file must contain `android/app`',
       ),
     );
+  });
+
+  test(
+      'Validate `flutterfire upload-crashlytics-symbols` script is included when `firebase_crashlytics` is a dependency',
+      () {
+    Process.runSync(
+      'flutter',
+      ['pub', 'add', 'firebase_crashlytics'],
+      workingDirectory: projectPath,
+    );
+
+    final result1 = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--platforms=android,ios,macos,web',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+    final iosXcodeProject = p.join(
+      projectPath!,
+      'ios',
+      'Runner.xcodeproj',
+    );
+
+    final scriptToCheckIosPbxprojFile =
+        rubyScriptForTestingDebugSymbolScriptExists(iosXcodeProject);
+
+    final iosResult = Process.runSync(
+      'ruby',
+      [
+        '-e',
+        scriptToCheckIosPbxprojFile,
+      ],
+    );
+
+    if (iosResult.exitCode != 0) {
+      fail(iosResult.stderr as String);
+    }
+
+    expect(iosResult.stdout, 'success');
+
+    final macosXcodeProject = p.join(
+      projectPath!,
+      'macos',
+      'Runner.xcodeproj',
+    );
+
+    final scriptToCheckMacosPbxprojFile =
+        rubyScriptForTestingDebugSymbolScriptExists(
+      macosXcodeProject,
+    );
+
+    final macosResult = Process.runSync(
+      'ruby',
+      [
+        '-e',
+        scriptToCheckMacosPbxprojFile,
+      ],
+    );
+
+    if (macosResult.exitCode != 0) {
+      fail(macosResult.stderr as String);
+    }
+
+    expect(macosResult.stdout, 'success');
   });
 }
