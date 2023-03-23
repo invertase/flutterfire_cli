@@ -96,18 +96,12 @@ class FirebaseAndroidGradlePlugins {
 
     final map = jsonDecode(fileAsString) as Map;
 
-    if (map[kFlutter] == null) {
-      map[kFlutter] = <Object, dynamic>{};
-    }
     final flutterConfig = map[kFlutter] as Map;
 
-    if (flutterConfig[kPlatforms] == null) {
-      flutterConfig[kPlatforms] = <Object, dynamic>{};
-    }
     final platform = flutterConfig[kPlatforms] as Map;
 
     if (platform[kAndroid] == null) {
-      platform[kAndroid] = <Object, dynamic>{};
+      platform[kAndroid] = <String, Object>{};
     }
     final androidConfig = platform[kAndroid] as Map;
 
@@ -115,7 +109,7 @@ class FirebaseAndroidGradlePlugins {
         androidServiceFilePath != null ? kBuildConfiguration : kDefaultConfig;
 
     if (androidConfig[configurationKey] == null) {
-      androidConfig[configurationKey] = <Object, dynamic>{};
+      androidConfig[configurationKey] = <String, Object>{};
     }
     final configurationMaps = androidConfig[configurationKey] as Map?;
 
