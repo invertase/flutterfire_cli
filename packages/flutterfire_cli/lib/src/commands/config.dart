@@ -256,35 +256,28 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-target'] as String?;
   }
 
-  String? get relativeMacosServiceFilePath {
+  String? get macOSServiceFilePath {
     final serviceFilePath = argResults!['macos-out'] as String?;
 
     if (serviceFilePath == null) {
       return null;
     }
     final fileName = path.basename(serviceFilePath);
-    
+
     if (fileName != 'GoogleService-Info.plist') {
       throw ServiceFileRequirementException(
         kMacos,
         'The file name for the macOS service file must be `GoogleService-Info.plist`',
       );
     }
-    return serviceFilePath;
-  }
-
-  String? get fullMacOSServicePath {
-    if (relativeMacosServiceFilePath == null) {
-      return null;
-    }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeMacosServiceFilePath!),
+      removeForwardSlash(serviceFilePath),
     );
   }
 
-  String? get relativeIosServiceFilePath {
+  String? get iOSServiceFilePath {
     final serviceFilePath = argResults!['ios-out'] as String?;
     if (serviceFilePath == null) {
       return null;
@@ -297,17 +290,10 @@ class ConfigCommand extends FlutterFireCommand {
         'The file name for the iOS service file must be `GoogleService-Info.plist`',
       );
     }
-    return serviceFilePath;
-  }
-
-  String? get fulliOSServicePath {
-    if (relativeIosServiceFilePath == null) {
-      return null;
-    }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeIosServiceFilePath!),
+      removeForwardSlash(serviceFilePath),
     );
   }
 
@@ -651,8 +637,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         iosOptions,
         flutterApp,
-        fulliOSServicePath,
-        fulliOSServicePath != null,
+        iOSServiceFilePath,
+        iOSServiceFilePath != null,
         logger,
         iosGenerateDebugSymbolScript,
         iosBuildConfiguration,
@@ -665,8 +651,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         macosOptions,
         flutterApp,
-        fullMacOSServicePath,
-        fullMacOSServicePath != null,
+        macOSServiceFilePath,
+        macOSServiceFilePath != null,
         logger,
         macosGenerateDebugSymbolScript,
         macosBuildConfiguration,
