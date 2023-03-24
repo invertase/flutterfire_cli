@@ -194,9 +194,17 @@ end
 
     final flutterConfig = map[kFlutter] as Map;
     final applePlatform = flutterConfig[kPlatforms] as Map;
-    final appleConfig =
-        applePlatform[platform.toLowerCase() == 'ios' ? kIos : kMacos] as Map;
 
+    final platformKey = platform.toLowerCase() == 'ios' ? kIos : kMacos;
+
+    if (applePlatform[platformKey] == null) {
+      applePlatform[platformKey] = <String, Object>{};
+    }
+    final appleConfig = applePlatform[platformKey] as Map;
+
+    if (appleConfig[configuration] == null) {
+      appleConfig[configuration] = <String, Object>{};
+    }
     final configurationMaps = appleConfig[configuration] as Map?;
 
     Map? configurationMap;
@@ -447,7 +455,7 @@ end
 
   String _promptForPathToServiceFile() {
     final pathToServiceFile = promptInput(
-      'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
+      'Enter a path for your $platform "$appleServiceFileName" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
       validator: (String x) {
         if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
             !path.basename(x).contains('.')) {

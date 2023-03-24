@@ -40,6 +40,12 @@ String logPromptNewCliVersionAvailable(
 String logCliUpdated(String packageName, String latestVersion) =>
     '$packageName has been updated to version $latestVersion.';
 
+// Default Firebase configuration file name for Apple.
+const appleServiceFileName = 'GoogleService-Info.plist';
+
+// Default Firebase configuration file name for Android.
+const androidServiceFileName = 'google-services.json';
+
 /// Logs when the `--no-app-id-json` flag is used. See the following link for
 /// context on why a flag to opt-out was added:
 /// https://github.com/invertase/flutterfire_cli/issues/14
@@ -59,7 +65,7 @@ const logLearnMoreAboutCli =
     ' > $firebaseDocumentationUrl';
 
 const serviceFileAlreadyExists =
-    'Your GoogleService-Info.plist already exists, skipping write... ';
+    'Your $appleServiceFileName already exists, skipping write... ';
 
 /// Prompts when Android Google Services JSON file already exists but contains
 /// configuration values for a different Firebase project.
@@ -248,5 +254,17 @@ class FirebaseCommandException implements FlutterFireException {
     return '${'FirebaseCommandException: An error occured on the Firebase CLI when attempting to run a command.\n'.red}'
         'COMMAND: ${'firebase $command'.cyan} '
         '\nERROR: $error';
+  }
+}
+
+class ServiceFileRequirementException implements FlutterFireException {
+  ServiceFileRequirementException(this.platform, this.message) : super();
+
+  final String platform;
+  final String message;
+
+  @override
+  String toString() {
+    return 'ServiceFileRequirementException: $platform - $message';
   }
 }

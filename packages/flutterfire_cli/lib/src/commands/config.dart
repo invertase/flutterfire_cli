@@ -256,38 +256,94 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-target'] as String?;
   }
 
-  String? get relativeMacosServiceFilePath {
-    return argResults!['macos-out'] as String?;
-  }
+  String? get macOSServiceFilePath {
+    final serviceFilePath = argResults!['macos-out'] as String?;
 
-  String? get fullMacOSServicePath {
-    if (relativeMacosServiceFilePath == null) {
+    if (serviceFilePath == null) {
       return null;
+    }
+    final basename = path.basename(serviceFilePath);
+
+    if (basename == appleServiceFileName) {
+      return path.join(
+        flutterApp!.package.path,
+        removeForwardBackwardSlash(serviceFilePath),
+      );
+    }
+
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kMacos,
+        'The file name for the macOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `macos/dev` or `macos/dev/$appleServiceFileName`',
+      );
     }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeMacosServiceFilePath!),
+      removeForwardBackwardSlash(serviceFilePath),
+      appleServiceFileName,
     );
   }
 
-  String? get relativeIosServiceFilePath {
-    return argResults!['ios-out'] as String?;
-  }
-
-  String? get fulliOSServicePath {
-    if (relativeIosServiceFilePath == null) {
+  String? get iOSServiceFilePath {
+    final serviceFilePath = argResults!['ios-out'] as String?;
+    if (serviceFilePath == null) {
       return null;
+    }
+    final basename = path.basename(serviceFilePath);
+
+    if (basename == appleServiceFileName) {
+      return path.join(
+        flutterApp!.package.path,
+        removeForwardBackwardSlash(serviceFilePath),
+      );
+    }
+
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kIos,
+        'The file name for the iOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `ios/dev` or `ios/dev/$appleServiceFileName`',
+      );
     }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeIosServiceFilePath!),
+      removeForwardBackwardSlash(serviceFilePath),
+      appleServiceFileName,
     );
   }
 
   String? get androidServiceFilePath {
-    return argResults!['android-out'] as String?;
+    final serviceFilePath = argResults!['android-out'] as String?;
+    if (serviceFilePath == null) {
+      return null;
+    }
+
+    final segments = path.split(serviceFilePath);
+
+    if (!segments.contains('android') || !segments.contains('app')) {
+      throw ServiceFileRequirementException(
+        kAndroid,
+        'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
+      );
+    }
+
+    final basename = path.basename(serviceFilePath);
+
+    if (basename == androidServiceFileName) {
+      return removeForwardBackwardSlash(serviceFilePath);
+    }
+
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kAndroid,
+        'The file name for the Android service file must be `$androidServiceFileName`. Please provide a path to the file. e.g. `android/app/development` or `android/app/development/$androidServiceFileName`',
+      );
+    }
+    return path.join(
+      removeForwardBackwardSlash(serviceFilePath),
+      androidServiceFileName,
+    );
   }
 
   String? get androidApplicationId {
@@ -607,8 +663,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         iosOptions,
         flutterApp,
-        fulliOSServicePath,
-        fulliOSServicePath != null,
+        iOSServiceFilePath,
+        iOSServiceFilePath != null,
         logger,
         iosGenerateDebugSymbolScript,
         iosBuildConfiguration,
@@ -621,8 +677,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         macosOptions,
         flutterApp,
-        fullMacOSServicePath,
-        fullMacOSServicePath != null,
+        macOSServiceFilePath,
+        macOSServiceFilePath != null,
         logger,
         macosGenerateDebugSymbolScript,
         macosBuildConfiguration,
@@ -633,6 +689,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     await FirebaseConfigurationFile(
       outputFilePath,
+      flutterApp!,
       androidOptions: androidOptions,
       iosOptions: iosOptions,
       macosOptions: macosOptions,
