@@ -458,20 +458,24 @@ end
 
   String _promptForPathToServiceFile() {
     final pathToServiceFile = promptInput(
-      'Enter a path for your $platform "$appleServiceFileName" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
+      'Enter a path for your $platform "$appleServiceFileName" ("${platform.toLowerCase()}-out" argument.) relative to the root of your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
       validator: (String x) {
-        if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
-            !path.basename(x).contains('.')) {
+        final basename = path.basename(x);
+        if (basename == appleServiceFileName) {
           return true;
-        } else {
-          return 'Do not start or end path with a forward slash, nor specify the filename. Example: ${platform.toLowerCase()}/dev';
+        } else if (basename.contains('.')) {
+          return 'The file name must be "$appleServiceFileName"';
         }
+
+        return true;
       },
     );
     return path.join(
       flutterApp!.package.path,
-      pathToServiceFile,
-      platformOptions.optionsSourceFileName,
+      removeForwardBackwardSlash(pathToServiceFile),
+      path.basename(pathToServiceFile) == appleServiceFileName
+          ? null
+          : appleServiceFileName,
     );
   }
 
@@ -580,22 +584,6 @@ end
       fullPathToServiceFile = _promptForPathToServiceFile();
       await _createBuildConfigurationSetup(fullPathToServiceFile!);
     } else if (googleServicePathSpecified) {
-      final googleServiceFileName = path.basename(fullPathToServiceFile!);
-
-      if (googleServiceFileName != platformOptions.optionsSourceFileName) {
-        final response = promptBool(
-          'The file name must be "${platformOptions.optionsSourceFileName}" if you\'re bundling with your $platform target or build configuration. Do you want to change filename to "${platformOptions.optionsSourceFileName}"?',
-        );
-
-        // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or build configuration setup
-        if (response == true) {
-          fullPathToServiceFile = path.join(
-            path.dirname(fullPathToServiceFile!),
-            platformOptions.optionsSourceFileName,
-          );
-        }
-      }
-
       if (buildConfiguration != null) {
         await _createBuildConfigurationSetup(fullPathToServiceFile!);
       } else if (target != null) {
