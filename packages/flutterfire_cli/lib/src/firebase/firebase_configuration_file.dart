@@ -111,6 +111,7 @@ class FirebaseConfigurationFile {
     }
     final webConfig = platform[kWeb] as Map;
 
+
     if (webConfig[outputFilePath] == null) {
       webConfig[outputFilePath] = <String, Object>{};
     }
