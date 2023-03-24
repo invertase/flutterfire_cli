@@ -233,58 +233,60 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['macos-target'] as String?;
   }
 
-  String? get relativeMacosServiceFilePath {
+  String? get macOSServiceFilePath {
     final serviceFilePath = argResults!['macos-out'] as String?;
 
     if (serviceFilePath == null) {
       return null;
     }
-    final fileName = path.basename(serviceFilePath);
+    final basename = path.basename(serviceFilePath);
 
-    if (fileName != 'GoogleService-Info.plist') {
-      throw ServiceFileRequirementException(
-        kMacos,
-        'The file name for the macOS service file must be `GoogleService-Info.plist`',
+    if (basename == appleServiceFileName) {
+      return path.join(
+        flutterApp!.package.path,
+        removeForwardBackwardSlash(serviceFilePath),
       );
     }
-    return serviceFilePath;
-  }
 
-  String? get fullMacOSServicePath {
-    if (relativeMacosServiceFilePath == null) {
-      return null;
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kMacos,
+        'The file name for the macOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `macos/dev` or `macos/dev/$appleServiceFileName`',
+      );
     }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeMacosServiceFilePath!),
+      removeForwardBackwardSlash(serviceFilePath),
+      appleServiceFileName,
     );
   }
 
-  String? get relativeIosServiceFilePath {
+  String? get iOSServiceFilePath {
     final serviceFilePath = argResults!['ios-out'] as String?;
     if (serviceFilePath == null) {
       return null;
     }
-    final fileName = path.basename(serviceFilePath);
+    final basename = path.basename(serviceFilePath);
 
-    if (fileName != 'GoogleService-Info.plist') {
-      throw ServiceFileRequirementException(
-        kIos,
-        'The file name for the iOS service file must be `GoogleService-Info.plist`',
+    if (basename == appleServiceFileName) {
+      return path.join(
+        flutterApp!.package.path,
+        removeForwardBackwardSlash(serviceFilePath),
       );
     }
-    return serviceFilePath;
-  }
 
-  String? get fulliOSServicePath {
-    if (relativeIosServiceFilePath == null) {
-      return null;
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kIos,
+        'The file name for the iOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `ios/dev` or `ios/dev/$appleServiceFileName`',
+      );
     }
 
     return path.join(
       flutterApp!.package.path,
-      removeForwardSlash(relativeIosServiceFilePath!),
+      removeForwardBackwardSlash(serviceFilePath),
+      appleServiceFileName,
     );
   }
 
@@ -294,21 +296,31 @@ class ConfigCommand extends FlutterFireCommand {
       return null;
     }
 
-    final fileName = path.basename(serviceFilePath);
-    if (fileName != 'google-services.json') {
-      throw ServiceFileRequirementException(
-        kAndroid,
-        'The file name for the Android service file must be `google-services.json`',
-      );
-    }
     final segments = path.split(serviceFilePath);
+
     if (!segments.contains('android') || !segments.contains('app')) {
       throw ServiceFileRequirementException(
         kAndroid,
         'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
       );
     }
-    return removeForwardSlash(serviceFilePath);
+
+    final basename = path.basename(serviceFilePath);
+
+    if (basename == androidServiceFileName) {
+      return removeForwardBackwardSlash(serviceFilePath);
+    }
+
+    if (basename.contains('.')) {
+      throw ServiceFileRequirementException(
+        kAndroid,
+        'The file name for the Android service file must be `$androidServiceFileName`. Please provide a path to the file. e.g. `android/app/development` or `android/app/development/$androidServiceFileName`',
+      );
+    }
+    return path.join(
+      removeForwardBackwardSlash(serviceFilePath),
+      androidServiceFileName,
+    );
   }
 
   String? get androidApplicationId {
@@ -628,8 +640,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         iosOptions,
         flutterApp,
-        fulliOSServicePath,
-        fulliOSServicePath != null,
+        iOSServiceFilePath,
+        iOSServiceFilePath != null,
         logger,
         iosBuildConfiguration,
         iosTarget,
@@ -641,8 +653,8 @@ class ConfigCommand extends FlutterFireCommand {
       await FirebaseAppleSetup(
         macosOptions,
         flutterApp,
-        fullMacOSServicePath,
-        fullMacOSServicePath != null,
+        macOSServiceFilePath,
+        macOSServiceFilePath != null,
         logger,
         macosBuildConfiguration,
         macosTarget,

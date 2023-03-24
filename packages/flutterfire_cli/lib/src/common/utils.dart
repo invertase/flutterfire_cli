@@ -231,12 +231,17 @@ String relativePath(String path, String from) {
   return normalize(relative(path, from: from));
 }
 
-String removeForwardSlash(String input) {
+String removeForwardBackwardSlash(String input) {
+  var output = input;
   if (input.startsWith('/')) {
-    return input.substring(1);
-  } else {
-    return input;
+    output = input.substring(1);
+  } 
+
+  if(input.endsWith('/')) {
+    output = output.substring(0, output.length - 1);
   }
+
+  return output;
 }
 
 Future<Map> appleConfigFromFirebaseJson(
