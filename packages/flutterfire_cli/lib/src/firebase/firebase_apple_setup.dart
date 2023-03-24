@@ -455,7 +455,7 @@ end
 
   String _promptForPathToServiceFile() {
     final pathToServiceFile = promptInput(
-      'Enter a path for your $platform "GoogleService-Info.plist" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
+      'Enter a path for your $platform "$appleServiceFileName" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
       validator: (String x) {
         if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
             !path.basename(x).contains('.')) {
