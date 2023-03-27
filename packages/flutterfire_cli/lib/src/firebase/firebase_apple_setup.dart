@@ -193,14 +193,14 @@ end
     final map = jsonDecode(fileAsString) as Map;
 
     final flutterConfig = map[kFlutter] as Map;
-    final applePlatform = flutterConfig[kPlatforms] as Map;
+    final platforms = flutterConfig[kPlatforms] as Map;
 
     final platformKey = platform.toLowerCase() == 'ios' ? kIos : kMacos;
 
-    if (applePlatform[platformKey] == null) {
-      applePlatform[platformKey] = <String, Object>{};
+    if (platforms[platformKey] == null) {
+      platforms[platformKey] = <String, Object>{};
     }
-    final appleConfig = applePlatform[platformKey] as Map;
+    final appleConfig = platforms[platformKey] as Map;
 
     if (appleConfig[configuration] == null) {
       appleConfig[configuration] = <String, Object>{};
