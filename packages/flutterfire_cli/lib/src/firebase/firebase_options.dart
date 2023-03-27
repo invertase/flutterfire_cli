@@ -110,7 +110,7 @@ class FirebaseOptions {
   /// The Android client ID from the Firebase Console, for example
   /// "12345.apps.googleusercontent.com."
   ///
-  /// This value is used by iOS only.
+  /// This value is used by android only.
   final String? androidClientId;
 
   /// The iOS client ID from the Firebase Console, for example
