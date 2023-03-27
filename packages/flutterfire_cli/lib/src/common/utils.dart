@@ -278,9 +278,7 @@ String getProjectConfigurationProperty(
 
 Map<String, dynamic> _generateFlutterMap() {
   return <String, dynamic>{
-    kFlutter: {
-      kPlatforms: <String, Object>{}
-    }
+    kFlutter: {kPlatforms: <String, Object>{}}
   };
 }
 
