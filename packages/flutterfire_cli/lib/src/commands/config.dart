@@ -116,21 +116,6 @@ class ConfigCommand extends FlutterFireCommand {
           "Whether to add the Firebase related Gradle plugins (such as Crashlytics and Performance) to your Android app's build.gradle files "
           'and create the google-services.json file in your ./android/app folder.',
     );
-    argParser.addFlag(
-      'debug-symbols-ios',
-      abbr: 'r',
-      defaultsTo: null,
-      help:
-          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your iOS project.",
-    );
-
-    argParser.addFlag(
-      'debug-symbols-macos',
-      abbr: 's',
-      defaultsTo: null,
-      help:
-          "Whether you want an upload Crashlytic's debug symbols script added to the build phases of your macOS project.",
-    );
 
     argParser.addOption(
       'ios-build-config',
@@ -230,14 +215,6 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get applyGradlePlugins {
     return argResults!['apply-gradle-plugins'] as bool;
-  }
-
-  bool? get iosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-ios'] as bool?;
-  }
-
-  bool? get macosGenerateDebugSymbolScript {
-    return argResults!['debug-symbols-macos'] as bool?;
   }
 
   String? get iosBuildConfiguration {
@@ -666,7 +643,6 @@ class ConfigCommand extends FlutterFireCommand {
         iOSServiceFilePath,
         iOSServiceFilePath != null,
         logger,
-        iosGenerateDebugSymbolScript,
         iosBuildConfiguration,
         iosTarget,
         'iOS',
@@ -680,7 +656,6 @@ class ConfigCommand extends FlutterFireCommand {
         macOSServiceFilePath,
         macOSServiceFilePath != null,
         logger,
-        macosGenerateDebugSymbolScript,
         macosBuildConfiguration,
         macosTarget,
         'macOS',

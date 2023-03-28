@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 import '../common/strings.dart';
 import '../common/utils.dart';
@@ -18,7 +19,6 @@ class FirebaseAppleSetup {
     this.fullPathToServiceFile,
     this.googleServicePathSpecified,
     this.logger,
-    this.generateDebugSymbolScript,
     this.buildConfiguration,
     this.target,
     this.platform,
@@ -30,7 +30,6 @@ class FirebaseAppleSetup {
   String? fullPathToServiceFile;
   bool googleServicePathSpecified;
   final Logger logger;
-  final bool? generateDebugSymbolScript;
   // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or build configuration writes.
   String? updatedServiceFilePath;
   String? buildConfiguration;
@@ -44,34 +43,65 @@ class FirebaseAppleSetup {
     );
   }
 
-  Future<void> _addFlutterFireDebugSymbolsScript(
+  Future<bool> _addFlutterFireDebugSymbolsScript(
     Logger logger,
     ProjectConfiguration projectConfiguration, {
     String target = 'Runner',
   }) async {
-    final paths = _addPathToExecutablesForBuildPhaseScripts();
-    if (paths != null) {
-      final debugSymbolScript = await Process.run('ruby', [
-        '-e',
-        _debugSymbolsScript(
-          target,
-          paths,
-          projectConfiguration,
-        ),
-      ]);
+    final packageConfigContents =
+        File('${flutterApp!.package.path}/.dart_tool/package_config.json');
 
-      if (debugSymbolScript.exitCode != 0) {
-        throw Exception(debugSymbolScript.stderr);
-      }
+    var crashlyticsDependencyExists = false;
+    if (packageConfigContents.existsSync()) {
+      final decodePackageConfig = await packageConfigContents.readAsString();
 
-      if (debugSymbolScript.stdout != null) {
-        logger.stdout(debugSymbolScript.stdout as String);
-      }
-    } else {
-      logger.stdout(
-        noPathsToExecutables,
+      final packageConfig = jsonDecode(decodePackageConfig) as Map;
+
+      final packages = packageConfig['packages'] as List<dynamic>;
+
+      crashlyticsDependencyExists = packages.any(
+        (dynamic package) =>
+            package is Map && package['name'] == 'firebase_crashlytics',
       );
+    } else {
+      final pubspecContents =
+          await File('${flutterApp!.package.path}/pubspec.yaml').readAsString();
+
+      final yamlContents = loadYaml(pubspecContents) as Map;
+
+      crashlyticsDependencyExists = yamlContents['dependencies'] != null &&
+          (yamlContents['dependencies'] as Map)
+              .containsKey('firebase_crashlytics');
     }
+
+    if (crashlyticsDependencyExists) {
+      // Add the debug script
+      final paths = _addPathToExecutablesForBuildPhaseScripts();
+      if (paths != null) {
+        final debugSymbolScript = await Process.run('ruby', [
+          '-e',
+          _debugSymbolsScript(
+            target,
+            paths,
+            projectConfiguration,
+          ),
+        ]);
+
+        if (debugSymbolScript.exitCode != 0) {
+          throw Exception(debugSymbolScript.stderr);
+        }
+
+        if (debugSymbolScript.stdout != null) {
+          logger.stdout(debugSymbolScript.stdout as String);
+        }
+        return true;
+      } else {
+        logger.stdout(
+          noPathsToExecutables,
+        );
+      }
+    }
+    return false;
   }
 
   String _debugSymbolsScript(
@@ -231,49 +261,22 @@ end
     file.writeAsStringSync(mapJson);
   }
 
-  bool _shouldRunUploadDebugSymbolScript(
-    bool? generateDebugSymbolScript,
-    Logger logger,
-  ) {
-    if (generateDebugSymbolScript != null) {
-      return generateDebugSymbolScript;
-    } else {
-      // Unspecified, so we prompt
-      final addSymbolScript = promptBool(
-        "Do you want an '$debugSymbolScriptName' adding to the build phases of your $platform project?",
-      );
-
-      if (addSymbolScript == false) {
-        logger.stdout(
-          logSkippingDebugSymbolScript,
-        );
-      }
-      return addSymbolScript;
-    }
-  }
-
   Future<void> _updateFirebaseJsonAndDebugSymbolScript(
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
     String targetOrBuildConfiguration,
   ) async {
-    final runDebugSymbolScript = _shouldRunUploadDebugSymbolScript(
-      generateDebugSymbolScript,
+    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
       logger,
+      projectConfiguration,
+      target: targetOrBuildConfiguration,
     );
-
-    if (runDebugSymbolScript) {
-      await _addFlutterFireDebugSymbolsScript(
-        logger,
-        projectConfiguration,
-      );
-    }
 
     await _updateFirebaseJsonFile(
       flutterApp!,
       platformOptions.appId,
       platformOptions.projectId,
-      runDebugSymbolScript,
+      debugSymbolScriptAdded,
       targetOrBuildConfiguration,
       pathToServiceFile,
       projectConfiguration,
