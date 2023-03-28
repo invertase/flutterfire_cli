@@ -234,36 +234,15 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get macOSServiceFilePath {
-    final serviceFilePath = argResults!['macos-out'] as String?;
-
-    if (serviceFilePath == null) {
-      return null;
-    }
-    final basename = path.basename(serviceFilePath);
-
-    if (basename == appleServiceFileName) {
-      return path.join(
-        flutterApp!.package.path,
-        removeForwardBackwardSlash(serviceFilePath),
-      );
-    }
-
-    if (basename.contains('.')) {
-      throw ServiceFileException(
-        kMacos,
-        'The service file name must be `$appleServiceFileName`. Please provide a path to the file. e.g. `macos/dev` or `macos/dev/$appleServiceFileName`',
-      );
-    }
-
-    return path.join(
-      flutterApp!.package.path,
-      removeForwardBackwardSlash(serviceFilePath),
-      appleServiceFileName,
-    );
+    return _appleServiceFileValidation(argResults!['macos-out'] as String?, kMacos);
   }
 
   String? get iOSServiceFilePath {
-    final serviceFilePath = argResults!['ios-out'] as String?;
+    return _appleServiceFileValidation(argResults!['ios-out'] as String?, kIos);
+  }
+
+  String? _appleServiceFileValidation(
+      String? serviceFilePath, String platform) {
     if (serviceFilePath == null) {
       return null;
     }
@@ -278,8 +257,8 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (basename.contains('.')) {
       throw ServiceFileException(
-        kIos,
-        'The service file name must be `$appleServiceFileName`. Please provide a path to the file. e.g. `ios/dev` or `ios/dev/$appleServiceFileName`',
+        platform,
+        'The service file name must be `$appleServiceFileName`. Please provide a path to the file. e.g. `$platform/dev` or `$platform/dev/$appleServiceFileName`',
       );
     }
 
