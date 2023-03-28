@@ -339,7 +339,7 @@ void main() {
     expect(
       result.stderr,
       contains(
-        'The file name for the iOS service file must be `GoogleService-Info.plist`',
+        'ServiceFileRequirementException: ios - The service file name must be `GoogleService-Info.plist`',
       ),
     );
   });
@@ -366,7 +366,7 @@ void main() {
     expect(
       result.stderr,
       contains(
-        'The file name for the macOS service file must be `GoogleService-Info.plist`',
+        'ServiceFileRequirementException: macos - The service file name must be `GoogleService-Info.plist`',
       ),
     );
   });
@@ -394,7 +394,7 @@ void main() {
     expect(
       result.stderr,
       contains(
-        'The file name for the Android service file must be `google-services.json`',
+        'ServiceFileRequirementException: android - The service file name must be `google-services.json`',
       ),
     );
   });
@@ -422,7 +422,7 @@ void main() {
     expect(
       result1.stderr,
       contains(
-        'The file path for the Android service file must contain `android/app`',
+        'ServiceFileRequirementException: android - The service file name must contain `android/app`',
       ),
     );
 
