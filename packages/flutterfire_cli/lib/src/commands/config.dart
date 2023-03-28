@@ -272,9 +272,9 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (basename.contains('.')) {
-      throw ServiceFileRequirementException(
+      throw ServiceFileException(
         kMacos,
-        'The file name for the macOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `macos/dev` or `macos/dev/$appleServiceFileName`',
+        'The service file name must be `$appleServiceFileName`. Please provide a path to the file. e.g. `macos/dev` or `macos/dev/$appleServiceFileName`',
       );
     }
 
@@ -300,9 +300,9 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (basename.contains('.')) {
-      throw ServiceFileRequirementException(
+      throw ServiceFileException(
         kIos,
-        'The file name for the iOS service file must be `$appleServiceFileName`. Please provide a path to the file. e.g. `ios/dev` or `ios/dev/$appleServiceFileName`',
+        'The service file name must be `$appleServiceFileName`. Please provide a path to the file. e.g. `ios/dev` or `ios/dev/$appleServiceFileName`',
       );
     }
 
@@ -322,9 +322,9 @@ class ConfigCommand extends FlutterFireCommand {
     final segments = path.split(serviceFilePath);
 
     if (!segments.contains('android') || !segments.contains('app')) {
-      throw ServiceFileRequirementException(
+      throw ServiceFileException(
         kAndroid,
-        'The file path for the Android service file must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
+        'The service file name must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
       );
     }
 
@@ -335,9 +335,9 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (basename.contains('.')) {
-      throw ServiceFileRequirementException(
+      throw ServiceFileException(
         kAndroid,
-        'The file name for the Android service file must be `$androidServiceFileName`. Please provide a path to the file. e.g. `android/app/development` or `android/app/development/$androidServiceFileName`',
+        'The service file name must be `$androidServiceFileName`. Please provide a path to the file. e.g. `android/app/development` or `android/app/development/$androidServiceFileName`',
       );
     }
     return path.join(

@@ -209,7 +209,7 @@ class FirebaseAndroidGradlePlugins {
         final configKey = path.dirname(newPath);
         await _updateFirebaseJsonFile(configKey);
       } else {
-        throw ServiceFileRequirementException(
+        throw ServiceFileException(
           kAndroid,
           'Your service file does not have "app" as a path segment in the "--android-out" path input. See Firebase documentation for more details: https://firebase.google.com/docs/projects/multiprojects',
         );

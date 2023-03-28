@@ -257,8 +257,8 @@ class FirebaseCommandException implements FlutterFireException {
   }
 }
 
-class ServiceFileRequirementException implements FlutterFireException {
-  ServiceFileRequirementException(this.platform, this.message) : super();
+class ServiceFileException implements FlutterFireException {
+  ServiceFileException(this.platform, this.message) : super();
 
   final String platform;
   final String message;
