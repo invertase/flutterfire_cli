@@ -488,9 +488,12 @@ Future<String> getServiceFileContent(
 
     return decodedContent;
   } else {
+    final serviceFileName = platform == kIos || platform == kMacos
+        ? appleServiceFileName
+        : androidServiceFileName;
     throw ServiceFileException(
       platform,
-      'Failed to obtain the service file: ${platform == kIos ? appleServiceFileName : androidServiceFileName} for $platform. Response code: ${response.statusCode}. Response body: ${response.body}',
+      'Failed to obtain the service file: $serviceFileName for $platform. Response code: ${response.statusCode}. Response body: ${response.body}',
     );
   }
 }
