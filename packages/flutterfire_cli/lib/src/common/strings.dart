@@ -106,40 +106,23 @@ const noPathVariableFound = r'There is no $PATH variable in your environment. '
     "Please file an issue as your Crashlytic's upload debug "
     'symbols script will not work without it';
 
+const validationCheck =
+    'This should be validated before any configuration is written to the project.';
+
 /// A base class for all FlutterFire CLI exceptions.
 abstract class FlutterFireException implements Exception {}
 
 /// An exception that is thrown when a "[ios || macos]-target" & a "[ios || macos]-scheme" have both been used as command
 /// line arguments
 class XcodeProjectException implements FlutterFireException {
-  XcodeProjectException(this.platform) : super();
+  XcodeProjectException(this.platform, this.message) : super();
 
   final String platform;
+  final String message;
 
   @override
   String toString() {
-    return 'XcodeProjectException: choose either a "$platform-target" or a "$platform-scheme" for your $platform project setup';
-  }
-}
-
-/// An exception that is thrown when you have selected a name for your build configuration or target that does not exist on your project
-class MissingFromXcodeProjectException implements FlutterFireException {
-  MissingFromXcodeProjectException(
-    this.platform,
-    this.type,
-    this.name,
-    this.listOfChoices,
-  ) : super();
-
-  final String platform;
-  // Type is either "build configuration" or "target"
-  final String type;
-  final String name;
-  final List<String> listOfChoices;
-
-  @override
-  String toString() {
-    return 'MissingFromXcodeProjectException: The $name does not exist as a $type for your $platform project. Please choose from one of the following: ${listOfChoices.join(', ')} ';
+    return message;
   }
 }
 

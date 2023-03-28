@@ -235,9 +235,9 @@ String removeForwardBackwardSlash(String input) {
   var output = input;
   if (input.startsWith('/')) {
     output = input.substring(1);
-  } 
+  }
 
-  if(input.endsWith('/')) {
+  if (input.endsWith('/')) {
     output = output.substring(0, output.length - 1);
   }
 
@@ -310,4 +310,22 @@ Future<void> writeFirebaseJsonFile(
 
     file.writeAsStringSync(mapJson);
   }
+}
+
+dynamic getNestedValue(Map map, List<String> keys) {
+  if (keys.isEmpty) {
+    throw Exception('Keys cannot be empty');
+  }
+
+  dynamic currentValue = map;
+
+  for (final key in keys) {
+    if (currentValue is Map && currentValue.containsKey(key)) {
+      currentValue = currentValue[key];
+    } else {
+      throw Exception('This key does not exist: $key');
+    }
+  }
+
+  return currentValue;
 }

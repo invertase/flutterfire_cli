@@ -17,21 +17,23 @@ class FirebaseAppleSetup {
     this.platformOptions,
     this.flutterApp,
     this.fullPathToServiceFile,
-    this.googleServicePathSpecified,
     this.logger,
     this.buildConfiguration,
     this.target,
     this.platform,
-  );
+    // We have asserts because validation is the very first thing to happen before any API requests/writes are made. This is a helper for developers.
+  )   : assert(
+          (target != null || buildConfiguration != null) &&
+              fullPathToServiceFile == null,
+          validationCheck,
+        ),
+        assert(target != null && buildConfiguration != null, validationCheck);
   // Either "iOS" or "macOS"
   final String platform;
   final FlutterApp? flutterApp;
   final FirebaseOptions platformOptions;
   String? fullPathToServiceFile;
-  bool googleServicePathSpecified;
   final Logger logger;
-  // This allows us to update to the required "GoogleService-Info.plist" file name for iOS target or build configuration writes.
-  String? updatedServiceFilePath;
   String? buildConfiguration;
   String? target;
 
@@ -311,81 +313,6 @@ end
     }
   }
 
-  Future<List<String>> _findTargetsAvailable() async {
-    final targetScript = _findingTargetsScript();
-
-    final result = await Process.run('ruby', [
-      '-e',
-      targetScript,
-    ]);
-
-    if (result.exitCode != 0) {
-      throw Exception(result.stderr);
-    }
-    // Retrieve the targets to prompt the user to select one
-    final targets = (result.stdout as String).split(',');
-
-    return targets;
-  }
-
-  String _findingTargetsScript() {
-    return '''
-require 'xcodeproj'
-xcodeProject='$xcodeProjFilePath'
-project = Xcodeproj::Project.open(xcodeProject)
-
-response = Array.new
-
-project.targets.each do |target|
-  response << target.name
-end
-
-if response.length == 0
-  abort("There are no targets in your Xcode workspace. Please create a target and try again.")
-end
-
-\$stdout.write response.join(',')
-''';
-  }
-
-  Future<List<String>> _findBuildConfigurationsAvailable() async {
-    final buildConfigurationScript = _findingBuildConfigurationsScript();
-
-    final result = await Process.run('ruby', [
-      '-e',
-      buildConfigurationScript,
-    ]);
-
-    if (result.exitCode != 0) {
-      throw Exception(result.stderr);
-    }
-    // Retrieve the build configurations to prompt the user to select one
-    final buildConfigurations = (result.stdout as String).split(',');
-
-    return buildConfigurations;
-  }
-
-  String _findingBuildConfigurationsScript() {
-    return '''
-require 'xcodeproj'
-xcodeProject='$xcodeProjFilePath'
-
-project = Xcodeproj::Project.open(xcodeProject)
-
-response = Array.new
-
-project.build_configurations.each do |configuration|
-  response << configuration
-end
-
-if response.length == 0
-  abort("There are no build configurations in your Xcode workspace. Please create a build configuration and try again.")
-end
-
-\$stdout.write response.join(',')
-''';
-  }
-
   String _addServiceFileToTarget(
     String googleServiceInfoFile,
     String targetName,
@@ -456,60 +383,6 @@ end
     }
   }
 
-  String _promptForPathToServiceFile() {
-    final pathToServiceFile = promptInput(
-      'Enter a path for your $platform "$appleServiceFileName" ("${platform.toLowerCase()}-out" argument.) file in your Flutter project. It is required if you set "${platform.toLowerCase()}-build-config" argument. Example input: ${platform.toLowerCase()}/dev',
-      validator: (String x) {
-        if (RegExp(r'^(?![#\/.])(?!.*[#\/.]$).*').hasMatch(x) &&
-            !path.basename(x).contains('.')) {
-          return true;
-        } else {
-          return 'Do not start or end path with a forward slash, nor specify the filename. Example: ${platform.toLowerCase()}/dev';
-        }
-      },
-    );
-    return path.join(
-      flutterApp!.package.path,
-      pathToServiceFile,
-      platformOptions.optionsSourceFileName,
-    );
-  }
-
-  Future<void> _createBuildConfigurationSetup(String pathToServiceFile) async {
-    final buildConfigurations = await _findBuildConfigurationsAvailable();
-
-    final buildConfigurationExists =
-        buildConfigurations.contains(buildConfiguration);
-
-    if (buildConfigurationExists) {
-      await _buildConfigurationWrites(pathToServiceFile);
-    } else {
-      throw MissingFromXcodeProjectException(
-        platform,
-        'build configuration',
-        buildConfiguration!,
-        buildConfigurations,
-      );
-    }
-  }
-
-  Future<void> _createTargetSetup(String pathToServiceFile) async {
-    final targets = await _findTargetsAvailable();
-
-    final targetExists = targets.contains(target);
-
-    if (targetExists) {
-      await _targetWrites(pathToServiceFile);
-    } else {
-      throw MissingFromXcodeProjectException(
-        platform,
-        'target',
-        target!,
-        targets,
-      );
-    }
-  }
-
   Future<void> _writeBundleServiceFileScriptToProject(
     String serviceFilePath,
     String buildConfiguration,
@@ -539,32 +412,31 @@ end
     }
   }
 
-  Future<void> _buildConfigurationWrites(String pathToServiceFile) async {
-    await _writeGoogleServiceFileToPath(pathToServiceFile);
+  Future<void> _buildConfigurationWrites() async {
+    await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
     await _writeBundleServiceFileScriptToProject(
       fullPathToServiceFile!,
       buildConfiguration!,
       logger,
     );
     await _updateFirebaseJsonAndDebugSymbolScript(
-      pathToServiceFile,
+      fullPathToServiceFile!,
       ProjectConfiguration.buildConfiguration,
       buildConfiguration!,
     );
   }
 
-  Future<void> _targetWrites(
-    String pathToServiceFile, {
+  Future<void> _targetWrites({
     ProjectConfiguration projectConfiguration = ProjectConfiguration.target,
   }) async {
-    await _writeGoogleServiceFileToPath(pathToServiceFile);
+    await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
     await _writeGoogleServiceFileToTargetProject(
-      pathToServiceFile,
+      fullPathToServiceFile!,
       target!,
     );
 
     await _updateFirebaseJsonAndDebugSymbolScript(
-      pathToServiceFile,
+      fullPathToServiceFile!,
       projectConfiguration,
       target!,
     );
@@ -573,78 +445,15 @@ end
   Future<void> apply() async {
     if (!Platform.isMacOS) return;
 
-    if (!googleServicePathSpecified && target != null) {
-      fullPathToServiceFile = _promptForPathToServiceFile();
-      await _createTargetSetup(fullPathToServiceFile!);
-    } else if (!googleServicePathSpecified && buildConfiguration != null) {
-      fullPathToServiceFile = _promptForPathToServiceFile();
-      await _createBuildConfigurationSetup(fullPathToServiceFile!);
-    } else if (googleServicePathSpecified) {
-      final googleServiceFileName = path.basename(fullPathToServiceFile!);
-
-      if (googleServiceFileName != platformOptions.optionsSourceFileName) {
-        final response = promptBool(
-          'The file name must be "${platformOptions.optionsSourceFileName}" if you\'re bundling with your $platform target or build configuration. Do you want to change filename to "${platformOptions.optionsSourceFileName}"?',
-        );
-
-        // Change filename to "GoogleService-Info.plist" if user wants to, it is required for target or build configuration setup
-        if (response == true) {
-          fullPathToServiceFile = path.join(
-            path.dirname(fullPathToServiceFile!),
-            platformOptions.optionsSourceFileName,
-          );
-        }
-      }
-
-      if (buildConfiguration != null) {
-        await _createBuildConfigurationSetup(fullPathToServiceFile!);
-      } else if (target != null) {
-        await _createTargetSetup(fullPathToServiceFile!);
-      } else {
-        // User has specified an output for service file. We need to prompt user whether they
-        // want a build configuration, a target configured or to simply write to the path provided
-        final fileName = path.basename(fullPathToServiceFile!);
-        final response = promptSelect(
-          'Would you like your $platform $fileName to be associated with your $platform Build configuration or Target (use arrow keys & space to select)?',
-          [
-            'Build configuration',
-            'Target',
-            'No, I want to write the file to the path I chose'
-          ],
-        );
-
-        // Add to build configuration
-        if (response == 0) {
-          final buildConfigurations = await _findBuildConfigurationsAvailable();
-
-          final response = promptSelect(
-            'Which build configuration would you like your $platform $fileName to be included within your $platform app bundle?',
-            buildConfigurations,
-          );
-
-          buildConfiguration = buildConfigurations[response];
-          await _buildConfigurationWrites(fullPathToServiceFile!);
-
-          // Add to target
-        } else if (response == 1) {
-          final targets = await _findTargetsAvailable();
-
-          final response = promptSelect(
-            'Which target would you like your $platform $fileName to be included within your $platform app bundle?',
-            targets,
-          );
-          target = targets[response];
-          await _targetWrites(fullPathToServiceFile!);
-        } else {
-          // Write the service file to the desired location. No other configuration
-          await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
-        }
-      }
+    if (target != null) {
+      await _targetWrites();
+    } else if (buildConfiguration != null) {
+      await _buildConfigurationWrites();
     } else {
       // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
       target = 'Runner';
-      final defaultProjectPath = path.join(
+      fullPathToServiceFile = path.join(
         Directory.current.path,
         platform.toLowerCase(),
         target,
@@ -653,7 +462,6 @@ end
 
       // Make target default "Runner"
       await _targetWrites(
-        defaultProjectPath,
         projectConfiguration: ProjectConfiguration.defaultConfig,
       );
     }

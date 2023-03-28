@@ -21,6 +21,7 @@ import 'package:path/path.dart' as path;
 import '../common/platform.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
+import '../common/validate_inputs.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
@@ -234,15 +235,23 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get macOSServiceFilePath {
-    return _appleServiceFileValidation(argResults!['macos-out'] as String?, kMacos);
+    return _appleServiceFileValidation(
+      argResults!['macos-out'] as String?,
+      kMacos,
+    );
   }
 
   String? get iOSServiceFilePath {
-    return _appleServiceFileValidation(argResults!['ios-out'] as String?, kIos);
+    return _appleServiceFileValidation(
+      argResults!['ios-out'] as String?,
+      kIos,
+    );
   }
 
   String? _appleServiceFileValidation(
-      String? serviceFilePath, String platform) {
+    String? serviceFilePath,
+    String platform,
+  ) {
     if (serviceFilePath == null) {
       return null;
     }
@@ -515,20 +524,18 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
-  void _checkTargetAndBuildConfigurationSetup() {
-    if (iosBuildConfiguration != null && iosTarget != null) {
-      throw XcodeProjectException('ios');
-    }
-
-    if (macosBuildConfiguration != null && macosTarget != null) {
-      throw XcodeProjectException('macos');
-    }
-  }
-
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
-    _checkTargetAndBuildConfigurationSetup();
+    await ValidateInputs(
+      iosBuildConfiguration,
+      iosTarget,
+      iOSServiceFilePath,
+      macosBuildConfiguration,
+      macosTarget,
+      macosBuildConfiguration,
+    ).validate();
+
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
 
@@ -620,7 +627,6 @@ class ConfigCommand extends FlutterFireCommand {
         iosOptions,
         flutterApp,
         iOSServiceFilePath,
-        iOSServiceFilePath != null,
         logger,
         iosBuildConfiguration,
         iosTarget,
@@ -633,7 +639,6 @@ class ConfigCommand extends FlutterFireCommand {
         macosOptions,
         flutterApp,
         macOSServiceFilePath,
-        macOSServiceFilePath != null,
         logger,
         macosBuildConfiguration,
         macosTarget,
