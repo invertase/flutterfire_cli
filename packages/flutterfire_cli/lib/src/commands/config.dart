@@ -24,7 +24,6 @@ import '../common/platform.dart';
 import '../common/prompts.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
-import '../common/validate.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
@@ -514,23 +513,6 @@ class ConfigCommand extends FlutterFireCommand {
         target: iosTarget,
         buildConfiguration: iosBuildConfiguration,
       );
-      // Checks
-      await validateAppleInputs(
-        buildConfiguration: iosInputs?.buildConfiguration,
-        target: iosInputs?.target,
-        flutterAppPath: flutterApp!.package.path,
-        serviceFilePath: iosInputs?.serviceFilePath,
-      );
-      await validateAppleInputs(
-        buildConfiguration: macosInputs?.buildConfiguration,
-        target: macosInputs?.target,
-        serviceFilePath: macosInputs?.serviceFilePath,
-        platform: kMacos,
-        flutterAppPath: flutterApp!.package.path,
-        appleTargetFlag: kMacosTargetFlag,
-        appleBuildConfigFlag: kMacosBuildConfigFlag,
-        serviceFilePathFlag: kMacosOutFlag,
-      );
     }
 
     final selectedFirebaseProject = await _selectFirebaseProject();
@@ -623,7 +605,7 @@ class ConfigCommand extends FlutterFireCommand {
         await FirebaseAppleSetup(
           platformOptions: iosOptions,
           flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: iosInputs?.serviceFilePath,
+          serviceFilePath: iosInputs!.serviceFilePath,
           logger: logger,
           buildConfiguration: iosInputs?.buildConfiguration,
           target: iosInputs?.target,
@@ -636,7 +618,7 @@ class ConfigCommand extends FlutterFireCommand {
         await FirebaseAppleSetup(
           platformOptions: macosOptions,
           flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: macosInputs?.serviceFilePath,
+          serviceFilePath: macosInputs!.serviceFilePath,
           logger: logger,
           buildConfiguration: macosInputs?.buildConfiguration,
           target: macosInputs?.target,

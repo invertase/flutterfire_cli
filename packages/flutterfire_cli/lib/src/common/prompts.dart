@@ -102,12 +102,48 @@ Future<AppleResponses> applePrompts({
     projectConfiguration: configurationResponse,
     buildConfiguration: buildConfigurationResponse,
     target: targetResponse,
-    serviceFilePath: serviceFilePath ??
-        promptServiceFilePath(
-          platform: platform,
-          flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
-          flutterAppPath: flutterAppPath,
-        ),
+    serviceFilePath: _getAppleServiceFile(
+      serviceFilePath,
+      platform,
+      flutterAppPath,
+    ),
+  );
+}
+
+String _getAppleServiceFile(
+  String? serviceFilePath,
+  String platform,
+  String flutterAppPath,
+) {
+  if (serviceFilePath == null) {
+    return promptServiceFilePath(
+      platform: platform,
+      flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
+      flutterAppPath: flutterAppPath,
+    );
+  }
+
+  final fileName = path.basename(serviceFilePath);
+
+  if (fileName == appleServiceFileName) {
+    return path.join(
+      flutterAppPath,
+      removeForwardBackwardSlash(serviceFilePath),
+    );
+  }
+
+  if (fileName.contains('.')) {
+    return promptServiceFilePath(
+      platform: platform,
+      flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
+      flutterAppPath: flutterAppPath,
+    );
+  }
+
+  return path.join(
+    flutterAppPath,
+    removeForwardBackwardSlash(serviceFilePath),
+    appleServiceFileName,
   );
 }
 
