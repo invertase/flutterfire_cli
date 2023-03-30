@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
 import 'package:flutterfire_cli/src/common/strings.dart';
@@ -8,12 +10,12 @@ class AppleResponses {
     this.buildConfiguration,
     this.target,
     this.serviceFilePath,
-    required this.configuration,
+    required this.projectConfiguration,
   });
   final String? buildConfiguration;
   final String? target;
   final String? serviceFilePath;
-  ProjectConfiguration configuration;
+  ProjectConfiguration projectConfiguration;
 }
 
 Future<AppleResponses> applePrompts({
@@ -31,8 +33,14 @@ Future<AppleResponses> applePrompts({
   if (target == null && buildConfiguration == null && serviceFilePath == null) {
     // Default configuration
     return AppleResponses(
-      configuration: configurationResponse,
+      projectConfiguration: configurationResponse,
       target: 'Runner',
+      serviceFilePath: path.join(
+        Directory.current.path,
+        platform,
+        'Runner',
+        appleServiceFileName,
+      ),
     );
   }
 
@@ -92,6 +100,7 @@ Future<AppleResponses> applePrompts({
   }
 
   if (serviceFilePath != null && buildConfiguration != null) {
+    // Check if build configuration exists
     buildConfigurationResponse = await promptCheckBuildConfiguration(
       buildConfiguration,
       platform,
@@ -100,7 +109,7 @@ Future<AppleResponses> applePrompts({
   }
 
   return AppleResponses(
-    configuration: configurationResponse,
+    projectConfiguration: configurationResponse,
     buildConfiguration: buildConfigurationResponse,
     target: targetResponse,
     serviceFilePath: serviceFilePathResponse,

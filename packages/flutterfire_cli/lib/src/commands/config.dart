@@ -507,7 +507,7 @@ class ConfigCommand extends FlutterFireCommand {
         target: macosTarget,
         buildConfiguration: macosBuildConfiguration,
       );
-      macosInputs = await applePrompts(
+      iosInputs = await applePrompts(
         platform: kIos,
         flutterAppPath: flutterApp!.package.path,
         serviceFilePath: iOSServiceFilePath,
@@ -628,6 +628,7 @@ class ConfigCommand extends FlutterFireCommand {
           buildConfiguration: iosInputs?.buildConfiguration,
           target: iosInputs?.target,
           platform: kIos,
+          projectConfiguration: iosInputs!.projectConfiguration,
         ).apply();
       }
 
@@ -640,6 +641,7 @@ class ConfigCommand extends FlutterFireCommand {
           buildConfiguration: macosInputs?.buildConfiguration,
           target: macosInputs?.target,
           platform: kMacos,
+          projectConfiguration: macosInputs!.projectConfiguration,
         ).apply();
       }
     }

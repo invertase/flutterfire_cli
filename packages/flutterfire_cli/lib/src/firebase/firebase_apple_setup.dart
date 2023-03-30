@@ -21,6 +21,7 @@ class FirebaseAppleSetup {
     this.buildConfiguration,
     this.target,
     required this.platform,
+    required this.projectConfiguration,
     // We have asserts because validation is the very first thing to happen before any API requests/writes are made. This is a helper for developers.
   })   : assert(
           (target != null || buildConfiguration != null) &&
@@ -36,6 +37,7 @@ class FirebaseAppleSetup {
   final Logger logger;
   String? buildConfiguration;
   String? target;
+  ProjectConfiguration projectConfiguration;
 
   String get xcodeProjFilePath {
     return path.join(
@@ -441,24 +443,18 @@ end
   }
 
   Future<void> apply() async {
-    if (target != null) {
-      await _targetWrites();
-    } else if (buildConfiguration != null) {
-      await _buildConfigurationWrites();
-    } else {
-      // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
-      // Update "Runner", default target
-      serviceFilePath = path.join(
-        Directory.current.path,
-        platform,
-        target,
-        platformOptions.optionsSourceFileName,
-      );
-
-      // Make target default "Runner"
-      await _targetWrites(
-        projectConfiguration: ProjectConfiguration.defaultConfig,
-      );
+    switch(projectConfiguration){
+      case ProjectConfiguration.target:
+        await _targetWrites();
+        break;
+      case ProjectConfiguration.buildConfiguration:
+        await _buildConfigurationWrites();
+        break;
+      case ProjectConfiguration.defaultConfig:
+        await _targetWrites(
+          projectConfiguration: ProjectConfiguration.defaultConfig,
+        );
+        break;
     }
   }
 }
