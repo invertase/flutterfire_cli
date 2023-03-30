@@ -225,7 +225,7 @@ end
     final flutterConfig = map[kFlutter] as Map;
     final platforms = flutterConfig[kPlatforms] as Map;
 
-    final platformKey = platform == 'ios' ? kIos : kMacos;
+    final platformKey = platform == kIos ? kIos : kMacos;
 
     if (platforms[platformKey] == null) {
       platforms[platformKey] = <String, Object>{};
