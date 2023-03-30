@@ -9,12 +9,12 @@ class AppleResponses {
   AppleResponses({
     this.buildConfiguration,
     this.target,
-    this.serviceFilePath,
+    required this.serviceFilePath,
     required this.projectConfiguration,
   });
   final String? buildConfiguration;
   final String? target;
-  final String? serviceFilePath;
+  final String serviceFilePath;
   ProjectConfiguration projectConfiguration;
 }
 
@@ -25,7 +25,6 @@ Future<AppleResponses> applePrompts({
   String? buildConfiguration,
   String? serviceFilePath,
 }) async {
-  String? serviceFilePathResponse;
   String? targetResponse;
   String? buildConfigurationResponse;
   var configurationResponse = ProjectConfiguration.defaultConfig;
@@ -57,15 +56,6 @@ Future<AppleResponses> applePrompts({
     configurationResponse = response == 0
         ? ProjectConfiguration.buildConfiguration
         : ProjectConfiguration.target;
-  }
-
-  if (serviceFilePath == null) {
-    // Gets service file path for both target and build configuration
-    serviceFilePathResponse = promptServiceFilePath(
-      platform: platform,
-      flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
-      flutterAppPath: flutterAppPath,
-    );
   }
 
   if (serviceFilePath != null && target == null && buildConfiguration == null) {
@@ -112,7 +102,12 @@ Future<AppleResponses> applePrompts({
     projectConfiguration: configurationResponse,
     buildConfiguration: buildConfigurationResponse,
     target: targetResponse,
-    serviceFilePath: serviceFilePathResponse,
+    serviceFilePath: serviceFilePath ??
+        promptServiceFilePath(
+          platform: platform,
+          flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
+          flutterAppPath: flutterAppPath,
+        ),
   );
 }
 

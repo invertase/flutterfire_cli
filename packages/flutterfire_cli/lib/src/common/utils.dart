@@ -424,7 +424,7 @@ Future<List<String>> findBuildConfigurationsAvailable(
   return buildConfigurations;
 }
 
-String getXcodeProjectPath(String platform){
+String getXcodeProjectPath(String platform) {
 return join(
     Directory.current.path,
     platform,

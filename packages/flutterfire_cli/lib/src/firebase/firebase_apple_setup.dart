@@ -16,36 +16,32 @@ class FirebaseAppleSetup {
   FirebaseAppleSetup({
     required this.platformOptions,
     required this.flutterAppPath,
-    this.serviceFilePath,
+    required this.serviceFilePath,
     required this.logger,
     this.buildConfiguration,
     this.target,
     required this.platform,
     required this.projectConfiguration,
     // We have asserts because validation is the very first thing to happen before any API requests/writes are made. This is a helper for developers.
-  })   : assert(
-          (target != null || buildConfiguration != null) &&
-              serviceFilePath == null,
+  })  : assert(target != null && buildConfiguration != null, validationCheck),
+        assert(
+          projectConfiguration == ProjectConfiguration.target && target == null,
           validationCheck,
         ),
-        assert(target != null && buildConfiguration != null, validationCheck);
+        assert(
+          projectConfiguration == ProjectConfiguration.buildConfiguration &&
+              buildConfiguration == null,
+          validationCheck,
+        );
   // Either "ios" or "macos"
   final String platform;
   final String flutterAppPath;
   final FirebaseOptions platformOptions;
-  String? serviceFilePath;
+  final String serviceFilePath;
   final Logger logger;
   String? buildConfiguration;
   String? target;
   ProjectConfiguration projectConfiguration;
-
-  String get xcodeProjFilePath {
-    return path.join(
-      Directory.current.path,
-      platform,
-      'Runner.xcodeproj',
-    );
-  }
 
   Future<bool> _addFlutterFireDebugSymbolsScript(
     Logger logger,
@@ -56,16 +52,17 @@ class FirebaseAppleSetup {
         File('$flutterAppPath/.dart_tool/package_config.json');
 
     var crashlyticsDependencyExists = false;
+    const crashlyticsDependency = 'firebase_crashlytics';
+
     if (packageConfigContents.existsSync()) {
       final decodePackageConfig = await packageConfigContents.readAsString();
 
       final packageConfig = jsonDecode(decodePackageConfig) as Map;
 
       final packages = packageConfig['packages'] as List<dynamic>;
-
       crashlyticsDependencyExists = packages.any(
         (dynamic package) =>
-            package is Map && package['name'] == 'firebase_crashlytics',
+            package is Map && package['name'] == crashlyticsDependency,
       );
     } else {
       final pubspecContents =
@@ -75,7 +72,7 @@ class FirebaseAppleSetup {
 
       crashlyticsDependencyExists = yamlContents['dependencies'] != null &&
           (yamlContents['dependencies'] as Map)
-              .containsKey('firebase_crashlytics');
+              .containsKey(crashlyticsDependency);
     }
 
     if (crashlyticsDependencyExists) {
@@ -130,7 +127,7 @@ class FirebaseAppleSetup {
 
     return '''
 require 'xcodeproj'
-xcodeFile='$xcodeProjFilePath'
+xcodeFile='${getXcodeProjectPath(platform)}}'
 runScriptName='$debugSymbolScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -168,7 +165,7 @@ end
 
     return '''
 require 'xcodeproj'
-xcodeFile='$xcodeProjFilePath'
+xcodeFile='${getXcodeProjectPath(platform)}'
 runScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -320,7 +317,7 @@ end
     return '''
 require 'xcodeproj'
 googleFile='$googleServiceInfoFile'
-xcodeFile='$xcodeProjFilePath'
+xcodeFile='${getXcodeProjectPath(platform)}'
 targetName='$targetName'
 
 project = Xcodeproj::Project.open(xcodeFile)
@@ -415,12 +412,12 @@ end
   Future<void> _buildConfigurationWrites() async {
     await _writeGoogleServiceFileToPath(serviceFilePath!);
     await _writeBundleServiceFileScriptToProject(
-      serviceFilePath!,
+      serviceFilePath,
       buildConfiguration!,
       logger,
     );
     await _updateFirebaseJsonAndDebugSymbolScript(
-      serviceFilePath!,
+      serviceFilePath,
       ProjectConfiguration.buildConfiguration,
       buildConfiguration!,
     );
@@ -431,19 +428,19 @@ end
   }) async {
     await _writeGoogleServiceFileToPath(serviceFilePath!);
     await _writeGoogleServiceFileToTargetProject(
-      serviceFilePath!,
+      serviceFilePath,
       target!,
     );
 
     await _updateFirebaseJsonAndDebugSymbolScript(
-      serviceFilePath!,
+      serviceFilePath,
       projectConfiguration,
       target!,
     );
   }
 
   Future<void> apply() async {
-    switch(projectConfiguration){
+    switch (projectConfiguration) {
       case ProjectConfiguration.target:
         await _targetWrites();
         break;
