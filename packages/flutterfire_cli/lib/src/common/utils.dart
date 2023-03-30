@@ -22,10 +22,11 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
-    show relative, normalize, windows, joinAll, dirname;
+    show relative, normalize, windows, joinAll, dirname, join, basename;
 
 import '../flutter_app.dart';
 import 'platform.dart';
+import 'strings.dart';
 
 /// Key for windows platform.
 const String kWindows = 'windows';
@@ -55,6 +56,26 @@ const String kAppId = 'appId';
 const String kProjectId = 'projectId';
 const String kServiceFileOutput = 'serviceFileOutput';
 const String kDefaultConfig = 'default';
+
+// Flags for "flutterfire configure" command
+const String kOutFlag = 'out';
+const String kYesFlag = 'yes';
+const String kPlatformsFlag = 'platforms';
+const String kIosBundleIdFlag = 'ios-bundle-id';
+const String kMacosBundleIdFlag = 'macos-bundle-id';
+const String kAndroidAppIdFlag = 'android-app-id';
+const String kAndroidPackageNameFlag = 'android-package-name';
+const String kWebAppIdFlag = 'web-app-id';
+const String kTokenFlag = 'token';
+const String kAppleGradlePluginFlag = 'apply-gradle-plugins';
+const String kIosBuildConfigFlag = 'ios-build-config';
+const String kMacosBuildConfigFlag = 'macos-build-config';
+const String kIosTargetFlag = 'ios-target';
+const String kMacosTargetFlag = 'macos-target';
+const String kIosOutFlag = 'ios-out';
+const String kMacosOutFlag = 'macos-out';
+const String kAndroidOutFlag = 'android-out';
+const String kOverwriteFirebaseOptionsFlag = 'overwrite-firebase-options';
 
 enum ProjectConfiguration {
   target,
@@ -329,3 +350,84 @@ dynamic getNestedValue(Map map, List<String> keys) {
 
   return currentValue;
 }
+
+Future<List<String>> findTargetsAvailable(
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final targetScript = '''
+      require 'xcodeproj'
+      xcodeProject='$xcodeProjectPath'
+      project = Xcodeproj::Project.open(xcodeProject)
+
+      response = Array.new
+
+      project.targets.each do |target|
+        response << target.name
+      end
+
+      if response.length == 0
+        abort("There are no targets in your Xcode workspace. Please create a target and try again.")
+      end
+
+      \$stdout.write response.join(',')
+    ''';
+
+  final result = await Process.run('ruby', [
+    '-e',
+    targetScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the targets to to check if it exists on the project
+  final targets = (result.stdout as String).split(',');
+
+  return targets;
+}
+
+Future<List<String>> findBuildConfigurationsAvailable(
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final buildConfigurationScript = '''
+      require 'xcodeproj'
+      xcodeProject='$xcodeProjectPath'
+
+      project = Xcodeproj::Project.open(xcodeProject)
+
+      response = Array.new
+
+      project.build_configurations.each do |configuration|
+        response << configuration
+      end
+
+      if response.length == 0
+        abort("There are no build configurations in your Xcode workspace. Please create a build configuration and try again.")
+      end
+
+      \$stdout.write response.join(',')
+    ''';
+
+  final result = await Process.run('ruby', [
+    '-e',
+    buildConfigurationScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the build configurations to check if it exists on the project
+  final buildConfigurations = (result.stdout as String).split(',');
+
+  return buildConfigurations;
+}
+
+String getXcodeProjectPath(String platform){
+return join(
+    Directory.current.path,
+    platform,
+    'Runner.xcodeproj',
+  );
+} 

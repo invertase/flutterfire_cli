@@ -13,26 +13,26 @@ import '../flutter_app.dart';
 
 // Use for both macOS & iOS
 class FirebaseAppleSetup {
-  FirebaseAppleSetup(
-    this.platformOptions,
-    this.flutterApp,
-    this.fullPathToServiceFile,
-    this.logger,
+  FirebaseAppleSetup({
+    required this.platformOptions,
+    required this.flutterAppPath,
+    this.serviceFilePath,
+    required this.logger,
     this.buildConfiguration,
     this.target,
-    this.platform,
+    required this.platform,
     // We have asserts because validation is the very first thing to happen before any API requests/writes are made. This is a helper for developers.
-  )   : assert(
+  })   : assert(
           (target != null || buildConfiguration != null) &&
-              fullPathToServiceFile == null,
+              serviceFilePath == null,
           validationCheck,
         ),
         assert(target != null && buildConfiguration != null, validationCheck);
-  // Either "iOS" or "macOS"
+  // Either "ios" or "macos"
   final String platform;
-  final FlutterApp? flutterApp;
+  final String flutterAppPath;
   final FirebaseOptions platformOptions;
-  String? fullPathToServiceFile;
+  String? serviceFilePath;
   final Logger logger;
   String? buildConfiguration;
   String? target;
@@ -51,7 +51,7 @@ class FirebaseAppleSetup {
     String target = 'Runner',
   }) async {
     final packageConfigContents =
-        File('${flutterApp!.package.path}/.dart_tool/package_config.json');
+        File('$flutterAppPath/.dart_tool/package_config.json');
 
     var crashlyticsDependencyExists = false;
     if (packageConfigContents.existsSync()) {
@@ -67,7 +67,7 @@ class FirebaseAppleSetup {
       );
     } else {
       final pubspecContents =
-          await File('${flutterApp!.package.path}/pubspec.yaml').readAsString();
+          await File('$flutterAppPath/pubspec.yaml').readAsString();
 
       final yamlContents = loadYaml(pubspecContents) as Map;
 
@@ -204,7 +204,6 @@ end
       'FlutterFire: "flutterfire bundle-service-file"';
 
   Future<void> _updateFirebaseJsonFile(
-    FlutterApp flutterApp,
     String appId,
     String projectId,
     bool debugSymbolScript,
@@ -212,10 +211,10 @@ end
     String pathToServiceFile,
     ProjectConfiguration projectConfiguration,
   ) async {
-    final file = File(path.join(flutterApp.package.path, 'firebase.json'));
+    final file = File(path.join(flutterAppPath, 'firebase.json'));
 
     final relativePathFromProject =
-        path.relative(pathToServiceFile, from: flutterApp.package.path);
+        path.relative(pathToServiceFile, from: flutterAppPath);
 
     // "buildConfiguration", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
@@ -275,7 +274,6 @@ end
     );
 
     await _updateFirebaseJsonFile(
-      flutterApp!,
       platformOptions.appId,
       platformOptions.projectId,
       debugSymbolScriptAdded,
@@ -413,14 +411,14 @@ end
   }
 
   Future<void> _buildConfigurationWrites() async {
-    await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
+    await _writeGoogleServiceFileToPath(serviceFilePath!);
     await _writeBundleServiceFileScriptToProject(
-      fullPathToServiceFile!,
+      serviceFilePath!,
       buildConfiguration!,
       logger,
     );
     await _updateFirebaseJsonAndDebugSymbolScript(
-      fullPathToServiceFile!,
+      serviceFilePath!,
       ProjectConfiguration.buildConfiguration,
       buildConfiguration!,
     );
@@ -429,22 +427,20 @@ end
   Future<void> _targetWrites({
     ProjectConfiguration projectConfiguration = ProjectConfiguration.target,
   }) async {
-    await _writeGoogleServiceFileToPath(fullPathToServiceFile!);
+    await _writeGoogleServiceFileToPath(serviceFilePath!);
     await _writeGoogleServiceFileToTargetProject(
-      fullPathToServiceFile!,
+      serviceFilePath!,
       target!,
     );
 
     await _updateFirebaseJsonAndDebugSymbolScript(
-      fullPathToServiceFile!,
+      serviceFilePath!,
       projectConfiguration,
       target!,
     );
   }
 
   Future<void> apply() async {
-    if (!Platform.isMacOS) return;
-
     if (target != null) {
       await _targetWrites();
     } else if (buildConfiguration != null) {
@@ -453,7 +449,7 @@ end
       // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
       target = 'Runner';
-      fullPathToServiceFile = path.join(
+      serviceFilePath = path.join(
         Directory.current.path,
         platform.toLowerCase(),
         target,
