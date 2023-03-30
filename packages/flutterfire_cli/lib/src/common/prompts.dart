@@ -32,6 +32,7 @@ Future<AppleResponses> applePrompts({
     // Default configuration
     return AppleResponses(
       configuration: configurationResponse,
+      target: 'Runner',
     );
   }
 

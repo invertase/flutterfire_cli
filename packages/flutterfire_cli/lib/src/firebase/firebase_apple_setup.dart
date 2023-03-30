@@ -448,7 +448,6 @@ end
     } else {
       // Default setup. Continue to write file to Runner/GoogleService-Info.plist if no "fullPathToServiceFile", "build configuration" and "target" is provided
       // Update "Runner", default target
-      target = 'Runner';
       serviceFilePath = path.join(
         Directory.current.path,
         platform,
