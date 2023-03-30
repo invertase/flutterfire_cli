@@ -40,7 +40,7 @@ class FirebaseAppleSetup {
   String get xcodeProjFilePath {
     return path.join(
       Directory.current.path,
-      platform.toLowerCase(),
+      platform,
       'Runner.xcodeproj',
     );
   }
@@ -113,7 +113,7 @@ class FirebaseAppleSetup {
     ProjectConfiguration projectConfiguration,
   ) {
     var command =
-        'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=${platform.toLowerCase()} --apple-project-path=\${SRCROOT} ';
+        'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=${platform} --apple-project-path=\${SRCROOT} ';
 
     switch (projectConfiguration) {
       case ProjectConfiguration.buildConfiguration:
@@ -162,7 +162,7 @@ end
 
   String _bundleServiceFileScript(String pathsToExecutables) {
     final command =
-        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=${platform.toLowerCase()} --apple-project-path=\${SRCROOT}';
+        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=${platform} --apple-project-path=\${SRCROOT}';
 
     return '''
 require 'xcodeproj'
@@ -226,7 +226,7 @@ end
     final flutterConfig = map[kFlutter] as Map;
     final platforms = flutterConfig[kPlatforms] as Map;
 
-    final platformKey = platform.toLowerCase() == 'ios' ? kIos : kMacos;
+    final platformKey = platform == 'ios' ? kIos : kMacos;
 
     if (platforms[platformKey] == null) {
       platforms[platformKey] = <String, Object>{};
@@ -451,7 +451,7 @@ end
       target = 'Runner';
       serviceFilePath = path.join(
         Directory.current.path,
-        platform.toLowerCase(),
+        platform,
         target,
         platformOptions.optionsSourceFileName,
       );
