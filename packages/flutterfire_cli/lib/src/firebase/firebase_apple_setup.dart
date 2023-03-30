@@ -127,7 +127,7 @@ class FirebaseAppleSetup {
 
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}}'
+xcodeFile='${getXcodeProjectPath(platform)}'
 runScriptName='$debugSymbolScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
