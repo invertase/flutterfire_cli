@@ -202,83 +202,23 @@ end
   final bundleServiceScriptName =
       'FlutterFire: "flutterfire bundle-service-file"';
 
-  Future<void> _updateFirebaseJsonFile(
-    String appId,
-    String projectId,
-    bool debugSymbolScript,
-    String targetOrBuildConfiguration,
-    String pathToServiceFile,
-    ProjectConfiguration projectConfiguration,
-  ) async {
-    final file = File(path.join(flutterAppPath, 'firebase.json'));
-
-    final relativePathFromProject =
-        path.relative(pathToServiceFile, from: flutterAppPath);
-
+  FirebaseJsonWrites _firebaseJsonWrites(bool uploadDebugSymbols) {
+    final platformKey = platform == kIos ? kIos : kMacos;
     // "buildConfiguration", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
+    final keysToMap = [kFlutter, kPlatforms, platformKey, configuration];
 
-    final fileAsString = await file.readAsString();
-
-    final map = jsonDecode(fileAsString) as Map;
-
-    final flutterConfig = map[kFlutter] as Map;
-    final platforms = flutterConfig[kPlatforms] as Map;
-
-    final platformKey = platform == kIos ? kIos : kMacos;
-
-    if (platforms[platformKey] == null) {
-      platforms[platformKey] = <String, Object>{};
-    }
-    final appleConfig = platforms[platformKey] as Map;
-
-    if (appleConfig[configuration] == null) {
-      appleConfig[configuration] = <String, Object>{};
-    }
-    final configurationMaps = appleConfig[configuration] as Map?;
-
-    Map? configurationMap;
-    // For "build configuration" or "target" we need to create a nested map if it does not exist
-    if (ProjectConfiguration.target == projectConfiguration ||
-        ProjectConfiguration.buildConfiguration == projectConfiguration) {
-      if (configurationMaps?[targetOrBuildConfiguration] == null) {
-        // ignore: implicit_dynamic_map_literal
-        configurationMaps?[targetOrBuildConfiguration] = {};
-      }
-      configurationMap = configurationMaps?[targetOrBuildConfiguration] as Map;
-    } else {
-      // Only a single map in "default" configuration.
-      configurationMap = configurationMaps;
+    if (ProjectConfiguration.defaultConfig != projectConfiguration) {
+      // "buildConfiguration" or "targets" property if not default config
+      keysToMap.add(buildConfiguration ?? target!);
     }
 
-    configurationMap?[kProjectId] = projectId;
-    configurationMap?[kAppId] = appId;
-    configurationMap?[kUploadDebugSymbols] = debugSymbolScript;
-    configurationMap?[kServiceFileOutput] = relativePathFromProject;
-
-    final mapJson = json.encode(map);
-
-    file.writeAsStringSync(mapJson);
-  }
-
-  Future<void> _updateFirebaseJsonAndDebugSymbolScript(
-    String pathToServiceFile,
-    ProjectConfiguration projectConfiguration,
-    String targetOrBuildConfiguration,
-  ) async {
-    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
-      logger,
-      projectConfiguration,
-      target: targetOrBuildConfiguration,
-    );
-
-    await _updateFirebaseJsonFile(
-      platformOptions.appId,
-      platformOptions.projectId,
-      debugSymbolScriptAdded,
-      targetOrBuildConfiguration,
-      pathToServiceFile,
-      projectConfiguration,
+    return FirebaseJsonWrites(
+      pathToMap: keysToMap,
+      projectId: platformOptions.projectId,
+      appId: platformOptions.appId,
+      serviceFileOutput: serviceFilePath,
+      uploadDebugSymbols: uploadDebugSymbols,
     );
   }
 
@@ -409,49 +349,49 @@ end
     }
   }
 
-  Future<void> _buildConfigurationWrites() async {
-    await _writeGoogleServiceFileToPath(serviceFilePath!);
+  Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
+    await _writeGoogleServiceFileToPath(serviceFilePath);
     await _writeBundleServiceFileScriptToProject(
       serviceFilePath,
       buildConfiguration!,
       logger,
     );
-    await _updateFirebaseJsonAndDebugSymbolScript(
-      serviceFilePath,
-      ProjectConfiguration.buildConfiguration,
-      buildConfiguration!,
+    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
+      logger,
+      projectConfiguration,
     );
+
+    return _firebaseJsonWrites(debugSymbolScriptAdded);
   }
 
-  Future<void> _targetWrites({
+  Future<FirebaseJsonWrites> _targetWrites({
     ProjectConfiguration projectConfiguration = ProjectConfiguration.target,
   }) async {
-    await _writeGoogleServiceFileToPath(serviceFilePath!);
+    await _writeGoogleServiceFileToPath(serviceFilePath);
     await _writeGoogleServiceFileToTargetProject(
       serviceFilePath,
       target!,
     );
 
-    await _updateFirebaseJsonAndDebugSymbolScript(
-      serviceFilePath,
+    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
+      logger,
       projectConfiguration,
-      target!,
+      target: target!,
     );
+
+    return _firebaseJsonWrites(debugSymbolScriptAdded);
   }
 
-  Future<void> apply() async {
+  Future<FirebaseJsonWrites> apply() async {
     switch (projectConfiguration) {
       case ProjectConfiguration.target:
-        await _targetWrites();
-        break;
+        return _targetWrites();
       case ProjectConfiguration.buildConfiguration:
-        await _buildConfigurationWrites();
-        break;
+        return _buildConfigurationWrites();
       case ProjectConfiguration.defaultConfig:
-        await _targetWrites(
+        return _targetWrites(
           projectConfiguration: ProjectConfiguration.defaultConfig,
         );
-        break;
     }
   }
 }

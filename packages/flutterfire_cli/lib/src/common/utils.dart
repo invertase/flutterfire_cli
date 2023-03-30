@@ -333,22 +333,66 @@ Future<void> writeFirebaseJsonFile(
   }
 }
 
-dynamic getNestedValue(Map map, List<String> keys) {
-  if (keys.isEmpty) {
-    throw Exception('Keys cannot be empty');
-  }
+class FirebaseJsonWrites {
+  FirebaseJsonWrites({
+    required this.pathToMap,
+    this.uploadDebugSymbols,
+    this.projectId,
+    this.appId,
+    this.serviceFileOutput,
+  });
+  //list of keys to map
+  //list of values that can be null, if null, then don't write
+  List<String> pathToMap;
+  String? projectId;
+  String? appId;
+  bool? uploadDebugSymbols;
+  String? serviceFileOutput;
+}
 
-  dynamic currentValue = map;
+Future<void> writeToFirebaseJson({
+  required List<FirebaseJsonWrites> listOfWrites,
+  required String firebaseJsonPath,
+}) async {
+  final file = File(firebaseJsonPath);
 
-  for (final key in keys) {
-    if (currentValue is Map && currentValue.containsKey(key)) {
-      currentValue = currentValue[key];
-    } else {
-      throw Exception('This key does not exist: $key');
+  final decodedMap = !file.existsSync()
+      ? <String, dynamic>{}
+      : json.decode(await file.readAsString()) as Map<String, dynamic>;
+
+  for (final write in listOfWrites) {
+    final map = getNestedMap(decodedMap, write.pathToMap);
+
+    if (write.projectId != null) {
+      map[kProjectId] = write.projectId;
     }
+
+    if (write.appId != null) {
+      map[kAppId] = write.appId;
+    }
+
+    if (write.uploadDebugSymbols != null) {
+      map[kUploadDebugSymbols] = write.uploadDebugSymbols;
+    }
+
+    if (write.serviceFileOutput != null) {
+      map[kServiceFileOutput] = write.serviceFileOutput;
+    }
+
+
   }
 
-  return currentValue;
+  final mapJson = json.encode(decodedMap);
+
+  file.writeAsStringSync(mapJson);
+}
+
+Map<String, dynamic> getNestedMap(Map<String, dynamic> map, List<String> keys) {
+  final lastNestedMap = keys.fold<Map<String, dynamic>>(map, (currentMap, key) {
+    return currentMap.putIfAbsent(key, () => <String, dynamic>{}) as Map<String, dynamic>;
+  });
+
+  return lastNestedMap;
 }
 
 Future<List<String>> findTargetsAvailable(
@@ -425,9 +469,9 @@ Future<List<String>> findBuildConfigurationsAvailable(
 }
 
 String getXcodeProjectPath(String platform) {
-return join(
+  return join(
     Directory.current.path,
     platform,
     'Runner.xcodeproj',
   );
-} 
+}
