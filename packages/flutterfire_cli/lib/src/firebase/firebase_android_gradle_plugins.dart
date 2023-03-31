@@ -55,20 +55,22 @@ const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
 
 class FirebaseAndroidGradlePlugins {
-  FirebaseAndroidGradlePlugins(
-    this.flutterApp,
-    this.firebaseOptions,
-    this.logger,
+  FirebaseAndroidGradlePlugins({
+    required this.flutterApp,
+    required this.firebaseOptions,
+    required this.logger,
     this.androidServiceFilePath,
-  );
+    required this.projectConfiguration,
+  });
 
   final FlutterApp flutterApp;
   final FirebaseOptions firebaseOptions;
   final Logger logger;
   final String? androidServiceFilePath;
+  ProjectConfiguration projectConfiguration;
 
   File get androidGoogleServicesJsonFile {
-    if (androidServiceFilePath != null) {
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
       return File(
         path.join(
           flutterApp.package.path,
@@ -87,7 +89,7 @@ class FirebaseAndroidGradlePlugins {
   }
 
   Future<void> createAndroidGoogleServicesJsonFile() async {
-    if (androidServiceFilePath != null) {
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
       final updatedPath = path.join(
         flutterApp.package.path,
         androidServiceFilePath,
@@ -101,7 +103,7 @@ class FirebaseAndroidGradlePlugins {
         androidServiceFilePath != null ? kBuildConfiguration : kDefaultConfig;
     final keysToMap = [kFlutter, kPlatforms, kAndroid, configurationKey];
 
-    if (androidServiceFilePath != null) {
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
       final segments = path.split(androidServiceFilePath!);
       final appIndex = segments.indexOf('app');
       // We have already validated that the "app" segment is on the path

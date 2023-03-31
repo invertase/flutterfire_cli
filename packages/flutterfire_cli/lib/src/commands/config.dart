@@ -21,7 +21,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
-import '../common/prompts.dart';
+import '../common/validation.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
@@ -245,36 +245,7 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get androidServiceFilePath {
-    final serviceFilePath = argResults!['android-out'] as String?;
-    if (serviceFilePath == null) {
-      return null;
-    }
-
-    final segments = path.split(serviceFilePath);
-
-    if (!segments.contains('android') || !segments.contains('app')) {
-      throw ServiceFileException(
-        kAndroid,
-        'The service file name must contain `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects',
-      );
-    }
-
-    final basename = path.basename(serviceFilePath);
-
-    if (basename == androidServiceFileName) {
-      return removeForwardBackwardSlash(serviceFilePath);
-    }
-
-    if (basename.contains('.')) {
-      throw ServiceFileException(
-        kAndroid,
-        'The service file name must be `$androidServiceFileName`. Please provide a path to the file. e.g. `android/app/development` or `android/app/development/$androidServiceFileName`',
-      );
-    }
-    return path.join(
-      removeForwardBackwardSlash(serviceFilePath),
-      androidServiceFileName,
-    );
+    return argResults!['android-out'] as String?;
   }
 
   String? get androidApplicationId {
@@ -353,8 +324,9 @@ class ConfigCommand extends FlutterFireCommand {
     return 'android';
   }
 
-  AppleResponses? macosInputs;
-  AppleResponses? iosInputs;
+  AppleInputs? macosInputs;
+  AppleInputs? iosInputs;
+  AndroidInputs? androidInputs;
 
   Future<FirebaseProject> _promptCreateFirebaseProject() async {
     final newProjectId = promptInput(
@@ -497,16 +469,16 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     commandRequiresFlutterApp();
 
-    // Prompts first
+    // Validate and prompt first
     if (Platform.isMacOS) {
-      macosInputs = await applePrompts(
+      macosInputs = await appleValidation(
         platform: kMacos,
         flutterAppPath: flutterApp!.package.path,
         serviceFilePath: macOSServiceFilePath,
         target: macosTarget,
         buildConfiguration: macosBuildConfiguration,
       );
-      iosInputs = await applePrompts(
+      iosInputs = await appleValidation(
         platform: kIos,
         flutterAppPath: flutterApp!.package.path,
         serviceFilePath: iOSServiceFilePath,
@@ -516,7 +488,10 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (flutterApp!.android) {
-      // TODO make prompt for service file
+      androidInputs = await androidValidation(
+        flutterAppPath: flutterApp!.package.path,
+        serviceFilePath: androidServiceFilePath,
+      );
     }
 
     final selectedFirebaseProject = await _selectFirebaseProject();
@@ -600,10 +575,11 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (androidOptions != null && applyGradlePlugins && flutterApp!.android) {
       final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
-        flutterApp!,
-        androidOptions,
-        logger,
-        androidServiceFilePath,
+        flutterApp: flutterApp!,
+        firebaseOptions: androidOptions,
+        logger: logger,
+        androidServiceFilePath: androidInputs!.serviceFilePath,
+        projectConfiguration: androidInputs!.projectConfiguration,
       ).apply(force: isCI || yes);
 
       writes.add(firebaseJsonWrite);
