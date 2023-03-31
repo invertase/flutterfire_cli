@@ -48,8 +48,13 @@ class FirebaseAppleSetup {
     ProjectConfiguration projectConfiguration, {
     String target = 'Runner',
   }) async {
-    final packageConfigContents =
-        File('$flutterAppPath/.dart_tool/package_config.json');
+    final packageConfigContents = File(
+      path.join(
+        flutterAppPath,
+        '.dart_tool',
+        'package_config.json',
+      ),
+    );
 
     var crashlyticsDependencyExists = false;
     const crashlyticsDependency = 'firebase_crashlytics';
@@ -65,8 +70,12 @@ class FirebaseAppleSetup {
             package is Map && package['name'] == crashlyticsDependency,
       );
     } else {
-      final pubspecContents =
-          await File('$flutterAppPath/pubspec.yaml').readAsString();
+      final pubspecContents = await File(
+        path.join(
+          flutterAppPath,
+          'pubspec.yaml',
+        ),
+      ).readAsString();
 
       final yamlContents = loadYaml(pubspecContents) as Map;
 
