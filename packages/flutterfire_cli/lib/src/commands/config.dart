@@ -312,18 +312,6 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['overwrite-firebase-options'] as bool?;
   }
 
-  String get iosAppIDOutputFilePrefix {
-    return 'ios';
-  }
-
-  String get macosAppIDOutputFilePrefix {
-    return 'macos';
-  }
-
-  String get androidAppIDOutputFilePrefix {
-    return 'android';
-  }
-
   AppleInputs? macosInputs;
   AppleInputs? iosInputs;
   AndroidInputs? androidInputs;
