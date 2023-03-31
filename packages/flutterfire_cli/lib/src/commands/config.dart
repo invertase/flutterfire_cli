@@ -457,7 +457,7 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     commandRequiresFlutterApp();
 
-    // Validate and prompt first
+    // 1. Validate and prompt first
     if (Platform.isMacOS) {
       if (flutterApp!.ios) {
         iosInputs = await appleValidation(
@@ -480,11 +480,15 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     if (flutterApp!.android) {
-      androidInputs = await androidValidation(
+      androidInputs = androidValidation(
         flutterAppPath: flutterApp!.package.path,
         serviceFilePath: androidServiceFilePath,
       );
     }
+
+    final firebaseConfigurationFileInputs = firebaseConfigurationFileValidation(
+      flutterAppPath: flutterApp!.package.path,
+    );
 
     final selectedFirebaseProject = await _selectFirebaseProject();
     final selectedPlatforms = _selectPlatforms();
@@ -492,9 +496,6 @@ class ConfigCommand extends FlutterFireCommand {
     if (!selectedPlatforms.containsValue(true)) {
       throw NoFlutterPlatformsSelectedException();
     }
-
-    // Write this early so it can be used in whatever setup has been configured
-    await writeFirebaseJsonFile(flutterApp!);
 
     FirebaseOptions? androidOptions;
     if (selectedPlatforms[kAndroid]!) {
@@ -517,7 +518,7 @@ class ConfigCommand extends FlutterFireCommand {
         token: token,
       );
     }
-
+    // 2. Get values for all selected platforms
     FirebaseOptions? macosOptions;
     if (selectedPlatforms[kMacos]!) {
       macosOptions = await FirebaseAppleOptions.forFlutterApp(
@@ -564,7 +565,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     final writes = <FirebaseJsonWrites>[];
-
+    // 3. Writes for all selected platforms
     if (androidOptions != null && applyGradlePlugins && flutterApp!.android) {
       final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
         flutterApp: flutterApp!,
@@ -607,21 +608,23 @@ class ConfigCommand extends FlutterFireCommand {
         writes.add(firebaseJsonWrite);
       }
     }
+    if (firebaseConfigurationFileInputs.writeConfigurationFile) {
+      final firebaseJsonWrite = FirebaseConfigurationFile(
+        configurationFilePath:
+            firebaseConfigurationFileInputs.configurationFilePath,
+        flutterAppPath: flutterApp!.package.path,
+        androidOptions: androidOptions,
+        iosOptions: iosOptions,
+        macosOptions: macosOptions,
+        webOptions: webOptions,
+        windowsOptions: windowsOptions,
+        linuxOptions: linuxOptions,
+      ).write();
 
-    await FirebaseConfigurationFile(
-      outputFilePath,
-      flutterApp!,
-      androidOptions: androidOptions,
-      iosOptions: iosOptions,
-      macosOptions: macosOptions,
-      webOptions: webOptions,
-      windowsOptions: windowsOptions,
-      linuxOptions: linuxOptions,
-      force: isCI || yes,
-      overwriteFirebaseOptions: overwriteFirebaseOptions,
-    ).write();
+      writes.add(firebaseJsonWrite);
+    }
 
-    // "firebase.json" writes
+    // 4. Writes for "firebase.json" file in root of project
     if (writes.isNotEmpty) {
       await writeToFirebaseJson(
         listOfWrites: writes,

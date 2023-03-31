@@ -117,7 +117,7 @@ class FirebaseAndroidGradlePlugins {
       pathToMap: keysToMap,
       projectId: firebaseOptions.projectId,
       appId: firebaseOptions.appId,
-      serviceFileOutput: androidServiceFilePath ??
+      fileOutput: androidServiceFilePath ??
           path.join(
             'android',
             'app',

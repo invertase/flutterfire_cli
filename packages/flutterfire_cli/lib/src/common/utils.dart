@@ -49,13 +49,16 @@ const String kWeb = 'web';
 // Keys for firebase.json
 const String kFlutter = 'flutter';
 const String kPlatforms = 'platforms';
+const String kDart = 'dart';
 const String kBuildConfiguration = 'buildConfigurations';
 const String kTargets = 'targets';
 const String kUploadDebugSymbols = 'uploadDebugSymbols';
 const String kAppId = 'appId';
 const String kProjectId = 'projectId';
-const String kServiceFileOutput = 'serviceFileOutput';
+const String kFileOutput = 'fileOutput';
 const String kDefaultConfig = 'default';
+const String kConfigurations = 'configurations';
+
 
 // Flags for "flutterfire configure" command
 const String kOutFlag = 'out';
@@ -339,7 +342,8 @@ class FirebaseJsonWrites {
     this.uploadDebugSymbols,
     this.projectId,
     this.appId,
-    this.serviceFileOutput,
+    this.fileOutput,
+    this.configurations,
   });
   //list of keys to map
   //list of values that can be null, if null, then don't write
@@ -347,7 +351,9 @@ class FirebaseJsonWrites {
   String? projectId;
   String? appId;
   bool? uploadDebugSymbols;
-  String? serviceFileOutput;
+  String? fileOutput;
+  // We need for dart configuration file
+  Map<String, String>? configurations;
 }
 
 Future<void> writeToFirebaseJson({
@@ -375,11 +381,13 @@ Future<void> writeToFirebaseJson({
       map[kUploadDebugSymbols] = write.uploadDebugSymbols;
     }
 
-    if (write.serviceFileOutput != null) {
-      map[kServiceFileOutput] = write.serviceFileOutput;
+    if (write.fileOutput != null) {
+      map[kFileOutput] = write.fileOutput;
     }
 
-
+    if(write.configurations != null) {
+      map[kConfigurations] = write.configurations;
+    }
   }
 
   final mapJson = json.encode(decodedMap);

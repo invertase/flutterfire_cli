@@ -226,7 +226,7 @@ end
       pathToMap: keysToMap,
       projectId: platformOptions.projectId,
       appId: platformOptions.appId,
-      serviceFileOutput: serviceFilePath,
+      fileOutput: path.relative(serviceFilePath, from: flutterAppPath),
       uploadDebugSymbols: uploadDebugSymbols,
     );
   }

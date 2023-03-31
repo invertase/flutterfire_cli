@@ -23,31 +23,23 @@ import 'package:path/path.dart';
 
 import '../common/strings.dart';
 import '../common/utils.dart';
-import '../flutter_app.dart';
 import 'firebase_options.dart';
 
 class FirebaseConfigurationFile {
-  FirebaseConfigurationFile(
-    this.outputFilePath,
-    this.flutterApp, {
+  FirebaseConfigurationFile({
+    required this.configurationFilePath,
+    required this.flutterAppPath,
     this.androidOptions,
     this.iosOptions,
     this.macosOptions,
     this.webOptions,
     this.windowsOptions,
     this.linuxOptions,
-    this.overwriteFirebaseOptions,
-    this.force = false,
   });
 
   final StringBuffer _stringBuffer = StringBuffer();
-  final String outputFilePath;
-  final FlutterApp flutterApp;
-
-  /// Whether to skip prompts and force write output file.
-  final bool force;
-
-  final bool? overwriteFirebaseOptions;
+  final String configurationFilePath;
+  final String flutterAppPath;
 
   FirebaseOptions? webOptions;
 
@@ -61,68 +53,52 @@ class FirebaseConfigurationFile {
 
   FirebaseOptions? linuxOptions;
 
-  Future<void> write() async {
-    final outputFile = File(joinAll([Directory.current.path, outputFilePath]));
-    final fileExists = outputFile.existsSync();
-
-    // If the user specifically chooses to negate overwriting the file, return immediately
-    if (fileExists && overwriteFirebaseOptions == false) return;
-
-    // Write buffer early so we can string compare contents if file exists already.
+  FirebaseJsonWrites write() {
+    final outputFile = File(configurationFilePath);
     _writeHeader();
     _writeClass();
-    final newFileContents = _stringBuffer.toString();
-
-    if (fileExists && !force) {
-      final existingFileContents = await outputFile.readAsString();
-      // Only prompt overwrite if contents have changed.
-      // Trimming since some IDEs/git auto apply a trailing newline.
-      if (existingFileContents.trim() != newFileContents.trim()) {
-        // If the user chooses this option, they want it overwritten so no need to prompt
-        if (overwriteFirebaseOptions != true) {
-          final shouldOverwrite = promptBool(
-            'Generated FirebaseOptions file ${AnsiStyles.cyan(outputFilePath)} already exists, do you want to override it?',
-          );
-          if (!shouldOverwrite) {
-            throw FirebaseOptionsAlreadyExistsException(outputFilePath);
-          }
-        }
-      }
-    }
 
     outputFile.createSync(recursive: true);
     outputFile.writeAsStringSync(_stringBuffer.toString());
-    await _updateFirebaseJsonFile();
+
+    return _firebaseJsonWrites();
   }
 
-  Future<void> _updateFirebaseJsonFile() async {
-    final file = File(join(flutterApp.package.path, 'firebase.json'));
+  FirebaseJsonWrites _firebaseJsonWrites() {
+    final relativePathConfigurationFile = relative(
+      configurationFilePath,
+      from: flutterAppPath,
+    );
+    final keysToMap = [
+      kFlutter,
+      kPlatforms,
+      kDart,
+      relativePathConfigurationFile,
+    ];
 
-    final fileAsString = await file.readAsString();
+    final configurations = <String, String>{};
 
-    final map = jsonDecode(fileAsString) as Map;
-
-    final flutterConfig = map[kFlutter] as Map;
-
-    final platform = flutterConfig[kPlatforms] as Map;
-
-    if (platform[kWeb] == null) {
-      platform[kWeb] = <String, Object>{};
+    if (androidOptions != null) {
+      configurations[kAndroid] = androidOptions!.appId;
     }
-    final webConfig = platform[kWeb] as Map;
-
-
-    if (webConfig[outputFilePath] == null) {
-      webConfig[outputFilePath] = <String, Object>{};
+    if (iosOptions != null) {
+      configurations[kIos] = iosOptions!.appId;
     }
-    final configurationMap = webConfig[outputFilePath] as Map?;
 
-    configurationMap?[kProjectId] = webOptions?.projectId;
-    configurationMap?[kAppId] = webOptions?.appId;
+    if (macosOptions != null) {
+      configurations[kMacos] = macosOptions!.appId;
+    }
 
-    final mapJson = json.encode(map);
+    if (webOptions != null) {
+      configurations[kWeb] = webOptions!.appId;
+    }
 
-    file.writeAsStringSync(mapJson);
+    return FirebaseJsonWrites(
+      pathToMap: keysToMap,
+      projectId: webOptions!.projectId,
+      fileOutput: relativePathConfigurationFile,
+      configurations: configurations,
+    );
   }
 
   void _writeHeader() {
@@ -138,7 +114,7 @@ class FirebaseConfigurationFile {
         '///',
         '/// Example:',
         '/// ```dart',
-        "/// import '${basename(outputFilePath)}';",
+        "/// import '${basename(configurationFilePath)}';",
         '/// // ...',
         '/// await Firebase.initializeApp(',
         '///   options: DefaultFirebaseOptions.currentPlatform,',
