@@ -471,20 +471,24 @@ class ConfigCommand extends FlutterFireCommand {
 
     // Validate and prompt first
     if (Platform.isMacOS) {
-      macosInputs = await appleValidation(
-        platform: kMacos,
-        flutterAppPath: flutterApp!.package.path,
-        serviceFilePath: macOSServiceFilePath,
-        target: macosTarget,
-        buildConfiguration: macosBuildConfiguration,
-      );
-      iosInputs = await appleValidation(
-        platform: kIos,
-        flutterAppPath: flutterApp!.package.path,
-        serviceFilePath: iOSServiceFilePath,
-        target: iosTarget,
-        buildConfiguration: iosBuildConfiguration,
-      );
+      if (flutterApp!.ios) {
+        iosInputs = await appleValidation(
+          platform: kIos,
+          flutterAppPath: flutterApp!.package.path,
+          serviceFilePath: iOSServiceFilePath,
+          target: iosTarget,
+          buildConfiguration: iosBuildConfiguration,
+        );
+      }
+      if (flutterApp!.macos) {
+        macosInputs = await appleValidation(
+          platform: kMacos,
+          flutterAppPath: flutterApp!.package.path,
+          serviceFilePath: macOSServiceFilePath,
+          target: macosTarget,
+          buildConfiguration: macosBuildConfiguration,
+        );
+      }
     }
 
     if (flutterApp!.android) {
