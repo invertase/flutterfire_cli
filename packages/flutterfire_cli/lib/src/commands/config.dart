@@ -497,8 +497,8 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     commandRequiresFlutterApp();
 
+    // Prompts first
     if (Platform.isMacOS) {
-      // Prompts first
       macosInputs = await applePrompts(
         platform: kMacos,
         flutterAppPath: flutterApp!.package.path,
@@ -513,6 +513,10 @@ class ConfigCommand extends FlutterFireCommand {
         target: iosTarget,
         buildConfiguration: iosBuildConfiguration,
       );
+    }
+
+    if (flutterApp!.android) {
+      // TODO make prompt for service file
     }
 
     final selectedFirebaseProject = await _selectFirebaseProject();
@@ -594,17 +598,19 @@ class ConfigCommand extends FlutterFireCommand {
 
     final writes = <FirebaseJsonWrites>[];
 
-    if (androidOptions != null && applyGradlePlugins) {
-      await FirebaseAndroidGradlePlugins(
+    if (androidOptions != null && applyGradlePlugins && flutterApp!.android) {
+      final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
         flutterApp!,
         androidOptions,
         logger,
         androidServiceFilePath,
       ).apply(force: isCI || yes);
+
+      writes.add(firebaseJsonWrite);
     }
     if (Platform.isMacOS) {
-      if (iosOptions != null) {
-        final firebaseWrite = await FirebaseAppleSetup(
+      if (iosOptions != null && flutterApp!.ios) {
+        final firebaseJsonWrite = await FirebaseAppleSetup(
           platformOptions: iosOptions,
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: iosInputs!.serviceFilePath,
@@ -615,11 +621,11 @@ class ConfigCommand extends FlutterFireCommand {
           projectConfiguration: iosInputs!.projectConfiguration,
         ).apply();
 
-        writes.add(firebaseWrite);
+        writes.add(firebaseJsonWrite);
       }
 
-      if (macosOptions != null) {
-        final firebaseWrite = await FirebaseAppleSetup(
+      if (macosOptions != null && flutterApp!.macos) {
+        final firebaseJsonWrite = await FirebaseAppleSetup(
           platformOptions: macosOptions,
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: macosInputs!.serviceFilePath,
@@ -630,7 +636,7 @@ class ConfigCommand extends FlutterFireCommand {
           projectConfiguration: macosInputs!.projectConfiguration,
         ).apply();
 
-        writes.add(firebaseWrite);
+        writes.add(firebaseJsonWrite);
       }
     }
 
@@ -649,7 +655,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     // "firebase.json" writes
     if (writes.isNotEmpty) {
-      writeToFirebaseJson(
+      await writeToFirebaseJson(
         listOfWrites: writes,
         firebaseJsonPath: path.join(flutterApp!.package.path, 'firebase.json'),
       );
