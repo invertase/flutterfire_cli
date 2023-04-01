@@ -579,7 +579,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
     if (Platform.isMacOS) {
       if (iosOptions != null && flutterApp!.ios && iosInputs != null) {
-        final firebaseJsonWrite = await FirebaseAppleSetup(
+        final firebaseJsonWrite = await appleWrites(
           platformOptions: iosOptions,
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: iosInputs!.serviceFilePath,
@@ -588,13 +588,13 @@ class ConfigCommand extends FlutterFireCommand {
           target: iosInputs?.target,
           platform: kIos,
           projectConfiguration: iosInputs!.projectConfiguration,
-        ).apply();
+        );
 
         writes.add(firebaseJsonWrite);
       }
 
       if (macosOptions != null && flutterApp!.macos && macosInputs != null) {
-        final firebaseJsonWrite = await FirebaseAppleSetup(
+        final firebaseJsonWrite = await appleWrites(
           platformOptions: macosOptions,
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: macosInputs!.serviceFilePath,
@@ -603,7 +603,7 @@ class ConfigCommand extends FlutterFireCommand {
           target: macosInputs?.target,
           platform: kMacos,
           projectConfiguration: macosInputs!.projectConfiguration,
-        ).apply();
+        );
 
         writes.add(firebaseJsonWrite);
       }

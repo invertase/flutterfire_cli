@@ -9,43 +9,241 @@ import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 
-import '../flutter_app.dart';
+Future<FirebaseJsonWrites> appleWrites({
+  required String platform,
+  required String flutterAppPath,
+  required String serviceFilePath,
+  required FirebaseOptions platformOptions,
+  required Logger logger,
+  required ProjectConfiguration projectConfiguration,
+  String? target,
+  String? buildConfiguration,
+}) {
+  switch(projectConfiguration) {
+    case ProjectConfiguration.buildConfiguration:
+      return FirebaseAppleBuildConfiguration(
+        platformOptions: platformOptions,
+        flutterAppPath: flutterAppPath,
+        serviceFilePath: serviceFilePath,
+        logger: logger,
+        platform: platform,
+        projectConfiguration: projectConfiguration,
+        buildConfiguration: buildConfiguration!,
+      ).apply();
+    case ProjectConfiguration.target:
+    case ProjectConfiguration.defaultConfig:
+      return FirebaseAppleTargetConfiguration(
+        platformOptions: platformOptions,
+        flutterAppPath: flutterAppPath,
+        serviceFilePath: serviceFilePath,
+        logger: logger,
+        platform: platform,
+        projectConfiguration: projectConfiguration,
+        target: ProjectConfiguration.defaultConfig == projectConfiguration ? 'Runner': target!,
+      ).apply();
+  }
+}
+
+class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
+  FirebaseAppleTargetConfiguration({
+    required FirebaseOptions platformOptions,
+    required String flutterAppPath,
+    required String serviceFilePath,
+    required Logger logger,
+    required String platform,
+    required ProjectConfiguration projectConfiguration,
+    required this.target,
+  }) : super(
+          platformOptions: platformOptions,
+          flutterAppPath: flutterAppPath,
+          serviceFilePath: serviceFilePath,
+          logger: logger,
+          platform: platform,
+          projectConfiguration: projectConfiguration,
+        );
+
+  // Default Flutter project has the target name "Runner"
+  final String target;
+
+  Future<void> _writeGoogleServiceFileToTargetProject() async {
+    final addServiceFileToTargetScript = _addServiceFileToTarget();
+
+    final resultServiceFileToTarget = await Process.run('ruby', [
+      '-e',
+      addServiceFileToTargetScript,
+    ]);
+
+    if (resultServiceFileToTarget.exitCode != 0) {
+      throw Exception(resultServiceFileToTarget.stderr);
+    }
+  }
+
+  String _addServiceFileToTarget() {
+    return '''
+require 'xcodeproj'
+googleFile='$serviceFilePath'
+xcodeFile='${getXcodeProjectPath(platform)}'
+targetName='$target'
+
+project = Xcodeproj::Project.open(xcodeFile)
+
+file = project.new_file(googleFile)
+target = project.targets.find { |target| target.name == targetName }
+
+if(target)
+  exists = target.resources_build_phase.files.find do |file|
+    if defined? file && file.file_ref && file.file_ref.path
+      if file.file_ref.path.is_a? String
+        file.file_ref.path.include? 'GoogleService-Info.plist'
+      end
+    end
+  end  
+  if !exists
+    target.add_resources([file])
+    project.save
+  end
+else
+  abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
+end  
+''';
+  }
+
+  Future<FirebaseJsonWrites> _targetWrites() async {
+    await _writeGoogleServiceFileToPath();
+    await _writeGoogleServiceFileToTargetProject();
+
+    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
+      target: target,
+    );
+
+    return _firebaseJsonWrites(debugSymbolScriptAdded, target);
+  }
+
+  @override
+  Future<FirebaseJsonWrites> apply() {
+    return _targetWrites();
+  }
+}
+
+class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
+  FirebaseAppleBuildConfiguration({
+    required FirebaseOptions platformOptions,
+    required String flutterAppPath,
+    required String serviceFilePath,
+    required Logger logger,
+    required String platform,
+    required ProjectConfiguration projectConfiguration,
+    required this.buildConfiguration,
+  }) : super(
+          platformOptions: platformOptions,
+          flutterAppPath: flutterAppPath,
+          serviceFilePath: serviceFilePath,
+          logger: logger,
+          platform: platform,
+          projectConfiguration: projectConfiguration,
+        );
+  // e.g. Debug, Profile, Release, etc
+  final String buildConfiguration;
+
+  Future<void> _writeBundleServiceFileScriptToProject() async {
+    final paths = _addPathToExecutablesForBuildPhaseScripts();
+    if (paths != null) {
+      final addBuildPhaseScript = _bundleServiceFileScript(paths);
+
+      // Add "bundle-service-file" script to Build Phases in Xcode project
+      final resultBuildPhase = await Process.run('ruby', [
+        '-e',
+        addBuildPhaseScript,
+      ]);
+
+      if (resultBuildPhase.exitCode != 0) {
+        throw Exception(resultBuildPhase.stderr);
+      }
+
+      if (resultBuildPhase.stdout != null) {
+        logger.stdout(resultBuildPhase.stdout as String);
+      }
+    } else {
+      logger.stdout(
+        noPathsToExecutables,
+      );
+    }
+  }
+
+  String _bundleServiceFileScript(String pathsToExecutables) {
+    final command =
+        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
+
+    return '''
+require 'xcodeproj'
+xcodeFile='${getXcodeProjectPath(platform)}'
+runScriptName='$bundleServiceScriptName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+
+# multi line argument for bash script
+bashScript = %q(
+#!/bin/bash
+PATH=\${PATH}:$pathsToExecutables
+$command
+)
+
+for target in project.targets 
+  if (target.name == 'Runner')
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == runScriptName
+      end
+    end
+
+    if (!phase.nil?)
+      phase.remove_from_project()
+    end
+    
+    phase = target.new_shell_script_build_phase(runScriptName)
+    phase.shell_script = bashScript
+    project.save()   
+  end  
+end
+    ''';
+  }
+
+  Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
+    await _writeGoogleServiceFileToPath();
+    await _writeBundleServiceFileScriptToProject();
+    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript();
+
+    return _firebaseJsonWrites(
+      debugSymbolScriptAdded,
+      buildConfiguration,
+    );
+  }
+
+  @override
+  Future<FirebaseJsonWrites> apply() {
+    return _buildConfigurationWrites();
+  }
+}
 
 // Use for both macOS & iOS
-class FirebaseAppleSetup {
-  FirebaseAppleSetup({
+abstract class FirebaseAppleConfiguration {
+  FirebaseAppleConfiguration({
     required this.platformOptions,
     required this.flutterAppPath,
     required this.serviceFilePath,
     required this.logger,
-    this.buildConfiguration,
-    this.target,
     required this.platform,
     required this.projectConfiguration,
-    // We have asserts because validation is the very first thing to happen before any API requests/writes are made. This is a helper for developers.
-  })  : assert(target != null && buildConfiguration != null, validationCheck),
-        assert(
-          projectConfiguration == ProjectConfiguration.target && target == null,
-          validationCheck,
-        ),
-        assert(
-          projectConfiguration == ProjectConfiguration.buildConfiguration &&
-              buildConfiguration == null,
-          validationCheck,
-        );
+  });
   // Either "ios" or "macos"
   final String platform;
   final String flutterAppPath;
   final FirebaseOptions platformOptions;
   final String serviceFilePath;
   final Logger logger;
-  String? buildConfiguration;
-  String? target;
   ProjectConfiguration projectConfiguration;
 
-  Future<bool> _addFlutterFireDebugSymbolsScript(
-    Logger logger,
-    ProjectConfiguration projectConfiguration, {
+  Future<bool> _addFlutterFireDebugSymbolsScript({
     String target = 'Runner',
   }) async {
     final packageConfigContents = File(
@@ -93,7 +291,6 @@ class FirebaseAppleSetup {
           _debugSymbolsScript(
             target,
             paths,
-            projectConfiguration,
           ),
         ]);
 
@@ -118,7 +315,6 @@ class FirebaseAppleSetup {
     // Always "Runner" for "build configuration" setup
     String target,
     String pathsToExecutables,
-    ProjectConfiguration projectConfiguration,
   ) {
     var command =
         'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
@@ -168,58 +364,23 @@ end
 ''';
   }
 
-  String _bundleServiceFileScript(String pathsToExecutables) {
-    final command =
-        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
-
-    return '''
-require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
-runScriptName='$bundleServiceScriptName'
-project = Xcodeproj::Project.open(xcodeFile)
-
-
-# multi line argument for bash script
-bashScript = %q(
-#!/bin/bash
-PATH=\${PATH}:$pathsToExecutables
-$command
-)
-
-for target in project.targets 
-  if (target.name == 'Runner')
-    phase = target.shell_script_build_phases().find do |item|
-      if defined? item && item.name
-        item.name == runScriptName
-      end
-    end
-
-    if (!phase.nil?)
-      phase.remove_from_project()
-    end
-    
-    phase = target.new_shell_script_build_phase(runScriptName)
-    phase.shell_script = bashScript
-    project.save()   
-  end  
-end
-    ''';
-  }
-
   final debugSymbolScriptName =
       'FlutterFire: "flutterfire upload-crashlytics-symbols"';
   final bundleServiceScriptName =
       'FlutterFire: "flutterfire bundle-service-file"';
 
-  FirebaseJsonWrites _firebaseJsonWrites(bool uploadDebugSymbols) {
-    final platformKey = platform == kIos ? kIos : kMacos;
+  FirebaseJsonWrites _firebaseJsonWrites(
+    bool uploadDebugSymbols,
+    // name of build configuration or target
+    String name,
+  ) {
     // "buildConfiguration", "targets" or "default" property
     final configuration = getProjectConfigurationProperty(projectConfiguration);
-    final keysToMap = [kFlutter, kPlatforms, platformKey, configuration];
+    final keysToMap = [kFlutter, kPlatforms, platform, configuration];
 
     if (ProjectConfiguration.defaultConfig != projectConfiguration) {
-      // "buildConfiguration" or "targets" property if not default config
-      keysToMap.add(buildConfiguration ?? target!);
+      // "buildConfiguration" or "targets" name if the map is not default config
+      keysToMap.add(name);
     }
 
     return FirebaseJsonWrites(
@@ -259,68 +420,14 @@ end
     }
   }
 
-  String _addServiceFileToTarget(
-    String googleServiceInfoFile,
-    String targetName,
-  ) {
-    return '''
-require 'xcodeproj'
-googleFile='$googleServiceInfoFile'
-xcodeFile='${getXcodeProjectPath(platform)}'
-targetName='$targetName'
+  Future<File> _createServiceFileToSpecifiedPath() async {
+    await Directory(path.dirname(serviceFilePath)).create(recursive: true);
 
-project = Xcodeproj::Project.open(xcodeFile)
-
-file = project.new_file(googleFile)
-target = project.targets.find { |target| target.name == targetName }
-
-if(target)
-  exists = target.resources_build_phase.files.find do |file|
-    if defined? file && file.file_ref && file.file_ref.path
-      if file.file_ref.path.is_a? String
-        file.file_ref.path.include? 'GoogleService-Info.plist'
-      end
-    end
-  end  
-  if !exists
-    target.add_resources([file])
-    project.save
-  end
-else
-  abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
-end  
-''';
+    return File(serviceFilePath);
   }
 
-  Future<void> _writeGoogleServiceFileToTargetProject(
-    String serviceFilePath,
-    String target,
-  ) async {
-    final addServiceFileToTargetScript = _addServiceFileToTarget(
-      serviceFilePath,
-      target,
-    );
-
-    final resultServiceFileToTarget = await Process.run('ruby', [
-      '-e',
-      addServiceFileToTargetScript,
-    ]);
-
-    if (resultServiceFileToTarget.exitCode != 0) {
-      throw Exception(resultServiceFileToTarget.stderr);
-    }
-  }
-
-  Future<File> _createServiceFileToSpecifiedPath(
-    String pathToServiceFile,
-  ) async {
-    await Directory(path.dirname(pathToServiceFile)).create(recursive: true);
-
-    return File(pathToServiceFile);
-  }
-
-  Future<void> _writeGoogleServiceFileToPath(String pathToServiceFile) async {
-    final file = await _createServiceFileToSpecifiedPath(pathToServiceFile);
+  Future<void> _writeGoogleServiceFileToPath() async {
+    final file = await _createServiceFileToSpecifiedPath();
 
     if (!file.existsSync()) {
       await file.writeAsString(platformOptions.optionsSourceContent);
@@ -329,78 +436,5 @@ end
     }
   }
 
-  Future<void> _writeBundleServiceFileScriptToProject(
-    String serviceFilePath,
-    String buildConfiguration,
-    Logger logger,
-  ) async {
-    final paths = _addPathToExecutablesForBuildPhaseScripts();
-    if (paths != null) {
-      final addBuildPhaseScript = _bundleServiceFileScript(paths);
-
-      // Add "bundle-service-file" script to Build Phases in Xcode project
-      final resultBuildPhase = await Process.run('ruby', [
-        '-e',
-        addBuildPhaseScript,
-      ]);
-
-      if (resultBuildPhase.exitCode != 0) {
-        throw Exception(resultBuildPhase.stderr);
-      }
-
-      if (resultBuildPhase.stdout != null) {
-        logger.stdout(resultBuildPhase.stdout as String);
-      }
-    } else {
-      logger.stdout(
-        noPathsToExecutables,
-      );
-    }
-  }
-
-  Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
-    await _writeGoogleServiceFileToPath(serviceFilePath);
-    await _writeBundleServiceFileScriptToProject(
-      serviceFilePath,
-      buildConfiguration!,
-      logger,
-    );
-    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
-      logger,
-      projectConfiguration,
-    );
-
-    return _firebaseJsonWrites(debugSymbolScriptAdded);
-  }
-
-  Future<FirebaseJsonWrites> _targetWrites({
-    ProjectConfiguration projectConfiguration = ProjectConfiguration.target,
-  }) async {
-    await _writeGoogleServiceFileToPath(serviceFilePath);
-    await _writeGoogleServiceFileToTargetProject(
-      serviceFilePath,
-      target!,
-    );
-
-    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
-      logger,
-      projectConfiguration,
-      target: target!,
-    );
-
-    return _firebaseJsonWrites(debugSymbolScriptAdded);
-  }
-
-  Future<FirebaseJsonWrites> apply() async {
-    switch (projectConfiguration) {
-      case ProjectConfiguration.target:
-        return _targetWrites();
-      case ProjectConfiguration.buildConfiguration:
-        return _buildConfigurationWrites();
-      case ProjectConfiguration.defaultConfig:
-        return _targetWrites(
-          projectConfiguration: ProjectConfiguration.defaultConfig,
-        );
-    }
-  }
+  Future<FirebaseJsonWrites> apply();
 }
