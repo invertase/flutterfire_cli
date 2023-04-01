@@ -566,7 +566,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     final writes = <FirebaseJsonWrites>[];
     // 3. Writes for all selected platforms
-    if (androidOptions != null && applyGradlePlugins && flutterApp!.android) {
+    if (androidOptions != null && applyGradlePlugins && flutterApp!.android && androidInputs != null) {
       final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
         flutterApp: flutterApp!,
         firebaseOptions: androidOptions,
@@ -578,7 +578,7 @@ class ConfigCommand extends FlutterFireCommand {
       writes.add(firebaseJsonWrite);
     }
     if (Platform.isMacOS) {
-      if (iosOptions != null && flutterApp!.ios) {
+      if (iosOptions != null && flutterApp!.ios && iosInputs != null) {
         final firebaseJsonWrite = await FirebaseAppleSetup(
           platformOptions: iosOptions,
           flutterAppPath: flutterApp!.package.path,
@@ -593,7 +593,7 @@ class ConfigCommand extends FlutterFireCommand {
         writes.add(firebaseJsonWrite);
       }
 
-      if (macosOptions != null && flutterApp!.macos) {
+      if (macosOptions != null && flutterApp!.macos && macosInputs != null) {
         final firebaseJsonWrite = await FirebaseAppleSetup(
           platformOptions: macosOptions,
           flutterAppPath: flutterApp!.package.path,
