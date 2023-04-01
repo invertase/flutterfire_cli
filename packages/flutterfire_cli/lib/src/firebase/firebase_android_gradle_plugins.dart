@@ -61,7 +61,11 @@ class FirebaseAndroidGradlePlugins {
     required this.logger,
     this.androidServiceFilePath,
     required this.projectConfiguration,
-  });
+  }) : assert(
+          projectConfiguration == ProjectConfiguration.buildConfiguration &&
+              androidServiceFilePath != null,
+          '"androidServiceFilePath" must be provided when projectConfiguration is "buildConfiguration"',
+        );
 
   final FlutterApp flutterApp;
   final FirebaseOptions firebaseOptions;
@@ -99,11 +103,11 @@ class FirebaseAndroidGradlePlugins {
   }
 
   FirebaseJsonWrites _firebaseJsonWrites() {
-    final configurationKey =
-        androidServiceFilePath != null ? kBuildConfiguration : kDefaultConfig;
-    final keysToMap = [kFlutter, kPlatforms, kAndroid, configurationKey];
-
+    final keysToMap = [kFlutter, kPlatforms, kAndroid];
+    String? relativeServiceFile;
     if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
+      keysToMap.add(kBuildConfiguration);
+
       final segments = path.split(androidServiceFilePath!);
       final appIndex = segments.indexOf('app');
       // We have already validated that the "app" segment is on the path
@@ -111,18 +115,24 @@ class FirebaseAndroidGradlePlugins {
       // The key used for "firebase.json"
       // If not default, there will be a build type key. e.g. "staging"
       keysToMap.add(path.dirname(newPath));
+
+      relativeServiceFile =
+          path.relative(androidServiceFilePath!, from: flutterApp.package.path);
+    } else {
+      keysToMap.add(kDefaultConfig);
+
+      relativeServiceFile = path.join(
+        'android',
+        'app',
+        androidServiceFileName,
+      );
     }
 
     return FirebaseJsonWrites(
       pathToMap: keysToMap,
       projectId: firebaseOptions.projectId,
       appId: firebaseOptions.appId,
-      fileOutput: androidServiceFilePath ??
-          path.join(
-            'android',
-            'app',
-            androidServiceFileName,
-          ),
+      fileOutput: relativeServiceFile,
     );
   }
 
