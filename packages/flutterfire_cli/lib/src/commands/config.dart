@@ -486,7 +486,7 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    final firebaseConfigurationFileInputs = firebaseConfigurationFileValidation(
+    final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
       flutterAppPath: flutterApp!.package.path,
     );
 
