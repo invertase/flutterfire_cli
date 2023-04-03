@@ -340,8 +340,8 @@ end
       final findClientMap =
           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
               .firstWhere(
-        // ignore: avoid_dynamic_calls
         (element) =>
+        // ignore: avoid_dynamic_calls
             (element['client_info'])['mobilesdk_app_id'] == androidAppId,
       );
 
