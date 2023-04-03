@@ -205,6 +205,12 @@ end
             await findFileInDirectory(macosPath, appleServiceFileName);
 
         final iosServiceFileContent = await File(iosPath).readAsString();
+
+        if (macFile.existsSync()) {
+          print('FFFFFF mac file exists');
+        } else {
+          throw Exception('FFFFF: mac file does not exist: ${macFile.path}');
+        }
         final macosServiceFileContent = await macFile.readAsString();
 
         final testServiceFileContent =
@@ -343,7 +349,7 @@ end
           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
               .firstWhere(
         (element) =>
-        // ignore: avoid_dynamic_calls
+            // ignore: avoid_dynamic_calls
             (element['client_info'])['mobilesdk_app_id'] == androidAppId,
       );
 
