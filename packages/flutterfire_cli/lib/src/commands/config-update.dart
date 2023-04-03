@@ -63,13 +63,13 @@ class ConfigUpdate extends FlutterFireCommand {
   ) async {
     accessToken ??= await getAccessToken();
 
-    final serviceFilePath = configuration[kServiceFileOutput] as String;
+    final serviceFilePath = configuration[kFileOutput] as String;
     // ignore: cast_nullable_to_non_nullable
     final projectId = configuration[kProjectId] as String;
     // ignore: cast_nullable_to_non_nullable
     final appId = configuration[kAppId] as String;
 
-    if(platform == kAndroid || platform == kIos || platform == kMacos) {
+    if (platform == kAndroid || platform == kIos || platform == kMacos) {
       final serviceFileContent =
           await getServiceFileContent(projectId, appId, accessToken!, platform);
 
@@ -160,7 +160,7 @@ class ConfigUpdate extends FlutterFireCommand {
       await updateAppleServiceFiles(macos);
     }
 
-      // TODO - write firebase_options.dart file with all configs
+    // TODO - write firebase_options.dart file with all configs
     //       await FirebaseConfigurationFile(
     //   outputFilePath,
     //   flutterApp!,
@@ -173,6 +173,5 @@ class ConfigUpdate extends FlutterFireCommand {
     //   force: isCI || yes,
     //   overwriteFirebaseOptions: overwriteFirebaseOptions,
     // ).write();
-
   }
 }
