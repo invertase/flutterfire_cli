@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -170,6 +171,7 @@ end
     'flutterfire configure: android - "default" Apple - "default"',
     () async {
       // the most basic 'flutterfire configure' command that can be run without command line prompts
+      const defaultTarget = 'Runner';
       Process.runSync(
         'flutterfire',
         [
@@ -189,18 +191,18 @@ end
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
         final iosPath =
-            p.join(projectPath!, 'ios', 'Runner', 'GoogleService-Info.plist');
-        final macosPath = p.join(projectPath!, 'macos', 'Runner');
+            p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+        final macosPath = p.join(projectPath!, kMacos, defaultTarget);
 
         final testServiceFile = p.join(
           Directory.current.path,
           'test',
           testFileDirectory,
-          'GoogleService-Info.plist',
+          appleServiceFileName,
         );
         // Need to find mac file like this for it to work on CI. No idea why.
         final macFile =
-            await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+            await findFileInDirectory(macosPath, appleServiceFileName);
 
         final iosServiceFileContent = await File(iosPath).readAsString();
         final macosServiceFileContent = await macFile.readAsString();
@@ -228,7 +230,7 @@ end
         expect(iosDefaultConfig[kUploadDebugSymbols], false);
         expect(
           iosDefaultConfig[kFileOutput],
-          'ios/Runner/GoogleService-Info.plist',
+          '$kIos/$defaultTarget/$appleServiceFileName',
         );
 
         // Check macOS map is correct
@@ -240,7 +242,7 @@ end
         expect(macosDefaultConfig[kUploadDebugSymbols], false);
         expect(
           macosDefaultConfig[kFileOutput],
-          'macos/Runner/GoogleService-Info.plist',
+          '$kMacos/$defaultTarget/$appleServiceFileName',
         );
 
         // Check android map is correct
@@ -256,7 +258,7 @@ end
         expect(androidDefaultConfig[kProjectId], firebaseProjectId);
         expect(
           androidDefaultConfig[kFileOutput],
-          'android/app/google-services.json',
+          'android/app/$androidServiceFileName',
         );
 
         // Check dart map is correct
@@ -277,7 +279,7 @@ end
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
           projectPath!,
-          'ios',
+          kIos,
           'Runner.xcodeproj',
         );
 
@@ -300,7 +302,7 @@ end
 
         final macosXcodeProject = p.join(
           projectPath!,
-          'macos',
+          kMacos,
           'Runner.xcodeproj',
         );
 
@@ -329,7 +331,7 @@ end
         projectPath!,
         'android',
         'app',
-        'google-services.json',
+        androidServiceFileName,
       );
 
       final clientList = Map<String, dynamic>.from(
@@ -433,13 +435,13 @@ end
         // check Apple service files were created and have correct content
         final iosPath = p.join(
           projectPath!,
-          'ios',
+          kIos,
           buildType,
-          'GoogleService-Info.plist',
+          appleServiceFileName,
         );
         final macosPath = p.join(
           projectPath!,
-          'macos',
+          kMacos,
           buildType,
         );
 
@@ -447,11 +449,11 @@ end
           Directory.current.path,
           'test',
           testFileDirectory,
-          'GoogleService-Info.plist',
+          appleServiceFileName,
         );
         // Need to find mac file like this for it to work on CI. No idea why.
         final macFile =
-            await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+            await findFileInDirectory(macosPath, appleServiceFileName);
 
         final iosServiceFileContent = await File(iosPath).readAsString();
         final macosServiceFileContent = await macFile.readAsString();
@@ -686,18 +688,18 @@ end
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
         final iosPath =
-            p.join(projectPath!, 'ios', applePath, 'GoogleService-Info.plist');
-        final macosPath = p.join(projectPath!, 'macos', applePath);
+            p.join(projectPath!, kIos, applePath, appleServiceFileName);
+        final macosPath = p.join(projectPath!, kMacos, applePath);
 
         final testServiceFile = p.join(
           Directory.current.path,
           'test',
           testFileDirectory,
-          'GoogleService-Info.plist',
+          appleServiceFileName,
         );
         // Need to find mac file like this for it to work on CI. No idea why.
         final macFile =
-            await findFileInDirectory(macosPath, 'GoogleService-Info.plist');
+            await findFileInDirectory(macosPath, appleServiceFileName);
 
         final iosServiceFileContent = await File(iosPath).readAsString();
         final macosServiceFileContent = await macFile.readAsString();
@@ -781,7 +783,7 @@ end
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
           projectPath!,
-          'ios',
+          kIos,
           'Runner.xcodeproj',
         );
 
@@ -804,7 +806,7 @@ end
 
         final macosXcodeProject = p.join(
           projectPath!,
-          'macos',
+          kMacos,
           'Runner.xcodeproj',
         );
 
@@ -928,7 +930,7 @@ end
       );
       final iosXcodeProject = p.join(
         projectPath!,
-        'ios',
+        kIos,
         'Runner.xcodeproj',
       );
 
@@ -951,7 +953,7 @@ end
 
       final macosXcodeProject = p.join(
         projectPath!,
-        'macos',
+        kMacos,
         'Runner.xcodeproj',
       );
 
