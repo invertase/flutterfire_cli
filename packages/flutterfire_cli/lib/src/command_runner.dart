@@ -18,7 +18,6 @@
 import 'package:args/command_runner.dart';
 
 import 'commands/bundle_service_file.dart';
-import 'commands/config-update.dart';
 import 'commands/config.dart';
 import 'commands/update.dart';
 import 'commands/upload_symbols.dart';
@@ -57,6 +56,5 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
     addCommand(UpdateCommand(flutterApp));
     addCommand(UploadCrashlyticsSymbols(flutterApp));
     addCommand(BundleServiceFile(flutterApp));
-    addCommand(ConfigUpdate(flutterApp));
   }
 }

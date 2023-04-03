@@ -21,9 +21,9 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
 import '../common/platform.dart';
-import '../common/validation.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
+import '../common/validation.dart';
 import '../firebase.dart' as firebase;
 import '../firebase/firebase_android_gradle_plugins.dart';
 import '../firebase/firebase_android_options.dart';
