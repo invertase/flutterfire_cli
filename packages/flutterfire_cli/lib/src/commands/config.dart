@@ -564,7 +564,7 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    final writes = <FirebaseJsonWrites>[];
+    final firebaseJsonWrites = <FirebaseJsonWrites>[];
     // 3. Writes for all selected platforms
     if (androidOptions != null && applyGradlePlugins && flutterApp!.android && androidInputs != null) {
       final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
@@ -575,7 +575,7 @@ class ConfigCommand extends FlutterFireCommand {
         projectConfiguration: androidInputs!.projectConfiguration,
       ).apply(force: isCI || yes);
 
-      writes.add(firebaseJsonWrite);
+      firebaseJsonWrites.add(firebaseJsonWrite);
     }
     if (Platform.isMacOS) {
       if (iosOptions != null && flutterApp!.ios && iosInputs != null) {
@@ -590,7 +590,7 @@ class ConfigCommand extends FlutterFireCommand {
           projectConfiguration: iosInputs!.projectConfiguration,
         );
 
-        writes.add(firebaseJsonWrite);
+        firebaseJsonWrites.add(firebaseJsonWrite);
       }
 
       if (macosOptions != null && flutterApp!.macos && macosInputs != null) {
@@ -605,7 +605,7 @@ class ConfigCommand extends FlutterFireCommand {
           projectConfiguration: macosInputs!.projectConfiguration,
         );
 
-        writes.add(firebaseJsonWrite);
+        firebaseJsonWrites.add(firebaseJsonWrite);
       }
     }
     if (firebaseConfigurationFileInputs.writeConfigurationFile) {
@@ -621,13 +621,13 @@ class ConfigCommand extends FlutterFireCommand {
         linuxOptions: linuxOptions,
       ).write();
 
-      writes.add(firebaseJsonWrite);
+      firebaseJsonWrites.add(firebaseJsonWrite);
     }
 
     // 4. Writes for "firebase.json" file in root of project
-    if (writes.isNotEmpty) {
+    if (firebaseJsonWrites.isNotEmpty) {
       await writeToFirebaseJson(
-        listOfWrites: writes,
+        listOfWrites: firebaseJsonWrites,
         firebaseJsonPath: path.join(flutterApp!.package.path, 'firebase.json'),
       );
     }
