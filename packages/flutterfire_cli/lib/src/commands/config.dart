@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
@@ -486,7 +487,7 @@ class ConfigCommand extends FlutterFireCommand {
       );
     }
 
-    final firebaseConfigurationFileInputs = firebaseConfigurationFileValidation(
+    final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
       flutterAppPath: flutterApp!.package.path,
     );
 

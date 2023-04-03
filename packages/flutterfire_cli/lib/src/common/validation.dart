@@ -1,23 +1,13 @@
 import 'dart:io';
 
-import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import './prompts/android_prompts.dart';
+import './prompts/apple_prompts.dart';
+import './prompts/dart_file_prompts.dart';
+import 'inputs.dart';
 import 'strings.dart';
 import 'utils.dart';
-
-class AppleInputs {
-  AppleInputs({
-    this.buildConfiguration,
-    this.target,
-    required this.serviceFilePath,
-    required this.projectConfiguration,
-  });
-  final String? buildConfiguration;
-  final String? target;
-  final String serviceFilePath;
-  ProjectConfiguration projectConfiguration;
-}
 
 Future<AppleInputs> appleValidation({
   required String platform,
@@ -103,155 +93,12 @@ Future<AppleInputs> appleValidation({
     projectConfiguration: configurationResponse,
     buildConfiguration: buildConfigurationResponse,
     target: targetResponse,
-    serviceFilePath: _getAppleServiceFile(
+    serviceFilePath: getAppleServiceFile(
       serviceFilePath,
       platform,
       flutterAppPath,
     ),
   );
-}
-
-String _getAppleServiceFile(
-  String? serviceFilePath,
-  String platform,
-  String flutterAppPath,
-) {
-  if (serviceFilePath == null) {
-    return promptAppleServiceFilePath(
-      platform: platform,
-      flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
-      flutterAppPath: flutterAppPath,
-    );
-  }
-
-  final fileName = path.basename(serviceFilePath);
-
-  if (fileName == appleServiceFileName) {
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(serviceFilePath),
-    );
-  }
-
-  if (fileName.contains('.')) {
-    return promptAppleServiceFilePath(
-      platform: platform,
-      flag: platform == kIos ? kIosOutFlag : kMacosOutFlag,
-      flutterAppPath: flutterAppPath,
-    );
-  }
-
-  return path.join(
-    flutterAppPath,
-    removeForwardBackwardSlash(serviceFilePath),
-    appleServiceFileName,
-  );
-}
-
-Future<String> promptCheckBuildConfiguration(
-  String buildConfiguration,
-  String platform,
-) async {
-  final buildConfigurations = await findBuildConfigurationsAvailable(
-    platform,
-    getXcodeProjectPath(platform),
-  );
-
-  if (!buildConfigurations.contains(buildConfiguration)) {
-    final response = promptSelect(
-      'You have chosen a buildConfiguration that does not exist: $buildConfiguration. Please choose one of the following build configurations',
-      buildConfigurations,
-    );
-
-    return buildConfigurations[response];
-  }
-  return buildConfiguration;
-}
-
-Future<String> promptGetBuildConfiguration(String platform) async {
-  final buildConfigurations = await findBuildConfigurationsAvailable(
-    platform,
-    getXcodeProjectPath(platform),
-  );
-
-  final response = promptSelect(
-    'Please choose one of the following build configurations',
-    buildConfigurations,
-  );
-
-  return buildConfigurations[response];
-}
-
-Future<String> promptGetTarget(String platform) async {
-  final targets =
-      await findTargetsAvailable(platform, getXcodeProjectPath(platform));
-
-  final response = promptSelect(
-    'Please choose one of the following targets',
-    targets,
-  );
-
-  return targets[response];
-}
-
-Future<String> promptCheckTarget(String target, String platform) async {
-  final targets =
-      await findTargetsAvailable(platform, getXcodeProjectPath(platform));
-
-  if (!targets.contains(target)) {
-    final response = promptSelect(
-      'You have chosen a target that does not exist: $target. Please choose one of the following targets',
-      targets,
-    );
-
-    return targets[response];
-  }
-
-  return target;
-}
-
-String promptAppleServiceFilePath({
-  required String platform,
-  required String flag,
-  required String flutterAppPath,
-}) {
-  final serviceFilePath = promptInput(
-    'Enter a path for your $platform "$appleServiceFileName" ("$flag" flag.) relative to the root of your Flutter project. Example input: $platform/dev',
-    validator: (String x) {
-      final basename = path.basename(x);
-      if (basename == appleServiceFileName) {
-        return true;
-      } else if (basename.contains('.')) {
-        return 'The file name must be "$appleServiceFileName"';
-      }
-
-      return true;
-    },
-  );
-
-  final fileName = path.basename(serviceFilePath);
-
-  if (fileName == appleServiceFileName) {
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(serviceFilePath),
-    );
-  } else {
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(serviceFilePath),
-      appleServiceFileName,
-    );
-  }
-}
-
-class AndroidInputs {
-  AndroidInputs({
-    this.serviceFilePath,
-    required this.projectConfiguration,
-  });
-  final String? serviceFilePath;
-  ProjectConfiguration projectConfiguration;
 }
 
 AndroidInputs androidValidation({
@@ -264,7 +111,7 @@ AndroidInputs androidValidation({
     );
   }
 
-  final validatedServiceFilePath = _getAndroidServiceFile(
+  final validatedServiceFilePath = getAndroidServiceFile(
     serviceFilePath: serviceFilePath,
     flutterAppPath: flutterAppPath,
   );
@@ -275,147 +122,23 @@ AndroidInputs androidValidation({
   );
 }
 
-String _getAndroidServiceFile({
-  required String serviceFilePath,
-  required String flutterAppPath,
-}) {
-  final segments = removeForwardBackwardSlash(serviceFilePath).split('/');
-  // Path should have the signature:
-  // android/app/google-services.json
-  // android/app/development
-  // android/app
-  if (segments[0] == 'android' &&
-      segments[1] == 'app' &&
-      (segments.last == androidServiceFileName ||
-          !segments.last.contains('.'))) {
-    if (segments.last == androidServiceFileName) {
-      return path.join(
-        flutterAppPath,
-        removeForwardBackwardSlash(serviceFilePath),
-      );
-    } else {
-      return path.join(
-        flutterAppPath,
-        removeForwardBackwardSlash(serviceFilePath),
-        androidServiceFileName,
-      );
-    }
-  } else {
-    // Prompt for service file path
-    final serviceFilePath = promptInput(
-      'Enter a path for your android "$androidServiceFileName" file ("$kAndroidOutFlag" flag.) relative to the root of your Flutter project. Example input: android/app/staging/$androidServiceFileName',
-      validator: (String x) {
-        final segments = removeForwardBackwardSlash(x).split('/');
-
-        if (segments[0] == 'android' && segments[1] == 'app') {
-          final last = segments.last;
-
-          if (!last.contains('.')) {
-            // Just path, no file name
-            return true;
-          } else {
-            if (last == androidServiceFileName) {
-              return true;
-            } else {
-              return 'The file name must be "$androidServiceFileName"';
-            }
-          }
-        } else {
-          return 'The path must start with `android/app`. See documentation for more information: https://firebase.google.com/docs/projects/multiprojects';
-        }
-      },
-    );
-
-    if (path.basename(serviceFilePath) == androidServiceFileName) {
-      return path.join(
-        flutterAppPath,
-        removeForwardBackwardSlash(serviceFilePath),
-      );
-    } else {
-      return path.join(
-        flutterAppPath,
-        removeForwardBackwardSlash(serviceFilePath),
-        androidServiceFileName,
-      );
-    }
-  }
-}
-
-class FirebaseConfigurationFileInputs {
-  FirebaseConfigurationFileInputs({
-    required this.configurationFilePath,
-    required this.writeConfigurationFile,
-  });
-  final String configurationFilePath;
-  final bool writeConfigurationFile;
-}
-
-FirebaseConfigurationFileInputs firebaseConfigurationFileValidation({
+DartConfigurationFileInputs dartConfigurationFileValidation({
   String? configurationFilePath,
   required String flutterAppPath,
 }) {
   final validatedConfigurationFilePath = configurationFilePath == null
       // Default service file path
       ? path.join(flutterAppPath, 'lib', 'firebase_options.dart')
-      : _getFirebaseConfigurationFile(
+      : getFirebaseConfigurationFile(
           configurationFilePath: configurationFilePath,
           flutterAppPath: flutterAppPath,
         );
-  final writeConfigurationFile = _promptWriteConfigurationFile(
+  final writeConfigurationFile = promptWriteConfigurationFile(
     configurationFilePath: validatedConfigurationFilePath,
   );
 
-  return FirebaseConfigurationFileInputs(
+  return DartConfigurationFileInputs(
     configurationFilePath: validatedConfigurationFilePath,
     writeConfigurationFile: writeConfigurationFile,
   );
-}
-
-String _getFirebaseConfigurationFile({
-  required String configurationFilePath,
-  required String flutterAppPath,
-}) {
-  final segments = removeForwardBackwardSlash(configurationFilePath).split('/');
-
-  if (segments.last.contains('.dart')) {
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(configurationFilePath),
-    );
-  } else {
-    final configurationFilePath = promptInput(
-      'Enter a path for your FirebaseOptions file. It must be to a dart file. Example input: lib/firebase_options.dart',
-      validator: (String x) {
-        final segments = removeForwardBackwardSlash(x).split('/');
-
-        if (segments.last.contains('.dart')) {
-          return true;
-        } else {
-          return 'The path must be to a dart file. Example input: lib/firebase_options.dart';
-        }
-      },
-    );
-
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(configurationFilePath),
-    );
-  }
-}
-
-bool _promptWriteConfigurationFile({
-  required String configurationFilePath,
-}) {
-  final outputFile = File(configurationFilePath);
-  final fileExists = outputFile.existsSync();
-
-  if (!fileExists || isCI) {
-    return true;
-  } else {
-    final shouldOverwrite = promptBool(
-      'Generated FirebaseOptions file ${AnsiStyles.cyan(configurationFilePath)} already exists, do you want to override it?',
-    );
-
-    return shouldOverwrite;
-  }
 }
