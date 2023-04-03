@@ -409,260 +409,263 @@ end
     ),
   );
 
-//   test(
-//     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
-//     () async {
-//       // The most basic 'flutterfire configure' command that can be run without command line prompts
-//       const buildType = 'development';
-//       const appleBuildConfiguration = 'Debug';
+  test(
+    'flutterfire configure: android - "build configuration" Apple - "build configuration"',
+    () async {
+      // The most basic 'flutterfire configure' command that can be run without command line prompts
+      const buildType = 'development';
+      const appleBuildConfiguration = 'Debug';
 
-//       Process.runSync(
-//         'flutterfire',
-//         [
-//           'configure',
-//           '--yes',
-//           '--project=$firebaseProjectId',
-//           // Android just requires the `--android-out` flag to be set
-//           '--android-out=android/app/$buildType',
-//           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
-//           // We're using `Debug` for both which is a standard build configuration for an apple Flutter app
-//           '--ios-out=ios/$buildType',
-//           '--ios-build-config=$appleBuildConfiguration',
-//           '--macos-out=macos/$buildType',
-//           '--macos-build-config=$appleBuildConfiguration',
-//           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-//           '--platforms=android,ios,macos,web',
-//           '--ios-bundle-id=com.example.flutterTestCli',
-//           '--android-package-name=com.example.flutter_test_cli',
-//           '--macos-bundle-id=com.example.flutterTestCli',
-//           '--web-app-id=com.example.flutterTestCli',
-//         ],
-//         workingDirectory: projectPath,
-//       );
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // Android just requires the `--android-out` flag to be set
+          '--android-out=android/app/$buildType',
+          // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
+          // We're using `Debug` for both which is a standard build configuration for an apple Flutter app
+          '--ios-out=ios/$buildType',
+          '--ios-build-config=$appleBuildConfiguration',
+          '--macos-out=macos/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
 
-//       if (Platform.isMacOS) {
-//         // check Apple service files were created and have correct content
-//         final iosPath = p.join(
-//           projectPath!,
-//           kIos,
-//           buildType,
-//           appleServiceFileName,
-//         );
-//         final macosPath = p.join(
-//           projectPath!,
-//           kMacos,
-//           buildType,
-//         );
+      if (Platform.isMacOS) {
+        // check Apple service files were created and have correct content
+        final iosPath = p.join(
+          projectPath!,
+          kIos,
+          buildType,
+          appleServiceFileName,
+        );
+        final macosPath = p.join(
+          projectPath!,
+          kMacos,
+          buildType,
+        );
 
-//         final testServiceFile = p.join(
-//           Directory.current.path,
-//           'test',
-//           testFileDirectory,
-//           appleServiceFileName,
-//         );
-//         // Need to find mac file like this for it to work on CI. No idea why.
-//         final macFile =
-//             await findFileInDirectory(macosPath, appleServiceFileName);
+        final testServiceFile = p.join(
+          Directory.current.path,
+          'test',
+          testFileDirectory,
+          appleServiceFileName,
+        );
+        // Need to find mac file like this for it to work on CI. No idea why.
+        final macFile =
+            await findFileInDirectory(macosPath, appleServiceFileName);
 
-//         final iosServiceFileContent = await File(iosPath).readAsString();
-//         final macosServiceFileContent = await macFile.readAsString();
+        final iosServiceFileContent = await File(iosPath).readAsString();
+        final macosServiceFileContent = await macFile.readAsString();
 
-//         final testServiceFileContent =
-//             await File(testServiceFile).readAsString();
+        final testServiceFileContent =
+            await File(testServiceFile).readAsString();
 
-//         expect(iosServiceFileContent, testServiceFileContent);
-//         expect(macosServiceFileContent, testServiceFileContent);
+        expect(iosServiceFileContent, testServiceFileContent);
+        expect(macosServiceFileContent, testServiceFileContent);
 
-//         // check default "firebase.json" was created and has correct content
-//         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
-//         final firebaseJsonFileContent =
-//             await File(firebaseJsonFile).readAsString();
+        // check default "firebase.json" was created and has correct content
+        final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
+        final firebaseJsonFileContent =
+            await File(firebaseJsonFile).readAsString();
 
-//         final decodedFirebaseJson =
-//             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
+        final decodedFirebaseJson =
+            jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-//         // Check iOS map is correct
-//         final keysToMapIos = [
-//           kFlutter,
-//           kPlatforms,
-//           kIos,
-//           kBuildConfiguration,
-//           appleBuildConfiguration,
-//         ];
-//         final iosDefaultConfig =
-//             getNestedMap(decodedFirebaseJson, keysToMapIos);
-//         expect(iosDefaultConfig[kAppId], appleAppId);
-//         expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-//         expect(iosDefaultConfig[kUploadDebugSymbols], false);
-//         expect(
-//           iosDefaultConfig[kFileOutput],
-//           'ios/$buildType/GoogleService-Info.plist',
-//         );
+        // Check iOS map is correct
+        final keysToMapIos = [
+          kFlutter,
+          kPlatforms,
+          kIos,
+          kBuildConfiguration,
+          appleBuildConfiguration,
+        ];
+        final iosDefaultConfig =
+            getNestedMap(decodedFirebaseJson, keysToMapIos);
+        expect(iosDefaultConfig[kAppId], appleAppId);
+        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
+        expect(iosDefaultConfig[kUploadDebugSymbols], false);
+        expect(
+          iosDefaultConfig[kFileOutput],
+          'ios/$buildType/GoogleService-Info.plist',
+        );
 
-//         // Check macOS map is correct
-//         final keysToMapMacos = [
-//           kFlutter,
-//           kPlatforms,
-//           kMacos,
-//           kBuildConfiguration,
-//           appleBuildConfiguration,
-//         ];
-//         final macosDefaultConfig =
-//             getNestedMap(decodedFirebaseJson, keysToMapMacos);
-//         expect(macosDefaultConfig[kAppId], appleAppId);
-//         expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-//         expect(macosDefaultConfig[kUploadDebugSymbols], false);
-//         expect(
-//           macosDefaultConfig[kFileOutput],
-//           'macos/$buildType/GoogleService-Info.plist',
-//         );
+        // Check macOS map is correct
+        final keysToMapMacos = [
+          kFlutter,
+          kPlatforms,
+          kMacos,
+          kBuildConfiguration,
+          appleBuildConfiguration,
+        ];
+        final macosDefaultConfig =
+            getNestedMap(decodedFirebaseJson, keysToMapMacos);
+        expect(macosDefaultConfig[kAppId], appleAppId);
+        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
+        expect(macosDefaultConfig[kUploadDebugSymbols], false);
+        expect(
+          macosDefaultConfig[kFileOutput],
+          'macos/$buildType/GoogleService-Info.plist',
+        );
 
-//         // Check android map is correct
-//         final keysToMapAndroid = [
-//           kFlutter,
-//           kPlatforms,
-//           kAndroid,
-//           kBuildConfiguration,
-//           buildType,
-//         ];
-//         final androidDefaultConfig =
-//             getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-//         expect(androidDefaultConfig[kAppId], androidAppId);
-//         expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-//         expect(
-//           androidDefaultConfig[kFileOutput],
-//           'android/app/$buildType/google-services.json',
-//         );
+        // Check android map is correct
+        final keysToMapAndroid = [
+          kFlutter,
+          kPlatforms,
+          kAndroid,
+          kBuildConfiguration,
+          buildType,
+        ];
+        final androidDefaultConfig =
+            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
+        expect(androidDefaultConfig[kAppId], androidAppId);
+        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
+        expect(
+          androidDefaultConfig[kFileOutput],
+          'android/app/$buildType/google-services.json',
+        );
 
-//         // Check dart map is correct
-//         const defaultFilePath = 'lib/firebase_options.dart';
-//         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-//         final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-//         expect(dartConfig[kProjectId], firebaseProjectId);
-//         expect(dartConfig[kFileOutput], defaultFilePath);
+        // Check dart map is correct
+        const defaultFilePath = 'lib/firebase_options.dart';
+        final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
+        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
+        expect(dartConfig[kProjectId], firebaseProjectId);
+        expect(dartConfig[kFileOutput], defaultFilePath);
 
-//         final defaultConfigurations =
-//             dartConfig[kConfigurations] as Map<String, dynamic>;
+        final defaultConfigurations =
+            dartConfig[kConfigurations] as Map<String, dynamic>;
 
-//         expect(defaultConfigurations[kIos], appleAppId);
-//         expect(defaultConfigurations[kMacos], appleAppId);
-//         expect(defaultConfigurations[kAndroid], androidAppId);
-//         expect(defaultConfigurations[kWeb], webAppId);
+        expect(defaultConfigurations[kIos], appleAppId);
+        expect(defaultConfigurations[kMacos], appleAppId);
+        expect(defaultConfigurations[kAndroid], androidAppId);
+        expect(defaultConfigurations[kWeb], webAppId);
 
-//         final scriptToCheckIosPbxprojFile =
-//             rubyScriptForCheckingBundleResourcesScript(
-//           projectPath!,
-//           kIos,
-//         );
+        final scriptToCheckIosPbxprojFile =
+            rubyScriptForCheckingBundleResourcesScript(
+          projectPath!,
+          kIos,
+        );
 
-//         final iosResult = Process.runSync(
-//           'ruby',
-//           [
-//             '-e',
-//             scriptToCheckIosPbxprojFile,
-//           ],
-//         );
+        final iosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckIosPbxprojFile,
+          ],
+        );
 
-//         if (iosResult.exitCode != 0) {
-//           fail(iosResult.stderr as String);
-//         }
+        if (iosResult.exitCode != 0) {
+          fail(iosResult.stderr as String);
+        }
 
-//         expect(iosResult.stdout, 'success');
+        expect(iosResult.stdout, 'success');
 
-//         final scriptToCheckMacosPbxprojFile =
-//             rubyScriptForCheckingBundleResourcesScript(
-//           projectPath!,
-//           kMacos,
-//         );
+        final scriptToCheckMacosPbxprojFile =
+            rubyScriptForCheckingBundleResourcesScript(
+          projectPath!,
+          kMacos,
+        );
 
-//         final macosResult = Process.runSync(
-//           'ruby',
-//           [
-//             '-e',
-//             scriptToCheckMacosPbxprojFile,
-//           ],
-//         );
+        final macosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckMacosPbxprojFile,
+          ],
+        );
 
-//         if (macosResult.exitCode != 0) {
-//           fail(macosResult.stderr as String);
-//         }
+        if (macosResult.exitCode != 0) {
+          fail(macosResult.stderr as String);
+        }
 
-//         expect(macosResult.stdout, 'success');
-//       }
+        expect(macosResult.stdout, 'success');
+      }
 
-//       // check google-services.json was created and has correct content
-//       final androidServiceFilePath = p.join(
-//         projectPath!,
-//         'android',
-//         'app',
-//         buildType,
-//         'google-services.json',
-//       );
+      // check google-services.json was created and has correct content
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        buildType,
+        'google-services.json',
+      );
 
-//       final clientList = Map<String, dynamic>.from(
-//         jsonDecode(File(androidServiceFilePath).readAsStringSync())
-//             as Map<String, dynamic>,
-//       );
+      final clientList = Map<String, dynamic>.from(
+        jsonDecode(File(androidServiceFilePath).readAsStringSync())
+            as Map<String, dynamic>,
+      );
 
-//       final findClientMap =
-//           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-//               .firstWhere(
-//         // ignore: avoid_dynamic_calls
-//         (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-//       );
+      final findClientMap =
+          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
+              .firstWhere(
+        // ignore: avoid_dynamic_calls
+        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
+      );
 
-//       expect(findClientMap, isA<Map<String, dynamic>>());
+      expect(findClientMap, isA<Map<String, dynamic>>());
 
-//       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-//       const androidGradleUpdate = '''
-//         // START: FlutterFire Configuration
-//         classpath 'com.google.gms:google-services:4.3.10'
-//         // END: FlutterFire Configuration
-// ''';
+      // Check android "android/build.gradle" & "android/app/build.gradle" were updated
+      const androidGradleUpdate = '''
+        // START: FlutterFire Configuration
+        classpath 'com.google.gms:google-services:4.3.10'
+        // END: FlutterFire Configuration
+''';
 
-//       const androidAppGradleUpdate = '''
-//         // START: FlutterFire Configuration
-//         apply plugin: 'com.google.gms.google-services'
-//         // END: FlutterFire Configuration
-//         ''';
+      const androidAppGradleUpdate = '''
+        // START: FlutterFire Configuration
+        apply plugin: 'com.google.gms.google-services'
+        // END: FlutterFire Configuration
+        ''';
 
-//       final androidBuildGradle =
-//           p.join(projectPath!, 'android', 'build.gradle');
-//       final androidAppBuildGradle =
-//           p.join(projectPath!, 'android', 'app', 'build.gradle');
+      final androidBuildGradle =
+          p.join(projectPath!, 'android', 'build.gradle');
+      final androidAppBuildGradle =
+          p.join(projectPath!, 'android', 'app', 'build.gradle');
 
-//       final androidBuildGradleContent =
-//           await File(androidBuildGradle).readAsString();
+      final androidBuildGradleContent =
+          await File(androidBuildGradle).readAsString();
 
-//       final androidAppBuildGradleContent =
-//           await File(androidAppBuildGradle).readAsString();
+      final androidAppBuildGradleContent =
+          await File(androidAppBuildGradle).readAsString();
 
-//       expect(
-//         removeWhitepaceAndNewLines(androidBuildGradleContent),
-//         contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
-//       );
-//       expect(
-//         removeWhitepaceAndNewLines(androidAppBuildGradleContent),
-//         contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
-//       );
+      expect(
+        removeWhitepaceAndNewLines(androidBuildGradleContent),
+        contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
+      );
+      expect(
+        removeWhitepaceAndNewLines(androidAppBuildGradleContent),
+        contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
+      );
 
-//       // check "firebase_options.dart" file is created in lib directory
-//       final firebaseOptions =
-//           p.join(projectPath!, 'lib', 'firebase_options.dart');
-//       final testFirebaseOptions = p.join(
-//         Directory.current.path,
-//         'test',
-//         testFileDirectory,
-//         'firebase_options.dart',
-//       );
+      // check "firebase_options.dart" file is created in lib directory
+      final firebaseOptions =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
+      final testFirebaseOptions = p.join(
+        Directory.current.path,
+        'test',
+        testFileDirectory,
+        'firebase_options.dart',
+      );
 
-//       final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-//       final testFirebaseOptionsContent =
-//           await File(testFirebaseOptions).readAsString();
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+      final testFirebaseOptionsContent =
+          await File(testFirebaseOptions).readAsString();
 
-//       expect(firebaseOptionsContent, testFirebaseOptionsContent);
-//     },
-//   );
+      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 
 //   test(
 //     'flutterfire configure: android - "default" Apple - "target"',
