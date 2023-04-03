@@ -22,7 +22,7 @@ import '../firebase.dart' as firebase;
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
-extension FirebaseWebOptions on FirebaseOptions {
+extension FirebaseDartOptions on FirebaseOptions {
   static Future<FirebaseOptions> forFlutterApp(
     FlutterApp flutterApp, {
     required String firebaseProjectId,
