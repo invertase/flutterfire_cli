@@ -53,11 +53,11 @@ class Reconfigure extends FlutterFireCommand {
       'Updates the configurations for all build variants included in the "firebase.json" added by running `flutterfire configure`.';
 
   @override
-  final String name = 'config-update';
+  final String name = 'reconfigure';
 
   String? accessToken;
 
-  Future<void> updateServiceFile(
+  Future<void> _updateServiceFile(
     Map<String, dynamic> configuration,
     String platform,
   ) async {
@@ -84,38 +84,94 @@ class Reconfigure extends FlutterFireCommand {
     }
   }
 
-  Future<void> updateAppleServiceFiles(
-    Map<String, dynamic> maps,
+  Future<void> _updateAppleServiceFiles(
+    Map<String, dynamic> firebaseJsonMap,
+    // ios or macos
+    String platform,
   ) async {
-    final buildConfigurations = maps[kBuildConfiguration] as Map<String, Map>?;
+    final appleMapKeys = [
+      kFlutter,
+      kPlatforms,
+      platform,
+      kBuildConfiguration,
+    ];
 
-    if (buildConfigurations != null) {
+    final buildConfigurationKeys = [
+      ...appleMapKeys,
+      kBuildConfiguration,
+    ];
+    final buildConfigurationsExist = doesNestedMapExist(
+      firebaseJsonMap,
+      buildConfigurationKeys,
+    );
+
+    if (buildConfigurationsExist) {
+      final buildConfigurations = getNestedMap(
+        firebaseJsonMap,
+        buildConfigurationKeys,
+      ) as Map<String, Map>;
       buildConfigurations.forEach((key, value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = buildConfigurations[key] as Map<String, String>;
-        await updateServiceFile(configuration, kIos);
+        await _updateServiceFile(
+          configuration,
+          platform,
+        );
       });
     }
-    final defaultIos = maps[kDefaultConfig] as Map<String, dynamic>?;
+    final defaultMapKeys = [
+      ...appleMapKeys,
+      kDefaultConfig,
+    ];
+    final defaultConfigExists = doesNestedMapExist(
+      firebaseJsonMap,
+      defaultMapKeys,
+    );
 
-    if (defaultIos != null) {
-      await updateServiceFile(defaultIos, kIos);
+    if (defaultConfigExists) {
+      await _updateServiceFile(
+        getNestedMap(
+          firebaseJsonMap,
+          defaultMapKeys,
+        ),
+        platform,
+      );
     }
+    final targetMapKeys = [
+      ...appleMapKeys,
+      kTargets,
+    ];
+    final targetConfigurationExists = doesNestedMapExist(
+      firebaseJsonMap,
+      targetMapKeys,
+    );
 
-    final targets = maps[kTargets] as Map<String, Map>?;
-
-    if (targets != null) {
+    if (targetConfigurationExists) {
+      final targets =
+          getNestedMap(firebaseJsonMap, targetMapKeys) as Map<String, Map>;
       targets.forEach((key, value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, String>;
-        await updateServiceFile(configuration, kIos);
+        await _updateServiceFile(
+          configuration,
+          platform,
+        );
       });
     }
   }
 
+  Future<void> _writeDartConfigurationFile() async {
+
+  }
+
   @override
   Future<void> run() async {
-    final firebaseJson = File('${flutterApp!.package.path}/firebase.json');
+    final firebaseJson = File(
+      path.join(
+        flutterApp!.package.path,
+        'firebase.json',
+      ),
+    );
 
     if (!firebaseJson.existsSync()) {
       throw Exception(
@@ -125,41 +181,84 @@ class Reconfigure extends FlutterFireCommand {
 
     final readFirebaseJson = firebaseJson.readAsStringSync();
 
-    final map = jsonDecode(readFirebaseJson) as Map;
+    final firebaseJsonMap = jsonDecode(readFirebaseJson) as Map<String, dynamic>;
+    final androidKeys = [
+      kFlutter,
+      kPlatforms,
+      kAndroid,
+    ];
 
-    final flutterConfig = map[kFlutter] as Map;
+    final androidExists = doesNestedMapExist(firebaseJsonMap, androidKeys);
+    if (androidExists) {
+      final buildConfigurationKeys = [...androidKeys, kBuildConfiguration];
+      final androidBuildConfigurationsExist =
+          doesNestedMapExist(firebaseJsonMap, buildConfigurationKeys);
 
-    final platform = flutterConfig[kPlatforms] as Map;
-
-    final android = platform[kAndroid] as Map?;
-    if (android != null) {
-      final buildConfigurations =
-          android[kBuildConfiguration] as Map<String, Map>?;
-
-      if (buildConfigurations != null) {
+      if (androidBuildConfigurationsExist) {
+        final buildConfigurations =
+            getNestedMap(firebaseJsonMap, buildConfigurationKeys) as Map<String, Map>;
         buildConfigurations.forEach((key, value) async {
           // ignore: cast_nullable_to_non_nullable
           final configuration = buildConfigurations[key] as Map<String, String>;
-          await updateServiceFile(configuration, kAndroid);
+          await _updateServiceFile(configuration, kAndroid);
         });
       }
-      final defaultAndroid = android[kDefaultConfig] as Map<String, dynamic>?;
+      final defaultConfigKeys = [
+        ...androidKeys,
+        kDefaultConfig,
+      ];
+      final defaultAndroidExists = doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
-      if (defaultAndroid != null) {
-        await updateServiceFile(defaultAndroid, kAndroid);
+      if (defaultAndroidExists) {
+        final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
+        await _updateServiceFile(defaultAndroid, kAndroid);
       }
     }
 
-    final ios = platform[kIos] as Map<String, dynamic>?;
-    if (ios != null) {
-      await updateAppleServiceFiles(ios);
+    final iosExists = doesNestedMapExist(
+      firebaseJsonMap,
+      [
+        kFlutter,
+        kPlatforms,
+        kIos,
+      ],
+    );
+    if (iosExists) {
+      await _updateAppleServiceFiles(firebaseJsonMap, kIos);
     }
 
-    final macos = platform[kMacos] as Map<String, dynamic>?;
-    if (macos != null) {
-      await updateAppleServiceFiles(macos);
+    final macosExists = doesNestedMapExist(
+      firebaseJsonMap,
+      [
+        kFlutter,
+        kPlatforms,
+        kMacos,
+      ],
+    );
+    if (macosExists) {
+      await _updateAppleServiceFiles(firebaseJsonMap, kMacos);
     }
 
+    final dartExists = doesNestedMapExist(
+      firebaseJsonMap,
+      [
+        kFlutter,
+        kPlatforms,
+        kDart,
+      ],
+    );
+
+    if(dartExists){
+      final dartConfig = getNestedMap(
+        firebaseJsonMap,
+        [
+          kFlutter,
+          kPlatforms,
+          kDart,
+        ],
+      );
+      //TODO write build config file
+      // await _updateServiceFile(dartConfig, kDart);
     // TODO - write firebase_options.dart file with all configs
     //       await FirebaseConfigurationFile(
     //   outputFilePath,
@@ -173,5 +272,6 @@ class Reconfigure extends FlutterFireCommand {
     //   force: isCI || yes,
     //   overwriteFirebaseOptions: overwriteFirebaseOptions,
     // ).write();
+    }
   }
 }

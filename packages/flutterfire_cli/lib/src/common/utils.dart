@@ -402,6 +402,17 @@ Map<String, dynamic> getNestedMap(Map<String, dynamic> map, List<String> keys) {
   return lastNestedMap;
 }
 
+bool doesNestedMapExist(Map<String, dynamic> map, List<String> keys) {
+  var currentMap = map;
+  return keys.every((key) {
+    if (currentMap.containsKey(key) && currentMap[key] is Map<String, dynamic>) {
+      currentMap = currentMap[key] as Map<String, dynamic>;
+      return true;
+    }
+    return false;
+  });
+}
+
 Future<List<String>> findTargetsAvailable(
   String platform,
   String xcodeProjectPath,
