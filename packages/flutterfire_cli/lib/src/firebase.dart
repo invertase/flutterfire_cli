@@ -448,7 +448,8 @@ Future<String> getAccessToken() async {
     return json['access_token'] as String;
   } else {
     throw Exception(
-        'Failed to obtain an access token for making Firebase Management REST API requests. Status code: ${response.statusCode}. Response body: ${response.body}');
+      'Failed to obtain an access token for making Firebase Management REST API requests. Status code: ${response.statusCode}. Response body: ${response.body}',
+    );
   }
 }
 

@@ -22,11 +22,10 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
-    show relative, normalize, windows, joinAll, dirname, join, basename;
+    show relative, normalize, windows, joinAll, dirname, join;
 
 import '../flutter_app.dart';
 import 'platform.dart';
-import 'strings.dart';
 
 /// Key for windows platform.
 const String kWindows = 'windows';

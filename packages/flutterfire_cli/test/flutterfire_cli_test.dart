@@ -163,7 +163,7 @@ end
   });
 
   tearDown(() {
-    Directory(p.dirname(projectPath!)).delete(recursive: true);    
+    Directory(p.dirname(projectPath!)).delete(recursive: true);
   });
 
   test(
@@ -340,7 +340,9 @@ end
       final findClientMap =
           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
               .firstWhere(
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
+        // ignore: avoid_dynamic_calls
+        (element) =>
+            (element['client_info'])['mobilesdk_app_id'] == androidAppId,
       );
 
       expect(findClientMap, isA<Map<String, dynamic>>());
@@ -499,8 +501,10 @@ end
         expect(macosDefaultConfig[kAppId], appleAppId);
         expect(macosDefaultConfig[kProjectId], firebaseProjectId);
         expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(macosDefaultConfig[kFileOutput],
-            'macos/$buildType/GoogleService-Info.plist');
+        expect(
+          macosDefaultConfig[kFileOutput],
+          'macos/$buildType/GoogleService-Info.plist',
+        );
 
         // Check android map is correct
         final keysToMapAndroid = [
@@ -592,6 +596,7 @@ end
       final findClientMap =
           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
               .firstWhere(
+        // ignore: avoid_dynamic_calls
         (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
       );
 
@@ -840,6 +845,7 @@ end
       final findClientMap =
           List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
               .firstWhere(
+        // ignore: avoid_dynamic_calls
         (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
       );
 
@@ -905,21 +911,21 @@ end
         workingDirectory: projectPath,
       );
 
-  Process.runSync(
-    'flutterfire',
-    [
-      'configure',
-      '--yes',
-      '--project=$firebaseProjectId',
-      // The below args aren't needed unless running from CI. We need for Github actions to run command.
-      '--platforms=android,ios,macos,web',
-      '--ios-bundle-id=com.example.flutterTestCli',
-      '--android-package-name=com.example.flutter_test_cli',
-      '--macos-bundle-id=com.example.flutterTestCli',
-      '--web-app-id=com.example.flutterTestCli',
-    ],
-    workingDirectory: projectPath,
-  );
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
       final iosXcodeProject = p.join(
         projectPath!,
         'ios',

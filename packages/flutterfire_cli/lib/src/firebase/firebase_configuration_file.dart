@@ -14,14 +14,11 @@
  * limitations under the License.
  *
  */
-
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:ansi_styles/ansi_styles.dart';
+
 import 'package:path/path.dart';
 
-import '../common/strings.dart';
 import '../common/utils.dart';
 import 'firebase_options.dart';
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
@@ -6,7 +5,6 @@ import 'package:path/path.dart' as path;
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
-import 'firebase_android_options.dart';
 import 'firebase_options.dart';
 
 // https://regex101.com/r/w2ovos/1
