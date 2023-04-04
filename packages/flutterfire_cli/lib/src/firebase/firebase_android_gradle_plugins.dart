@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
@@ -6,7 +5,6 @@ import 'package:path/path.dart' as path;
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
-import 'firebase_android_options.dart';
 import 'firebase_options.dart';
 
 // https://regex101.com/r/w2ovos/1
@@ -55,21 +53,32 @@ const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
 
 class FirebaseAndroidGradlePlugins {
-  FirebaseAndroidGradlePlugins(
-    this.flutterApp,
-    this.firebaseOptions,
-    this.logger,
+  FirebaseAndroidGradlePlugins({
+    required this.flutterApp,
+    required this.firebaseOptions,
+    required this.logger,
     this.androidServiceFilePath,
-  );
+    required this.projectConfiguration,
+  }) : assert(
+          projectConfiguration == ProjectConfiguration.buildConfiguration &&
+              androidServiceFilePath != null,
+          '"androidServiceFilePath" must be provided when projectConfiguration is "buildConfiguration"',
+        );
 
   final FlutterApp flutterApp;
   final FirebaseOptions firebaseOptions;
   final Logger logger;
   final String? androidServiceFilePath;
+  ProjectConfiguration projectConfiguration;
 
   File get androidGoogleServicesJsonFile {
-    if (androidServiceFilePath != null) {
-      return File('${flutterApp.package.path}/${androidServiceFilePath!}');
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
+      return File(
+        path.join(
+          flutterApp.package.path,
+          androidServiceFilePath,
+        ),
+      );
     } else {
       return File(
         path.join(
@@ -82,66 +91,47 @@ class FirebaseAndroidGradlePlugins {
   }
 
   Future<void> createAndroidGoogleServicesJsonFile() async {
-    if (androidServiceFilePath != null) {
-      final updatedPath =
-          '${flutterApp.package.path}/${androidServiceFilePath!}';
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
+      final updatedPath = path.join(
+        flutterApp.package.path,
+        androidServiceFilePath,
+      );
       await File(updatedPath).create(recursive: true);
     }
   }
 
-  Future<void> _updateFirebaseJsonFile(String? configKey) async {
-    final file = File(path.join(flutterApp.package.path, 'firebase.json'));
+  FirebaseJsonWrites _firebaseJsonWrites() {
+    final keysToMap = [kFlutter, kPlatforms, kAndroid];
+    String? relativeServiceFile;
+    if (projectConfiguration == ProjectConfiguration.buildConfiguration) {
+      keysToMap.add(kBuildConfiguration);
 
-    final fileAsString = await file.readAsString();
+      final segments = path.split(androidServiceFilePath!);
+      final appIndex = segments.indexOf('app');
+      // We have already validated that the "app" segment is on the path
+      final newPath = path.joinAll(segments.sublist(appIndex + 1));
+      // The key used for "firebase.json"
+      // If not default, there will be a build type key. e.g. "staging"
+      keysToMap.add(path.dirname(newPath));
 
-    final map = jsonDecode(fileAsString) as Map;
-
-    final flutterConfig = map[kFlutter] as Map;
-
-    final platform = flutterConfig[kPlatforms] as Map;
-
-    if (platform[kAndroid] == null) {
-      platform[kAndroid] = <String, Object>{};
-    }
-    final androidConfig = platform[kAndroid] as Map;
-
-    final configurationKey =
-        androidServiceFilePath != null ? kBuildConfiguration : kDefaultConfig;
-
-    if (androidConfig[configurationKey] == null) {
-      androidConfig[configurationKey] = <String, Object>{};
-    }
-    final configurationMaps = androidConfig[configurationKey] as Map?;
-
-    Map? configurationMap;
-
-    if (androidServiceFilePath != null) {
-      if (configurationMaps?[configKey] == null) {
-        // ignore: implicit_dynamic_map_literal
-        configurationMaps?[configKey] = {};
-      }
-      configurationMap = configurationMaps?[configKey] as Map;
+      relativeServiceFile =
+          path.relative(androidServiceFilePath!, from: flutterApp.package.path);
     } else {
-      // Only a single map in "default" configuration.
-      configurationMap = configurationMaps;
-    }
+      keysToMap.add(kDefaultConfig);
 
-    configurationMap?[kProjectId] = firebaseOptions.projectId;
-    configurationMap?[kAppId] = firebaseOptions.appId;
-
-    if (androidServiceFilePath != null) {
-      configurationMap?[kServiceFileOutput] = androidServiceFilePath;
-    } else {
-      configurationMap?[kServiceFileOutput] = path.join(
+      relativeServiceFile = path.join(
         'android',
         'app',
-        firebaseOptions.optionsSourceFileName,
+        androidServiceFileName,
       );
     }
 
-    final mapJson = json.encode(map);
-
-    file.writeAsStringSync(mapJson);
+    return FirebaseJsonWrites(
+      pathToMap: keysToMap,
+      projectId: firebaseOptions.projectId,
+      appId: firebaseOptions.appId,
+      fileOutput: relativeServiceFile,
+    );
   }
 
   File get androidBuildGradleFile =>
@@ -165,58 +155,11 @@ class FirebaseAndroidGradlePlugins {
   Future<void> applyGoogleServicesPlugin({
     bool force = false,
   }) async {
-    var existingProjectId = '';
-    var shouldPromptOverwriteGoogleServicesJson = false;
-    if (androidGoogleServicesJsonFile.existsSync()) {
-      final existingGoogleServicesJsonContents =
-          await androidGoogleServicesJsonFile.readAsString();
-      existingProjectId = FirebaseAndroidOptions.projectIdFromFileContents(
-        existingGoogleServicesJsonContents,
-      );
-      if (existingProjectId != firebaseOptions.projectId) {
-        shouldPromptOverwriteGoogleServicesJson = true;
-      }
-    }
-    if (shouldPromptOverwriteGoogleServicesJson && !force) {
-      final overwriteGoogleServicesJson = promptBool(
-        logPromptReplaceGoogleServicesJson(
-          firebaseOptions.optionsSourceFileName,
-          existingProjectId,
-          firebaseOptions.projectId,
-        ),
-      );
-      if (!overwriteGoogleServicesJson) {
-        logger.stdout(
-          logSkippingGoogleServicesJson(firebaseOptions.optionsSourceFileName),
-        );
-        return;
-      }
-    }
-
     await createAndroidGoogleServicesJsonFile();
 
     await androidGoogleServicesJsonFile.writeAsString(
       firebaseOptions.optionsSourceContent,
     );
-
-    if (androidServiceFilePath != null) {
-      final segments = path.split(androidServiceFilePath!);
-      final appIndex = segments.indexOf('app');
-
-      if (appIndex != -1 && appIndex + 1 < segments.length) {
-        final newPath = path.joinAll(segments.sublist(appIndex + 1));
-        // The key used for "firebase.json"
-        final configKey = path.dirname(newPath);
-        await _updateFirebaseJsonFile(configKey);
-      } else {
-        throw ServiceFileRequirementException(
-          kAndroid,
-          'Your service file does not have "app" as a path segment in the "--android-out" path input. See Firebase documentation for more details: https://firebase.google.com/docs/projects/multiprojects',
-        );
-      }
-    } else {
-      await _updateFirebaseJsonFile(null);
-    }
 
     if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
       final hasMatch =
@@ -320,51 +263,21 @@ class FirebaseAndroidGradlePlugins {
     );
   }
 
-  Future<void> apply({
+  Future<FirebaseJsonWrites> apply({
     bool force = false,
   }) async {
-    if (!flutterApp.android) {
-      // Flutter application is not configured to target Android.
-      return;
-    }
-    final originalAndroidBuildGradleContents = androidBuildGradleFileContents;
-    final originalAndroidAppBuildGradleContents =
-        androidAppBuildGradleFileContents;
-
     await applyGoogleServicesPlugin(force: force);
     await applyCrashlyticsPlugin(force: force);
     await applyPerformancePlugin(force: force);
 
-    final shouldPromptUpdateAndroidBuildGradle =
-        originalAndroidBuildGradleContents != androidBuildGradleFileContents;
-    final shouldPromptUpdateAndroidAppBuildGradle =
-        originalAndroidAppBuildGradleContents !=
-            androidAppBuildGradleFileContents;
-    if ((shouldPromptUpdateAndroidBuildGradle ||
-            shouldPromptUpdateAndroidAppBuildGradle) &&
-        !force) {
-      final updateAndroidGradleFiles = promptBool(
-        logPromptMakeChangesToGradleFiles,
-      );
-      if (!updateAndroidGradleFiles) {
-        logger.stdout(
-          logSkippingGradleFilesUpdate,
-        );
-        return;
-      }
-    }
-
     // WRITE <app>/android/build.gradle
-    if (shouldPromptUpdateAndroidBuildGradle) {
-      await androidBuildGradleFile
-          .writeAsString(androidBuildGradleFileContents);
-    }
+    await androidBuildGradleFile.writeAsString(androidBuildGradleFileContents);
 
     // WRITE <app>/android/app/build.gradle
-    if (shouldPromptUpdateAndroidAppBuildGradle) {
-      await androidAppBuildGradleFile.writeAsString(
-        androidAppBuildGradleFileContents,
-      );
-    }
+    await androidAppBuildGradleFile.writeAsString(
+      androidAppBuildGradleFileContents,
+    );
+
+    return _firebaseJsonWrites();
   }
 }

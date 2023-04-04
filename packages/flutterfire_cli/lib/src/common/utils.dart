@@ -22,7 +22,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
-    show relative, normalize, windows, joinAll, dirname;
+    show relative, normalize, windows, joinAll, dirname, join;
 
 import '../flutter_app.dart';
 import 'platform.dart';
@@ -48,13 +48,36 @@ const String kWeb = 'web';
 // Keys for firebase.json
 const String kFlutter = 'flutter';
 const String kPlatforms = 'platforms';
+const String kDart = 'dart';
 const String kBuildConfiguration = 'buildConfigurations';
 const String kTargets = 'targets';
 const String kUploadDebugSymbols = 'uploadDebugSymbols';
 const String kAppId = 'appId';
 const String kProjectId = 'projectId';
-const String kServiceFileOutput = 'serviceFileOutput';
+const String kFileOutput = 'fileOutput';
 const String kDefaultConfig = 'default';
+const String kConfigurations = 'configurations';
+
+
+// Flags for "flutterfire configure" command
+const String kOutFlag = 'out';
+const String kYesFlag = 'yes';
+const String kPlatformsFlag = 'platforms';
+const String kIosBundleIdFlag = 'ios-bundle-id';
+const String kMacosBundleIdFlag = 'macos-bundle-id';
+const String kAndroidAppIdFlag = 'android-app-id';
+const String kAndroidPackageNameFlag = 'android-package-name';
+const String kWebAppIdFlag = 'web-app-id';
+const String kTokenFlag = 'token';
+const String kAppleGradlePluginFlag = 'apply-gradle-plugins';
+const String kIosBuildConfigFlag = 'ios-build-config';
+const String kMacosBuildConfigFlag = 'macos-build-config';
+const String kIosTargetFlag = 'ios-target';
+const String kMacosTargetFlag = 'macos-target';
+const String kIosOutFlag = 'ios-out';
+const String kMacosOutFlag = 'macos-out';
+const String kAndroidOutFlag = 'android-out';
+const String kOverwriteFirebaseOptionsFlag = 'overwrite-firebase-options';
 
 enum ProjectConfiguration {
   target,
@@ -235,9 +258,9 @@ String removeForwardBackwardSlash(String input) {
   var output = input;
   if (input.startsWith('/')) {
     output = input.substring(1);
-  } 
+  }
 
-  if(input.endsWith('/')) {
+  if (input.endsWith('/')) {
     output = output.substring(0, output.length - 1);
   }
 
@@ -310,4 +333,152 @@ Future<void> writeFirebaseJsonFile(
 
     file.writeAsStringSync(mapJson);
   }
+}
+
+class FirebaseJsonWrites {
+  FirebaseJsonWrites({
+    required this.pathToMap,
+    this.uploadDebugSymbols,
+    this.projectId,
+    this.appId,
+    this.fileOutput,
+    this.configurations,
+  });
+  //list of keys to map
+  //list of values that can be null, if null, then don't write
+  List<String> pathToMap;
+  String? projectId;
+  String? appId;
+  bool? uploadDebugSymbols;
+  String? fileOutput;
+  // We need for dart configuration file
+  Map<String, String>? configurations;
+}
+
+Future<void> writeToFirebaseJson({
+  required List<FirebaseJsonWrites> listOfWrites,
+  required String firebaseJsonPath,
+}) async {
+  final file = File(firebaseJsonPath);
+
+  final decodedMap = !file.existsSync()
+      ? <String, dynamic>{}
+      : json.decode(await file.readAsString()) as Map<String, dynamic>;
+
+  for (final write in listOfWrites) {
+    final map = getNestedMap(decodedMap, write.pathToMap);
+
+    if (write.projectId != null) {
+      map[kProjectId] = write.projectId;
+    }
+
+    if (write.appId != null) {
+      map[kAppId] = write.appId;
+    }
+
+    if (write.uploadDebugSymbols != null) {
+      map[kUploadDebugSymbols] = write.uploadDebugSymbols;
+    }
+
+    if (write.fileOutput != null) {
+      map[kFileOutput] = write.fileOutput;
+    }
+
+    if(write.configurations != null) {
+      map[kConfigurations] = write.configurations;
+    }
+  }
+
+  final mapJson = json.encode(decodedMap);
+
+  file.writeAsStringSync(mapJson);
+}
+
+Map<String, dynamic> getNestedMap(Map<String, dynamic> map, List<String> keys) {
+  final lastNestedMap = keys.fold<Map<String, dynamic>>(map, (currentMap, key) {
+    return currentMap.putIfAbsent(key, () => <String, dynamic>{}) as Map<String, dynamic>;
+  });
+
+  return lastNestedMap;
+}
+
+Future<List<String>> findTargetsAvailable(
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final targetScript = '''
+      require 'xcodeproj'
+      xcodeProject='$xcodeProjectPath'
+      project = Xcodeproj::Project.open(xcodeProject)
+
+      response = Array.new
+
+      project.targets.each do |target|
+        response << target.name
+      end
+
+      if response.length == 0
+        abort("There are no targets in your Xcode workspace. Please create a target and try again.")
+      end
+
+      \$stdout.write response.join(',')
+    ''';
+
+  final result = await Process.run('ruby', [
+    '-e',
+    targetScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the targets to to check if it exists on the project
+  final targets = (result.stdout as String).split(',');
+
+  return targets;
+}
+
+Future<List<String>> findBuildConfigurationsAvailable(
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final buildConfigurationScript = '''
+      require 'xcodeproj'
+      xcodeProject='$xcodeProjectPath'
+
+      project = Xcodeproj::Project.open(xcodeProject)
+
+      response = Array.new
+
+      project.build_configurations.each do |configuration|
+        response << configuration
+      end
+
+      if response.length == 0
+        abort("There are no build configurations in your Xcode workspace. Please create a build configuration and try again.")
+      end
+
+      \$stdout.write response.join(',')
+    ''';
+
+  final result = await Process.run('ruby', [
+    '-e',
+    buildConfigurationScript,
+  ]);
+
+  if (result.exitCode != 0) {
+    throw Exception(result.stderr);
+  }
+  // Retrieve the build configurations to check if it exists on the project
+  final buildConfigurations = (result.stdout as String).split(',');
+
+  return buildConfigurations;
+}
+
+String getXcodeProjectPath(String platform) {
+  return join(
+    Directory.current.path,
+    platform,
+    'Runner.xcodeproj',
+  );
 }
