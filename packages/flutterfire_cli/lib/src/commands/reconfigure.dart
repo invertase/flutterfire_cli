@@ -38,10 +38,31 @@ import 'package:path/path.dart' as path;
 import '../common/utils.dart';
 
 import '../firebase.dart';
+import '../firebase/firebase_android_options.dart';
+import '../firebase/firebase_apple_options.dart';
 import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_dart_options.dart';
+import '../firebase/firebase_options.dart';
 import '../flutter_app.dart';
 
 import 'base.dart';
+
+class ConfigFileWrite {
+  ConfigFileWrite({
+    required this.pathToConfig,
+    required this.projectId,
+    this.android,
+    this.ios,
+    this.macos,
+    this.web,
+  });
+  String pathToConfig;
+  String projectId;
+  FirebaseOptions? android;
+  FirebaseOptions? ios;
+  FirebaseOptions? macos;
+  FirebaseOptions? web;
+}
 
 class Reconfigure extends FlutterFireCommand {
   Reconfigure(FlutterApp? flutterApp) : super(flutterApp) {
@@ -160,8 +181,108 @@ class Reconfigure extends FlutterFireCommand {
     }
   }
 
-  Future<void> _writeDartConfigurationFile() async {
+  Future<void> _writeDartConfigurationFile(
+    Map<String, dynamic> firebaseJsonMap,
+  ) async {
+    final dartConfig = getNestedMap(
+      firebaseJsonMap,
+      [
+        kFlutter,
+        kPlatforms,
+        kDart,
+      ],
+    ) as Map<String, Map>;
 
+    final projectIds = <String, String>{};
+
+    final futureMap = dartConfig
+        .map<String, Map<String, Future<FirebaseAppSdkConfig>>>((path, map) {
+      final configurations = map[kConfigurations] as Map<String, String>;
+      projectIds[path] = configurations[kProjectId]!;
+
+      final appSDKConfig = configurations.map((platform, appId) {
+        return MapEntry<String, Future<FirebaseAppSdkConfig>>(
+          platform,
+          getAppSdkConfig(
+            appId: appId,
+            platform: platform,
+          ),
+        );
+      });
+      // creates property for path to config, and object with platforms as properties and Future<FirebaseAppSdkConfig> as values
+      return MapEntry<String, Map<String, Future<FirebaseAppSdkConfig>>>(
+        path,
+        appSDKConfig,
+      );
+    });
+
+    // Wait for all Futures to complete in the nested map
+    final receivedAppSdkConfig = await Future.wait(
+      futureMap.entries.map(
+        (outerEntry) async {
+          final innerResultMap = await Future.wait(
+            outerEntry.value.entries.map(
+              (innerEntry) async =>
+                  MapEntry(innerEntry.key, await innerEntry.value),
+            ),
+          ).then(
+            (innerEntries) =>
+                Map<String, FirebaseAppSdkConfig>.fromEntries(innerEntries),
+          );
+
+          return MapEntry(outerEntry.key, innerResultMap);
+        },
+      ),
+    ).then(
+      (outerEntries) =>
+          Map<String, Map<String, FirebaseAppSdkConfig>>.fromEntries(
+        outerEntries,
+      ),
+    );
+
+    final configWrites = <ConfigFileWrite>[];
+
+    receivedAppSdkConfig.forEach((path, mapOfAppSdkConfig) {
+      final configWrite = ConfigFileWrite(
+        pathToConfig: path,
+        projectId: projectIds[path]!,
+      );
+
+      mapOfAppSdkConfig.forEach((platform, appSdkConfig) {
+        switch (platform) {
+          case kAndroid:
+            configWrite.android = FirebaseAndroidOptions.convertConfigToOptions(
+                appSdkConfig, appId, configWrite.projectId);
+            break;
+          case kIos:
+            configWrite.ios = FirebaseAppleOptions.convertConfigToOptions(
+                appSdkConfig, appId, configWrite.projectId);
+            break;
+          case kMacos:
+            configWrite.macos = FirebaseAppleOptions.convertConfigToOptions(
+                appSdkConfig, appId, configWrite.projectId);
+            break;
+          case kWeb:
+            configWrite.web = FirebaseDartOptions.convertConfigToOptions(
+                appSdkConfig, configWrite.projectId);
+            break;
+          default:
+        }
+      });
+
+      configWrites.add(configWrite);
+    });
+
+    // Iterable<FirebaseJsonWrites> writes = configWrites.map((configWrite) {
+    //   // FirebaseConfigurationFile(
+    //   //           configurationFilePath: configWrite.pathToConfig,
+    //   //           flutterAppPath: flutterApp!.package.path,
+    //   //           androidOptions: configWrite.android,
+    //   //           iosOptions: configWrite.ios,
+    //   //           macosOptions: configWrite.macos,
+    //   //           webOptions: configWrite.web)
+    //   //       .write();
+    // });
   }
 
   @override
@@ -181,7 +302,8 @@ class Reconfigure extends FlutterFireCommand {
 
     final readFirebaseJson = firebaseJson.readAsStringSync();
 
-    final firebaseJsonMap = jsonDecode(readFirebaseJson) as Map<String, dynamic>;
+    final firebaseJsonMap =
+        jsonDecode(readFirebaseJson) as Map<String, dynamic>;
     final androidKeys = [
       kFlutter,
       kPlatforms,
@@ -196,7 +318,8 @@ class Reconfigure extends FlutterFireCommand {
 
       if (androidBuildConfigurationsExist) {
         final buildConfigurations =
-            getNestedMap(firebaseJsonMap, buildConfigurationKeys) as Map<String, Map>;
+            getNestedMap(firebaseJsonMap, buildConfigurationKeys)
+                as Map<String, Map>;
         buildConfigurations.forEach((key, value) async {
           // ignore: cast_nullable_to_non_nullable
           final configuration = buildConfigurations[key] as Map<String, String>;
@@ -207,7 +330,8 @@ class Reconfigure extends FlutterFireCommand {
         ...androidKeys,
         kDefaultConfig,
       ];
-      final defaultAndroidExists = doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
+      final defaultAndroidExists =
+          doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
       if (defaultAndroidExists) {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
@@ -248,30 +372,8 @@ class Reconfigure extends FlutterFireCommand {
       ],
     );
 
-    if(dartExists){
-      final dartConfig = getNestedMap(
-        firebaseJsonMap,
-        [
-          kFlutter,
-          kPlatforms,
-          kDart,
-        ],
-      );
-      //TODO write build config file
-      // await _updateServiceFile(dartConfig, kDart);
-    // TODO - write firebase_options.dart file with all configs
-    //       await FirebaseConfigurationFile(
-    //   outputFilePath,
-    //   flutterApp!,
-    //   androidOptions: androidOptions,
-    //   iosOptions: iosOptions,
-    //   macosOptions: macosOptions,
-    //   webOptions: webOptions,
-    //   windowsOptions: windowsOptions,
-    //   linuxOptions: linuxOptions,
-    //   force: isCI || yes,
-    //   overwriteFirebaseOptions: overwriteFirebaseOptions,
-    // ).write();
+    if (dartExists) {
+      // await _writeDartConfigurationFile();
     }
   }
 }
