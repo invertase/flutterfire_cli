@@ -19,6 +19,7 @@ import 'package:deep_pick/deep_pick.dart';
 import '../common/plist.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
+import '../firebase.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
@@ -57,13 +58,22 @@ extension FirebaseAppleOptions on FirebaseOptions {
       account: firebaseAccount,
       token: token,
     );
+
+    return convertConfigToOptions(appSdkConfig, firebaseApp.appId, firebaseProjectId);
+  }
+
+  static FirebaseOptions convertConfigToOptions(
+    FirebaseAppSdkConfig appSdkConfig,
+    String appId,
+    String firebaseProjectId,
+  ) {
     final appSdkConfigMap = parsePlist(appSdkConfig.fileContents);
     return FirebaseOptions(
       optionsSourceContent: appSdkConfig.fileContents,
       optionsSourceFileName: appSdkConfig.fileName,
 
       apiKey: pick(appSdkConfigMap, 'API_KEY').asStringOrThrow(),
-      appId: firebaseApp.appId,
+      appId: appId,
       projectId: firebaseProjectId,
       messagingSenderId:
           pick(appSdkConfigMap, 'GCM_SENDER_ID').asStringOrThrow(),
