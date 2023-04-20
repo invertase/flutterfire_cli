@@ -147,21 +147,7 @@ void main() {
         'app',
         androidServiceFileName,
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        (element) =>
-            // ignore: avoid_dynamic_calls
-            (element['client_info'])['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''
@@ -362,20 +348,7 @@ void main() {
         buildType,
         'google-services.json',
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        // ignore: avoid_dynamic_calls
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''
@@ -571,20 +544,7 @@ void main() {
         androidBuildConfiguration,
         'google-services.json',
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        // ignore: avoid_dynamic_calls
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''

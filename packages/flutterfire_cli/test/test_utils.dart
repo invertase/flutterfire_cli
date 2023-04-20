@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
@@ -213,6 +214,22 @@ Future<void> testAppleServiceFileValues(
   expect(macosGoogleAppId, appleAppId);
   expect(macosApiKey, appleApiKey);
   expect(macosGcmSenderId, appleGcmSenderId);
+}
+
+void testAndroidServiceFileValues(String serviceFilePath) {
+  final clientList = Map<String, dynamic>.from(
+    jsonDecode(File(serviceFilePath).readAsStringSync())
+        as Map<String, dynamic>,
+  );
+
+  final findClientMap =
+      List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
+          .firstWhere(
+    // ignore: avoid_dynamic_calls
+    (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
+  );
+
+  expect(findClientMap, isA<Map<String, dynamic>>());
 }
 
 void checkIosFirebaseJsonValues(
