@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:path/path.dart' as p;
+import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
 const firebaseProjectId = 'flutterfire-cli-test-f6f57';
@@ -164,4 +166,47 @@ String? getValue(XmlElement dictionary, String key) {
       dictionary.findElements('key').singleWhere((e) => e.text == key);
   final valueElement = keyElement.nextElementSibling;
   return valueElement?.text;
+}
+
+Future<void> testAppleServiceFileValues(
+  String iosPath,
+  String macosPath,
+) async {
+  // Need to find mac file like this for it to work on CI. No idea why.
+  final macFile = await findFileInDirectory(macosPath, appleServiceFileName);
+
+  final iosServiceFileContent = await File(iosPath).readAsString();
+
+  final macosServiceFileContent = await macFile.readAsString();
+
+  final iosPlist = XmlDocument.parse(iosServiceFileContent);
+  final macosPlist = XmlDocument.parse(macosServiceFileContent);
+
+  final iosDictionary = iosPlist.rootElement.findElements('dict').single;
+
+  final iosProjectId = getValue(iosDictionary, 'PROJECT_ID');
+  final iosBundleId = getValue(iosDictionary, 'BUNDLE_ID');
+  final iosGoogleAppId = getValue(iosDictionary, 'GOOGLE_APP_ID');
+  final iosApiKey = getValue(iosDictionary, 'API_KEY');
+  final iosGcmSenderId = getValue(iosDictionary, 'GCM_SENDER_ID');
+
+  expect(iosProjectId, firebaseProjectId);
+  expect(iosBundleId, appleBundleId);
+  expect(iosGoogleAppId, appleAppId);
+  expect(iosApiKey, appleApiKey);
+  expect(iosGcmSenderId, appleGcmSenderId);
+
+  final macosDictionary = macosPlist.rootElement.findElements('dict').single;
+
+  final macosProjectId = getValue(macosDictionary, 'PROJECT_ID');
+  final macosBundleId = getValue(macosDictionary, 'BUNDLE_ID');
+  final macosGoogleAppId = getValue(macosDictionary, 'GOOGLE_APP_ID');
+  final macosApiKey = getValue(macosDictionary, 'API_KEY');
+  final macosGcmSenderId = getValue(macosDictionary, 'GCM_SENDER_ID');
+
+  expect(macosProjectId, firebaseProjectId);
+  expect(macosBundleId, appleBundleId);
+  expect(macosGoogleAppId, appleAppId);
+  expect(macosApiKey, appleApiKey);
+  expect(macosGcmSenderId, appleGcmSenderId);
 }
