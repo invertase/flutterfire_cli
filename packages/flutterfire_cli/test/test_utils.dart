@@ -232,6 +232,23 @@ void testAndroidServiceFileValues(String serviceFilePath) {
   expect(findClientMap, isA<Map<String, dynamic>>());
 }
 
+Future<void> testFirebaseOptionsFileValues(
+  String firebaseOptionsPath,
+) async {
+  final testFirebaseOptions = p.join(
+    Directory.current.path,
+    'test',
+    testFileDirectory,
+    'firebase_options.dart',
+  );
+
+  final firebaseOptionsContent = await File(firebaseOptionsPath).readAsString();
+  final testFirebaseOptionsContent =
+      await File(testFirebaseOptions).readAsString();
+
+  expect(firebaseOptionsContent, testFirebaseOptionsContent);
+}
+
 void checkIosFirebaseJsonValues(
   Map<String, dynamic> decodedFirebaseJson,
   List<String> keysToMapIos,

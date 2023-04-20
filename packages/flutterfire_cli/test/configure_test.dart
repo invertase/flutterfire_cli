@@ -185,18 +185,8 @@ void main() {
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -386,18 +376,8 @@ void main() {
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -582,18 +562,8 @@ void main() {
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),
