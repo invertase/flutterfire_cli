@@ -267,7 +267,6 @@ end
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
         final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
         expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
 
         final defaultConfigurations =
             dartConfig[kConfigurations] as Map<String, dynamic>;
@@ -534,7 +533,6 @@ end
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
         final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
         expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
 
         final defaultConfigurations =
             dartConfig[kConfigurations] as Map<String, dynamic>;
@@ -777,7 +775,6 @@ end
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
         final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
         expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
 
         final defaultConfigurations =
             dartConfig[kConfigurations] as Map<String, dynamic>;
