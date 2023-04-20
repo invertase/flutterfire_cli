@@ -331,11 +331,10 @@ class Reconfigure extends FlutterFireCommand {
 
       if (androidBuildConfigurationsExist) {
         final buildConfigurations =
-            getNestedMap(firebaseJsonMap, buildConfigurationKeys)
-                as Map<String, Map>;
-        buildConfigurations.forEach((key, value) async {
+            getNestedMap(firebaseJsonMap, buildConfigurationKeys);
+        buildConfigurations.forEach((key, dynamic value) async {
           // ignore: cast_nullable_to_non_nullable
-          final configuration = buildConfigurations[key] as Map<String, String>;
+          final configuration = buildConfigurations[key] as Map<String, dynamic>;
 
           await _writeFile(
             _updateServiceFile(configuration, kAndroid),
