@@ -5,7 +5,6 @@ import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:xml/xml.dart';
 
 import 'test_utils.dart';
 
