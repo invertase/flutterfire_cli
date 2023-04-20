@@ -35,6 +35,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import '../common/strings.dart';
 import '../common/utils.dart';
 
 import '../firebase.dart';
@@ -114,7 +115,6 @@ class Reconfigure extends FlutterFireCommand {
       kFlutter,
       kPlatforms,
       platform,
-      kBuildConfiguration,
     ];
 
     final buildConfigurationKeys = [
@@ -134,9 +134,13 @@ class Reconfigure extends FlutterFireCommand {
       buildConfigurations.forEach((key, value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = buildConfigurations[key] as Map<String, String>;
-        await _updateServiceFile(
-          configuration,
-          platform,
+
+        await _writeFile(
+          _updateServiceFile(
+            configuration,
+            platform,
+          ),
+          '$platform "$appleServiceFileName" file write for build configuration: "$key"',
         );
       });
     }
@@ -144,18 +148,21 @@ class Reconfigure extends FlutterFireCommand {
       ...appleMapKeys,
       kDefaultConfig,
     ];
-    final defaultConfigExists = doesNestedMapExist(
+    final defaultConfigurationExists = doesNestedMapExist(
       firebaseJsonMap,
       defaultMapKeys,
     );
 
-    if (defaultConfigExists) {
-      await _updateServiceFile(
-        getNestedMap(
-          firebaseJsonMap,
-          defaultMapKeys,
+    if (defaultConfigurationExists) {
+      await _writeFile(
+        _updateServiceFile(
+          getNestedMap(
+            firebaseJsonMap,
+            defaultMapKeys,
+          ),
+          platform,
         ),
-        platform,
+        '$platform "$appleServiceFileName" file write for default target (Runner)',
       );
     }
     final targetMapKeys = [
@@ -173,9 +180,12 @@ class Reconfigure extends FlutterFireCommand {
       targets.forEach((key, value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, String>;
-        await _updateServiceFile(
-          configuration,
-          platform,
+        await _writeFile(
+          _updateServiceFile(
+            configuration,
+            platform,
+          ),
+          '$platform "$appleServiceFileName" file write for target: "$key"',
         );
       });
     }
@@ -264,14 +274,27 @@ class Reconfigure extends FlutterFireCommand {
         (await Future.wait(listOfConfigWrites)).expand((x) => x).toList();
 
     for (final configWrite in configWrites) {
-      FirebaseConfigurationFile(
-        configurationFilePath: configWrite.pathToConfig,
-        flutterAppPath: flutterApp!.package.path,
-        androidOptions: configWrite.android,
-        iosOptions: configWrite.ios,
-        macosOptions: configWrite.macos,
-        webOptions: configWrite.web,
-      ).write();
+      final future = Future(() async {
+        return FirebaseConfigurationFile(
+          configurationFilePath: configWrite.pathToConfig,
+          flutterAppPath: flutterApp!.package.path,
+          androidOptions: configWrite.android,
+          iosOptions: configWrite.ios,
+          macosOptions: configWrite.macos,
+          webOptions: configWrite.web,
+        ).write();
+      });
+
+      await _writeFile(future, 'Dart configuration file write');
+    }
+  }
+
+  Future<void> _writeFile(Future writeFileFuture, String name) async {
+    try {
+      await writeFileFuture;
+    } catch (e) {
+      throw Exception(
+          'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e');
     }
   }
 
@@ -313,7 +336,11 @@ class Reconfigure extends FlutterFireCommand {
         buildConfigurations.forEach((key, value) async {
           // ignore: cast_nullable_to_non_nullable
           final configuration = buildConfigurations[key] as Map<String, String>;
-          await _updateServiceFile(configuration, kAndroid);
+
+          await _writeFile(
+            _updateServiceFile(configuration, kAndroid),
+            '$kAndroid $androidServiceFileName file write for build configuration: "$key"',
+          );
         });
       }
       final defaultConfigKeys = [
@@ -325,7 +352,11 @@ class Reconfigure extends FlutterFireCommand {
 
       if (defaultAndroidExists) {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
-        await _updateServiceFile(defaultAndroid, kAndroid);
+
+        await _writeFile(
+          _updateServiceFile(defaultAndroid, kAndroid),
+          '$kAndroid $androidServiceFileName file write for default service file',
+        );
       }
     }
 
