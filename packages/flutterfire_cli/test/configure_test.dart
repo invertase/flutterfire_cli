@@ -56,59 +56,40 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [kFlutter, kPlatforms, kIos, kDefaultConfig];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kIos, kDefaultConfig],
           '$kIos/$defaultTarget/$appleServiceFileName',
         );
-
-        // Check macOS map is correct
-        final keysToMapMacos = [kFlutter, kPlatforms, kMacos, kDefaultConfig];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kMacos,
+            kDefaultConfig,
+          ],
           '$kMacos/$defaultTarget/$appleServiceFileName',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kDefaultConfig
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kDefaultConfig,
+          ],
           'android/app/$androidServiceFileName',
         );
 
-        // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
 
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+        );
 
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
@@ -241,8 +222,6 @@ void main() {
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
       // The most basic 'flutterfire configure' command that can be run without command line prompts
-      const buildType = 'development';
-      const appleBuildConfiguration = 'Debug';
 
       Process.runSync(
         'flutterfire',
@@ -292,72 +271,48 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [
-          kFlutter,
-          kPlatforms,
-          kIos,
-          kBuildConfiguration,
-          appleBuildConfiguration,
-        ];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kIos,
+            kBuildConfiguration,
+            appleBuildConfiguration,
+          ],
           'ios/$buildType/GoogleService-Info.plist',
         );
 
-        // Check macOS map is correct
-        final keysToMapMacos = [
-          kFlutter,
-          kPlatforms,
-          kMacos,
-          kBuildConfiguration,
-          appleBuildConfiguration,
-        ];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kMacos,
+            kBuildConfiguration,
+            appleBuildConfiguration,
+          ],
           'macos/$buildType/GoogleService-Info.plist',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kBuildConfiguration,
-          buildType,
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kBuildConfiguration,
+            buildType,
+          ],
           'android/app/$buildType/google-services.json',
         );
 
-        // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
-
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+        );
 
         final scriptToCheckIosPbxprojFile =
             rubyScriptForCheckingBundleResourcesScript(
@@ -523,66 +478,41 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [kFlutter, kPlatforms, kIos, kTargets, targetType];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        ;
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kIos,
+            kTargets,
+            targetType,
+          ],
           'ios/$applePath/GoogleService-Info.plist',
         );
 
-        // Check macOS map is correct
-        final keysToMapMacos = [
-          kFlutter,
-          kPlatforms,
-          kMacos,
-          kTargets,
-          targetType
-        ];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kMacos, kTargets, targetType],
           'macos/$applePath/GoogleService-Info.plist',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kBuildConfiguration,
-          androidBuildConfiguration,
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kBuildConfiguration,
+            androidBuildConfiguration,
+          ],
           'android/app/$androidBuildConfiguration/google-services.json',
         );
 
         // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
-
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(decodedFirebaseJson, keysToMapDart);
 
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutterfire_cli/src/common/strings.dart';
+import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
@@ -9,6 +10,9 @@ const testFileDirectory = 'test_files';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
+
+const buildType = 'development';
+const appleBuildConfiguration = 'Debug';
 
 // Apple GoogleService-Info.plist values
 const appleBundleId = 'com.example.flutterTestCli';
@@ -154,7 +158,7 @@ Future<File> findFileInDirectory(
       }
     }
   } else {
-    throw Exception('Directory does not exist: ${directory.path}}');
+    throw Exception('Directory does not exist: ${directory.path}');
   }
 
   throw Exception('File not found: $fileName');
@@ -209,4 +213,65 @@ Future<void> testAppleServiceFileValues(
   expect(macosGoogleAppId, appleAppId);
   expect(macosApiKey, appleApiKey);
   expect(macosGcmSenderId, appleGcmSenderId);
+}
+
+void checkIosFirebaseJsonValues(
+  Map<String, dynamic> decodedFirebaseJson,
+  List<String> keysToMapIos,
+  String pathToServiceFile,
+) {
+  final iosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToMapIos);
+  expect(iosDefaultConfig[kAppId], appleAppId);
+  expect(iosDefaultConfig[kProjectId], firebaseProjectId);
+  expect(iosDefaultConfig[kUploadDebugSymbols], false);
+  expect(
+    iosDefaultConfig[kFileOutput],
+    pathToServiceFile,
+  );
+}
+
+void checkMacosFirebaseJsonValues(
+  Map<String, dynamic> decodedFirebaseJson,
+  List<String> keysToMapMacos,
+  String pathToServiceFile,
+) {
+  final macosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToMapMacos);
+  expect(macosDefaultConfig[kAppId], appleAppId);
+  expect(macosDefaultConfig[kProjectId], firebaseProjectId);
+  expect(macosDefaultConfig[kUploadDebugSymbols], false);
+  expect(
+    macosDefaultConfig[kFileOutput],
+    pathToServiceFile,
+  );
+}
+
+void checkAndroidFirebaseJsonValues(
+  Map<String, dynamic> decodedFirebaseJson,
+  List<String> keysToMapAndroid,
+  String pathToServiceFile,
+) {
+  final androidDefaultConfig =
+      getNestedMap(decodedFirebaseJson, keysToMapAndroid);
+  expect(androidDefaultConfig[kAppId], androidAppId);
+  expect(androidDefaultConfig[kProjectId], firebaseProjectId);
+  expect(
+    androidDefaultConfig[kFileOutput],
+    pathToServiceFile,
+  );
+}
+
+void checkDartFirebaseJsonValues(
+  Map<String, dynamic> decodedFirebaseJson,
+  List<String> keysToMapDart,
+) {
+  final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
+  expect(dartConfig[kProjectId], firebaseProjectId);
+
+  final defaultConfigurations =
+      dartConfig[kConfigurations] as Map<String, dynamic>;
+
+  expect(defaultConfigurations[kIos], appleAppId);
+  expect(defaultConfigurations[kMacos], appleAppId);
+  expect(defaultConfigurations[kAndroid], androidAppId);
+  expect(defaultConfigurations[kWeb], webAppId);
 }
