@@ -1,5 +1,17 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:xml/xml.dart';
+
+const firebaseProjectId = 'flutterfire-cli-test-f6f57';
+const testFileDirectory = 'test_files';
+const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
+const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
+const webAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
+
+// Apple GoogleService-Info.plist values
+const appleBundleId = 'com.example.flutterTestCli';
+const appleApiKey = 'AIzaSyBKopB-r1-sAAc99XLfZ71dURkLHab1AJE';
+const appleGcmSenderId = '262904632156';
 
 Future<String> createFlutterProject() async {
   final tempDir = Directory.systemTemp.createTempSync();
@@ -144,4 +156,12 @@ Future<File> findFileInDirectory(
   }
 
   throw Exception('File not found: $fileName');
+}
+
+// Define a function to get the value of a specific key from the dict
+String? getValue(XmlElement dictionary, String key) {
+  final keyElement =
+      dictionary.findElements('key').singleWhere((e) => e.text == key);
+  final valueElement = keyElement.nextElementSibling;
+  return valueElement?.text;
 }
