@@ -191,98 +191,88 @@ class Reconfigure extends FlutterFireCommand {
         kPlatforms,
         kDart,
       ],
-    ) as Map<String, Map>;
-
-    final projectIds = <String, String>{};
-
-    final futureMap = dartConfig
-        .map<String, Map<String, Future<FirebaseAppSdkConfig>>>((path, map) {
-      final configurations = map[kConfigurations] as Map<String, String>;
-      projectIds[path] = configurations[kProjectId]!;
-
-      final appSDKConfig = configurations.map((platform, appId) {
-        return MapEntry<String, Future<FirebaseAppSdkConfig>>(
-          platform,
-          getAppSdkConfig(
-            appId: appId,
-            platform: platform,
-          ),
-        );
-      });
-      // creates property for path to config, and object with platforms as properties and Future<FirebaseAppSdkConfig> as values
-      return MapEntry<String, Map<String, Future<FirebaseAppSdkConfig>>>(
-        path,
-        appSDKConfig,
-      );
-    });
-
-    // Wait for all Futures to complete in the nested map
-    final receivedAppSdkConfig = await Future.wait(
-      futureMap.entries.map(
-        (outerEntry) async {
-          final innerResultMap = await Future.wait(
-            outerEntry.value.entries.map(
-              (innerEntry) async =>
-                  MapEntry(innerEntry.key, await innerEntry.value),
-            ),
-          ).then(
-            (innerEntries) =>
-                Map<String, FirebaseAppSdkConfig>.fromEntries(innerEntries),
-          );
-
-          return MapEntry(outerEntry.key, innerResultMap);
-        },
-      ),
-    ).then(
-      (outerEntries) =>
-          Map<String, Map<String, FirebaseAppSdkConfig>>.fromEntries(
-        outerEntries,
-      ),
     );
 
-    final configWrites = <ConfigFileWrite>[];
+    final listOfConfigWrites =
+        dartConfig.entries.map<Future<List<ConfigFileWrite>>>((entry) {
+      final path = entry.key;
+      final map = entry.value as Map<String, dynamic>;
+      final configurations = map[kConfigurations] as Map<String, dynamic>;
+      final projectId = map[kProjectId] as String;
 
-    receivedAppSdkConfig.forEach((path, mapOfAppSdkConfig) {
       final configWrite = ConfigFileWrite(
         pathToConfig: path,
-        projectId: projectIds[path]!,
+        projectId: projectId,
       );
 
-      mapOfAppSdkConfig.forEach((platform, appSdkConfig) {
-        switch (platform) {
-          case kAndroid:
-            configWrite.android = FirebaseAndroidOptions.convertConfigToOptions(
-                appSdkConfig, appId, configWrite.projectId);
-            break;
-          case kIos:
-            configWrite.ios = FirebaseAppleOptions.convertConfigToOptions(
-                appSdkConfig, appId, configWrite.projectId);
-            break;
-          case kMacos:
-            configWrite.macos = FirebaseAppleOptions.convertConfigToOptions(
-                appSdkConfig, appId, configWrite.projectId);
-            break;
-          case kWeb:
-            configWrite.web = FirebaseDartOptions.convertConfigToOptions(
-                appSdkConfig, configWrite.projectId);
-            break;
-          default:
-        }
+      final appSDKConfigFutures = configurations.entries.map((entry) {
+        final platform = entry.key;
+        final appId = entry.value as String;
+
+        return Future(() async {
+          final appSdkConfig = await getAppSdkConfig(
+            appId: appId,
+            platform: platform,
+          );
+
+          switch (platform) {
+            case kAndroid:
+              configWrite.android =
+                  FirebaseAndroidOptions.convertConfigToOptions(
+                appSdkConfig,
+                appId,
+                projectId,
+              );
+              break;
+            case kIos:
+              configWrite.ios = FirebaseAppleOptions.convertConfigToOptions(
+                appSdkConfig,
+                appId,
+                projectId,
+              );
+              break;
+            case kMacos:
+              configWrite.macos = FirebaseAppleOptions.convertConfigToOptions(
+                appSdkConfig,
+                appId,
+                projectId,
+              );
+              break;
+            case kWeb:
+              configWrite.web = FirebaseDartOptions.convertConfigToOptions(
+                appSdkConfig,
+                projectId,
+              );
+              break;
+            default:
+              throw Exception(
+                'Platform: $platform is not supported for "flutterfire reconfigure".',
+              );
+          }
+
+          return configWrite;
+        });
+      }).toList();
+
+      return Future(() async {
+        final configWrites = await Future.wait(appSDKConfigFutures);
+        return configWrites;
       });
+    }).toList();
 
-      configWrites.add(configWrite);
-    });
+    final configWrites =
+        (await Future.wait(listOfConfigWrites)).expand((x) => x).toList();
 
-    // Iterable<FirebaseJsonWrites> writes = configWrites.map((configWrite) {
-    //   // FirebaseConfigurationFile(
-    //   //           configurationFilePath: configWrite.pathToConfig,
-    //   //           flutterAppPath: flutterApp!.package.path,
-    //   //           androidOptions: configWrite.android,
-    //   //           iosOptions: configWrite.ios,
-    //   //           macosOptions: configWrite.macos,
-    //   //           webOptions: configWrite.web)
-    //   //       .write();
-    // });
+    for (final configWrite in configWrites) {
+      FirebaseConfigurationFile(
+        configurationFilePath: configWrite.pathToConfig,
+        flutterAppPath: flutterApp!.package.path,
+        androidOptions: configWrite.android,
+        iosOptions: configWrite.ios,
+        macosOptions: configWrite.macos,
+        webOptions: configWrite.web,
+      ).write();
+    }
   }
 
   @override
@@ -373,7 +363,7 @@ class Reconfigure extends FlutterFireCommand {
     );
 
     if (dartExists) {
-      // await _writeDartConfigurationFile();
+      await _writeDartConfigurationFile(firebaseJsonMap);
     }
   }
 }
