@@ -165,7 +165,6 @@ Future<File> findFileInDirectory(
   throw Exception('File not found: $fileName');
 }
 
-// Define a function to get the value of a specific key from the dict
 String? getValue(XmlElement dictionary, String key) {
   final keyElement =
       dictionary.findElements('key').singleWhere((e) => e.text == key);
