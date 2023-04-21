@@ -59,7 +59,8 @@ extension FirebaseAppleOptions on FirebaseOptions {
       token: token,
     );
 
-    return convertConfigToOptions(appSdkConfig, firebaseApp.appId, firebaseProjectId);
+    return convertConfigToOptions(
+        appSdkConfig, firebaseApp.appId, firebaseProjectId);
   }
 
   static FirebaseOptions convertConfigToOptions(
