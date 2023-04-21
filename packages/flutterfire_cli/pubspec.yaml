@@ -24,6 +24,6 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.0
-  xml: ^6.2.2
+
 executables:
   flutterfire:
