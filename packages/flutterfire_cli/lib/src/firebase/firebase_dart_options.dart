@@ -46,10 +46,9 @@ extension FirebaseDartOptions on FirebaseOptions {
       account: firebaseAccount,
       token: token,
     );
-    
+
     return convertConfigToOptions(appSdkConfig, firebaseProjectId);
   }
-
 
   static FirebaseOptions convertConfigToOptions(
     FirebaseAppSdkConfig appSdkConfig,

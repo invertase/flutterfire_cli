@@ -96,8 +96,7 @@ class BundleServiceFile extends FlutterFireCommand {
       return;
     }
 
-    final relativeServiceFilePath =
-        configurationMap[kFileOutput] as String;
+    final relativeServiceFilePath = configurationMap[kFileOutput] as String;
 
     final absoluteServiceFilePath =
         path.join(path.dirname(appleProjectPath), relativeServiceFilePath);
