@@ -196,8 +196,6 @@ void main() {
   test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
-      // The most basic 'flutterfire configure' command that can be run without command line prompts
-
       Process.runSync(
         'flutterfire',
         [
@@ -430,7 +428,6 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        ;
         checkIosFirebaseJsonValues(
           decodedFirebaseJson,
           [
