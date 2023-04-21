@@ -348,11 +348,14 @@ class Reconfigure extends FlutterFireCommand {
         ...androidKeys,
         kDefaultConfig,
       ];
+
+      print('KKKKKKK: $defaultConfigKeys');
       final defaultAndroidExists =
           doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
       if (defaultAndroidExists) {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
+      print('DDDDDDDDDD: $defaultAndroid');
 
         await _writeFile(
           _updateServiceFile(defaultAndroid, kAndroid),
