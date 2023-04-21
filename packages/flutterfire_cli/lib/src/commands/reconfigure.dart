@@ -169,14 +169,14 @@ class Reconfigure extends FlutterFireCommand {
       ...appleMapKeys,
       kTargets,
     ];
+
     final targetConfigurationExists = doesNestedMapExist(
       firebaseJsonMap,
       targetMapKeys,
     );
 
     if (targetConfigurationExists) {
-      final targets =
-          getNestedMap(firebaseJsonMap, targetMapKeys);
+      final targets = getNestedMap(firebaseJsonMap, targetMapKeys);
       targets.forEach((key, dynamic value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, dynamic>;
@@ -294,7 +294,8 @@ class Reconfigure extends FlutterFireCommand {
       await writeFileFuture;
     } catch (e) {
       throw Exception(
-          'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e');
+        'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e',
+      );
     }
   }
 
@@ -334,7 +335,8 @@ class Reconfigure extends FlutterFireCommand {
             getNestedMap(firebaseJsonMap, buildConfigurationKeys);
         buildConfigurations.forEach((key, dynamic value) async {
           // ignore: cast_nullable_to_non_nullable
-          final configuration = buildConfigurations[key] as Map<String, dynamic>;
+          final configuration =
+              buildConfigurations[key] as Map<String, dynamic>;
 
           await _writeFile(
             _updateServiceFile(configuration, kAndroid),
