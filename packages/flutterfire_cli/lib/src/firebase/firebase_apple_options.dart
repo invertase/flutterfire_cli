@@ -60,7 +60,10 @@ extension FirebaseAppleOptions on FirebaseOptions {
     );
 
     return convertConfigToOptions(
-        appSdkConfig, firebaseApp.appId, firebaseProjectId);
+      appSdkConfig,
+      firebaseApp.appId,
+      firebaseProjectId,
+    );
   }
 
   static FirebaseOptions convertConfigToOptions(
