@@ -357,11 +357,11 @@ class Reconfigure extends FlutterFireCommand {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
         stderr.write('DDDDDDDDDD: $defaultAndroid');
 
-        stderr.write('111111111');
-        final future = _updateServiceFile(defaultAndroid, kAndroid);
-        await future;
-        stderr.write('22222222');
+        stderr.write('111111111: ${defaultAndroid.runtimeType}');
+        await _updateServiceFile(defaultAndroid, kAndroid);
         
+        stderr.write('22222222');
+
         // await _writeFile(
         //   future,
         //   '$kAndroid $androidServiceFileName file write for default service file',
