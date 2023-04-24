@@ -94,7 +94,7 @@ void main() {
         'flutterfire',
         [
           'reconfigure',
-          if (accessToken != null) 'ci-access-token=$accessToken',
+          if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
       );
