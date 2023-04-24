@@ -148,18 +148,24 @@ class Reconfigure extends FlutterFireCommand {
         firebaseJsonMap,
         buildConfigurationKeys,
       );
-      buildConfigurations.forEach((key, dynamic value) async {
+      final futures = <Future<void>>[];
+
+      buildConfigurations.forEach((key, dynamic value) {
         // ignore: cast_nullable_to_non_nullable
         final configuration = buildConfigurations[key] as Map<String, dynamic>;
 
-        await _writeFile(
-          _updateServiceFile(
-            configuration,
-            platform,
+        futures.add(
+          _writeFile(
+            _updateServiceFile(
+              configuration,
+              platform,
+            ),
+            '$platform "$appleServiceFileName" file write for build configuration: "$key"',
           ),
-          '$platform "$appleServiceFileName" file write for build configuration: "$key"',
         );
       });
+
+      await Future.wait(futures);
     }
     final defaultMapKeys = [
       ...appleMapKeys,
@@ -194,17 +200,22 @@ class Reconfigure extends FlutterFireCommand {
 
     if (targetConfigurationExists) {
       final targets = getNestedMap(firebaseJsonMap, targetMapKeys);
+
+      final futures = <Future<void>>[];
       targets.forEach((key, dynamic value) async {
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, dynamic>;
-        await _writeFile(
-          _updateServiceFile(
-            configuration,
-            platform,
+        futures.add(
+          _writeFile(
+            _updateServiceFile(
+              configuration,
+              platform,
+            ),
+            '$platform "$appleServiceFileName" file write for target: "$key"',
           ),
-          '$platform "$appleServiceFileName" file write for target: "$key"',
         );
       });
+      await Future.wait(futures);
     }
   }
 
@@ -350,16 +361,20 @@ class Reconfigure extends FlutterFireCommand {
       if (androidBuildConfigurationsExist) {
         final buildConfigurations =
             getNestedMap(firebaseJsonMap, buildConfigurationKeys);
+        final futures = <Future<void>>[];
         buildConfigurations.forEach((key, dynamic value) async {
           // ignore: cast_nullable_to_non_nullable
           final configuration =
               buildConfigurations[key] as Map<String, dynamic>;
 
-          await _writeFile(
-            _updateServiceFile(configuration, kAndroid),
-            '$kAndroid $androidServiceFileName file write for build configuration: "$key"',
+          futures.add(
+            _writeFile(
+              _updateServiceFile(configuration, kAndroid),
+              '$kAndroid $androidServiceFileName file write for build configuration: "$key"',
+            ),
           );
         });
+        await Future.wait(futures);
       }
       final defaultConfigKeys = [
         ...androidKeys,
