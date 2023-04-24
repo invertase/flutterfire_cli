@@ -30,7 +30,7 @@ Object? _parseElement(xml.XmlElement element) {
     case 'false':
       return false;
     case 'string':
-      return element.text;
+      return element.innerText;
     case 'dict':
       return _parseDict(element);
     // 'array', 'real','integer' & 'date' are missing,
@@ -43,7 +43,7 @@ Map<String, Object?> _parseDict(xml.XmlElement element) {
   final childElements = element.childElements;
   final keys = childElements
       .where((element) => element.name.local == 'key')
-      .map((element) => element.text);
+      .map((element) => element.innerText);
   final values = childElements
       .where((element) => element.name.local != 'key')
       .map(_parseElement);
