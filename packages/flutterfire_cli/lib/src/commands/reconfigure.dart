@@ -88,6 +88,7 @@ class Reconfigure extends FlutterFireCommand {
   String? _accessToken;
 
   String? get accessToken {
+    stderr.write('PPPPPP: ${argResults!['ci-access-token']}');
     return _accessToken ?? argResults!['ci-access-token'] as String?;
   }
 
