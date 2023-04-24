@@ -319,7 +319,6 @@ class Reconfigure extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    stderr.write('ZZZZZZ: $accessToken');
     final firebaseJson = File(
       path.join(
         flutterApp!.package.path,
