@@ -12,7 +12,7 @@ Future<String?> generateAccessTokenCI() async {
   if (serviceAccount == null) {
     return null;
   }
-
+  print('55555555555');
   final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
 
   // Authenticate with the Google Auth Library
@@ -89,6 +89,7 @@ void main() {
       await File(androidServiceFilePath).delete();
 
       final accessToken = await generateAccessTokenCI();
+      print('GGGGGG: $accessToken');
       final result1 = Process.runSync(
         'flutterfire',
         [
