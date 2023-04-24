@@ -88,7 +88,6 @@ class Reconfigure extends FlutterFireCommand {
   String? _accessToken;
 
   String? get accessToken {
-    print('BBBBBBBB: $argResults');
     return _accessToken ?? argResults!['ci-access-token'] as String?;
   }
 
@@ -100,6 +99,7 @@ class Reconfigure extends FlutterFireCommand {
     Map<String, dynamic> configuration,
     String platform,
   ) async {
+    print('ZZZZZZ: $accessToken');
     accessToken ??= await getAccessToken();
 
     final serviceFilePath = configuration[kFileOutput] as String;
@@ -366,19 +366,15 @@ class Reconfigure extends FlutterFireCommand {
         ...androidKeys,
         kDefaultConfig,
       ];
-      stderr.write('KKKKKKK: $defaultConfigKeys');
 
       final defaultAndroidExists =
           doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
       if (defaultAndroidExists) {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
-        stderr.write('DDDDDDDDDD: $defaultAndroid');
 
-        stderr.write('111111111: ${defaultAndroid.runtimeType}');
         await _updateServiceFile(defaultAndroid, kAndroid);
 
-        stderr.write('22222222');
 
         // await _writeFile(
         //   future,
