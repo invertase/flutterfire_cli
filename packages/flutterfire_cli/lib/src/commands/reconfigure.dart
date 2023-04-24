@@ -72,7 +72,7 @@ class Reconfigure extends FlutterFireCommand {
     argParser.addOption(
       'ci-access-token',
       valueHelp: 'ciAccessToken',
-      hide: true,
+      // hide: true,
       help:
           'Set the access token for making Firebase API requests. Required for CI environment.',
     );
