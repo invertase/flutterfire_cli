@@ -10,14 +10,11 @@ Future<String> generateAccessTokenCI() async {
   // Load the service account credentials from the private key file
   final serviceAccount = Platform.environment['FIREBASE_SERVICE_ACCOUNT'];
 
-  if(serviceAccount == null) {
+  if (serviceAccount == null) {
     print('WWWWWWWWWWWWW');
   }
-  final privateKey = File(
-          serviceAccount!,
-          )
-      .readAsStringSync();
-  final credentials = ServiceAccountCredentials.fromJson(privateKey);
+
+  final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
 
   // Authenticate with the Google Auth Library
   final scopes = [
