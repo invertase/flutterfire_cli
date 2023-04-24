@@ -6,12 +6,11 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'test_utils.dart';
 
-Future<String> generateAccessTokenCI() async {
-  // Load the service account credentials from the private key file
+Future<String?> generateAccessTokenCI() async {
   final serviceAccount = Platform.environment['FIREBASE_SERVICE_ACCOUNT'];
 
   if (serviceAccount == null) {
-    print('WWWWWWWWWWWWW');
+    return null;
   }
 
   final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
@@ -94,7 +93,7 @@ void main() {
         'flutterfire',
         [
           'reconfigure',
-          'ci-access-token=$accessToken',
+          if (accessToken != null) 'ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
       );
