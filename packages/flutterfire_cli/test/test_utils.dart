@@ -167,9 +167,9 @@ Future<File> findFileInDirectory(
 
 String? getValue(XmlElement dictionary, String key) {
   final keyElement =
-      dictionary.findElements('key').singleWhere((e) => e.text == key);
+      dictionary.findElements('key').singleWhere((e) => e.innerText == key);
   final valueElement = keyElement.nextElementSibling;
-  return valueElement?.text;
+  return valueElement?.innerText;
 }
 
 Future<void> testAppleServiceFileValues(

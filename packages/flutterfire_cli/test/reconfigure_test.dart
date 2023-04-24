@@ -113,84 +113,88 @@ void main() {
   );
 
   test(
-      'flutterfire configure: android - "build configuration" Apple - "build configuration"',
-      () async {
-    Process.runSync(
-      'flutterfire',
-      [
-        'configure',
-        '--yes',
-        '--project=$firebaseProjectId',
-        // Android just requires the `--android-out` flag to be set
-        '--android-out=android/app/$buildType',
-        // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
-        // We're using `Debug` for both which is a standard build configuration for an apple Flutter app
-        '--ios-out=ios/$buildType',
-        '--ios-build-config=$appleBuildConfiguration',
-        '--macos-out=macos/$buildType',
-        '--macos-build-config=$appleBuildConfiguration',
-        // The below args aren't needed unless running from CI. We need for Github actions to run command.
-        '--platforms=android,ios,macos,web',
-        '--ios-bundle-id=com.example.flutterTestCli',
-        '--android-package-name=com.example.flutter_test_cli',
-        '--macos-bundle-id=com.example.flutterTestCli',
-        '--web-app-id=com.example.flutterTestCli',
-      ],
-      workingDirectory: projectPath,
-    );
-
-    String? iosPath;
-    String? macosPath;
-    if (Platform.isMacOS) {
-      iosPath = p.join(
-        projectPath!,
-        kIos,
-        buildType,
-        appleServiceFileName,
-      );
-      macosPath = p.join(
-        projectPath!,
-        kMacos,
-        buildType,
+    'flutterfire configure: android - "build configuration" Apple - "build configuration"',
+    () async {
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // Android just requires the `--android-out` flag to be set
+          '--android-out=android/app/$buildType',
+          // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
+          // We're using `Debug` for both which is a standard build configuration for an apple Flutter app
+          '--ios-out=ios/$buildType',
+          '--ios-build-config=$appleBuildConfiguration',
+          '--macos-out=macos/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
       );
 
-      final macFile =
-          await findFileInDirectory(macosPath, appleServiceFileName);
+      String? iosPath;
+      String? macosPath;
+      if (Platform.isMacOS) {
+        iosPath = p.join(
+          projectPath!,
+          kIos,
+          buildType,
+          appleServiceFileName,
+        );
+        macosPath = p.join(
+          projectPath!,
+          kMacos,
+          buildType,
+        );
 
-      await File(iosPath).delete();
-      await macFile.delete();
-    }
-    final firebaseOptionsPath =
-        p.join(projectPath!, 'lib', 'firebase_options.dart');
-    final androidServiceFilePath = p.join(
-      projectPath!,
-      'android',
-      'app',
-      buildType,
-      androidServiceFileName,
-    );
+        final macFile =
+            await findFileInDirectory(macosPath, appleServiceFileName);
 
-    await File(firebaseOptionsPath).delete();
-    await File(androidServiceFilePath).delete();
+        await File(iosPath).delete();
+        await macFile.delete();
+      }
+      final firebaseOptionsPath =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        buildType,
+        androidServiceFileName,
+      );
 
-    final accessToken = await generateAccessTokenCI();
+      await File(firebaseOptionsPath).delete();
+      await File(androidServiceFilePath).delete();
 
-    Process.runSync(
-      'flutterfire',
-      [
-        'reconfigure',
-        if (accessToken != null) '--ci-access-token=$accessToken',
-      ],
-      workingDirectory: projectPath,
-    );
+      final accessToken = await generateAccessTokenCI();
 
-    testAndroidServiceFileValues(androidServiceFilePath);
-    await testFirebaseOptionsFileValues(firebaseOptionsPath);
+      Process.runSync(
+        'flutterfire',
+        [
+          'reconfigure',
+          if (accessToken != null) '--ci-access-token=$accessToken',
+        ],
+        workingDirectory: projectPath,
+      );
 
-    if (Platform.isMacOS) {
-      await testAppleServiceFileValues(iosPath!, macosPath!);
-    }
-  });
+      testAndroidServiceFileValues(androidServiceFilePath);
+      await testFirebaseOptionsFileValues(firebaseOptionsPath);
+
+      if (Platform.isMacOS) {
+        await testAppleServiceFileValues(iosPath!, macosPath!);
+      }
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 
   test(
     'flutterfire configure: android - "default" Apple - "target"',
