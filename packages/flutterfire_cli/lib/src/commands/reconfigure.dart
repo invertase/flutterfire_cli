@@ -72,7 +72,7 @@ class Reconfigure extends FlutterFireCommand {
     argParser.addOption(
       'ci-access-token',
       valueHelp: 'ciAccessToken',
-      // hide: true,
+      hide: true,
       help:
           'Set the access token for making Firebase API requests. Required for CI environment.',
     );
@@ -88,7 +88,6 @@ class Reconfigure extends FlutterFireCommand {
   String? _accessToken;
 
   String? get accessToken {
-    stderr.write('PPPPPP: ${argResults!['ci-access-token']}');
     return _accessToken ?? argResults!['ci-access-token'] as String?;
   }
 
@@ -100,6 +99,7 @@ class Reconfigure extends FlutterFireCommand {
     Map<String, dynamic> configuration,
     String platform,
   ) async {
+    // We pass access token for CI as the token won't be present in the "firebase-tools.json" file unless you login
     accessToken ??= await getAccessToken();
 
     final serviceFilePath = configuration[kFileOutput] as String;
@@ -152,14 +152,13 @@ class Reconfigure extends FlutterFireCommand {
         // ignore: cast_nullable_to_non_nullable
         final configuration = buildConfigurations[key] as Map<String, dynamic>;
 
-        await _updateServiceFile(
-          configuration,
-          platform,
+        await _writeFile(
+          _updateServiceFile(
+            configuration,
+            platform,
+          ),
+          '$platform "$appleServiceFileName" file write for build configuration: "$key"',
         );
-        // await _writeFile(
-        //   ,
-        //   '$platform "$appleServiceFileName" file write for build configuration: "$key"',
-        // );
       });
     }
     final defaultMapKeys = [
@@ -373,13 +372,10 @@ class Reconfigure extends FlutterFireCommand {
       if (defaultAndroidExists) {
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
 
-        await _updateServiceFile(defaultAndroid, kAndroid);
-
-
-        // await _writeFile(
-        //   future,
-        //   '$kAndroid $androidServiceFileName file write for default service file',
-        // );
+        await _writeFile(
+          _updateServiceFile(defaultAndroid, kAndroid),
+          '$kAndroid $androidServiceFileName file write for default service file',
+        );
       }
     }
 
