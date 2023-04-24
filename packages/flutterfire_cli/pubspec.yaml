@@ -24,6 +24,6 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.0
-
+  googleapis_auth: ^1.4.0
 executables:
   flutterfire:

@@ -68,6 +68,14 @@ class ConfigFileWrite {
 class Reconfigure extends FlutterFireCommand {
   Reconfigure(FlutterApp? flutterApp) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
+
+    argParser.addOption(
+      'ci-access-token',
+      valueHelp: 'ciAccessToken',
+      hide: true,
+      help:
+          'Set the access token for making Firebase API requests. Required for CI environment.',
+    );
   }
 
   @override
@@ -77,7 +85,15 @@ class Reconfigure extends FlutterFireCommand {
   @override
   final String name = 'reconfigure';
 
-  String? accessToken;
+  String? _accessToken;
+
+  String? get accessToken {
+    return _accessToken ?? argResults!['ci-access-token'] as String?;
+  }
+
+  set accessToken(String? value) {
+    _accessToken = value;
+  }
 
   Future<void> _updateServiceFile(
     Map<String, dynamic> configuration,
@@ -135,13 +151,14 @@ class Reconfigure extends FlutterFireCommand {
         // ignore: cast_nullable_to_non_nullable
         final configuration = buildConfigurations[key] as Map<String, dynamic>;
 
-        await _writeFile(
-          _updateServiceFile(
-            configuration,
-            platform,
-          ),
-          '$platform "$appleServiceFileName" file write for build configuration: "$key"',
+        await _updateServiceFile(
+          configuration,
+          platform,
         );
+        // await _writeFile(
+        //   ,
+        //   '$platform "$appleServiceFileName" file write for build configuration: "$key"',
+        // );
       });
     }
     final defaultMapKeys = [
@@ -359,7 +376,7 @@ class Reconfigure extends FlutterFireCommand {
 
         stderr.write('111111111: ${defaultAndroid.runtimeType}');
         await _updateServiceFile(defaultAndroid, kAndroid);
-        
+
         stderr.write('22222222');
 
         // await _writeFile(

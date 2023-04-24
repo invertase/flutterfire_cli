@@ -1,9 +1,33 @@
 import 'dart:io';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'test_utils.dart';
+
+Future<String> generateAccessTokenCI() async {
+  // Load the service account credentials from the private key file
+  final serviceAccount = Platform.environment['FIREBASE_SERVICE_ACCOUNT'];
+
+  if(serviceAccount == null) {
+    print('WWWWWWWWWWWWW');
+  }
+  final privateKey = File(
+          serviceAccount!,
+          )
+      .readAsStringSync();
+  final credentials = ServiceAccountCredentials.fromJson(privateKey);
+
+  // Authenticate with the Google Auth Library
+  final scopes = [
+    'https://www.googleapis.com/auth/firebase',
+  ];
+  final client = await clientViaServiceAccount(credentials, scopes);
+
+  // Return the access token
+  return client.credentials.accessToken.data;
+}
 
 void main() {
   String? projectPath;
@@ -68,10 +92,12 @@ void main() {
       await File(firebaseOptionsPath).delete();
       await File(androidServiceFilePath).delete();
 
+      final accessToken = await generateAccessTokenCI();
       final result1 = Process.runSync(
         'flutterfire',
         [
           'reconfigure',
+          'ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
       );

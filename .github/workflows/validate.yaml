@@ -37,6 +37,7 @@ jobs:
     environment: CI Environment 
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
@@ -62,6 +63,7 @@ jobs:
     environment: CI Environment 
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v2
