@@ -99,7 +99,6 @@ class Reconfigure extends FlutterFireCommand {
     Map<String, dynamic> configuration,
     String platform,
   ) async {
-    print('ZZZZZZ: $accessToken');
     accessToken ??= await getAccessToken();
 
     final serviceFilePath = configuration[kFileOutput] as String;
@@ -319,6 +318,7 @@ class Reconfigure extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    print('ZZZZZZ: $accessToken');
     final firebaseJson = File(
       path.join(
         flutterApp!.package.path,
