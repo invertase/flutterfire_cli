@@ -37,17 +37,17 @@ class ConfigFileWrite {
   ConfigFileWrite({
     required this.pathToConfig,
     required this.projectId,
-    this.android,
-    this.ios,
-    this.macos,
-    this.web,
+    this.androidOptions,
+    this.iosOptions,
+    this.macosOptions,
+    this.webOptions,
   });
   String pathToConfig;
   String projectId;
-  FirebaseOptions? android;
-  FirebaseOptions? ios;
-  FirebaseOptions? macos;
-  FirebaseOptions? web;
+  FirebaseOptions? androidOptions;
+  FirebaseOptions? iosOptions;
+  FirebaseOptions? macosOptions;
+  FirebaseOptions? webOptions;
 }
 
 class Reconfigure extends FlutterFireCommand {
@@ -240,7 +240,7 @@ class Reconfigure extends FlutterFireCommand {
 
           switch (platform) {
             case kAndroid:
-              configWrite.android =
+              configWrite.androidOptions =
                   FirebaseAndroidOptions.convertConfigToOptions(
                 appSdkConfig,
                 appId,
@@ -248,21 +248,21 @@ class Reconfigure extends FlutterFireCommand {
               );
               break;
             case kIos:
-              configWrite.ios = FirebaseAppleOptions.convertConfigToOptions(
+              configWrite.iosOptions = FirebaseAppleOptions.convertConfigToOptions(
                 appSdkConfig,
                 appId,
                 projectId,
               );
               break;
             case kMacos:
-              configWrite.macos = FirebaseAppleOptions.convertConfigToOptions(
+              configWrite.macosOptions = FirebaseAppleOptions.convertConfigToOptions(
                 appSdkConfig,
                 appId,
                 projectId,
               );
               break;
             case kWeb:
-              configWrite.web = FirebaseDartOptions.convertConfigToOptions(
+              configWrite.webOptions = FirebaseDartOptions.convertConfigToOptions(
                 appSdkConfig,
                 projectId,
               );
@@ -291,10 +291,10 @@ class Reconfigure extends FlutterFireCommand {
         return FirebaseConfigurationFile(
           configurationFilePath: configWrite.pathToConfig,
           flutterAppPath: flutterApp!.package.path,
-          androidOptions: configWrite.android,
-          iosOptions: configWrite.ios,
-          macosOptions: configWrite.macos,
-          webOptions: configWrite.web,
+          androidOptions: configWrite.androidOptions,
+          iosOptions: configWrite.iosOptions,
+          macosOptions: configWrite.macosOptions,
+          webOptions: configWrite.webOptions,
         ).write();
       });
 
