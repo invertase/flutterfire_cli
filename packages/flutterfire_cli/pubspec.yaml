@@ -23,7 +23,7 @@ dependencies:
   xml: ^6.1.0
 
 dev_dependencies:
+  googleapis_auth: ^1.4.0
   test: ^1.16.0
-
 executables:
   flutterfire:

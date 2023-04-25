@@ -6,158 +6,9 @@ import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'test_utils.dart';
+
 void main() {
-  const firebaseProjectId = 'flutterfire-cli-test-f6f57';
-  const testFileDirectory = 'test_files';
-  const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
-  const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
-  const webAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
-
-  Future<String> createFlutterProject() async {
-    final tempDir = Directory.systemTemp.createTempSync();
-    const flutterProject = 'flutter_test_cli';
-    await Process.run(
-      'flutter',
-      ['create', flutterProject],
-      workingDirectory: tempDir.path,
-    );
-
-    final flutterProjectPath = p.join(tempDir.path, flutterProject);
-
-    return flutterProjectPath;
-  }
-
-  String removeWhitepaceAndNewLines(String string) {
-    return string.replaceAll(RegExp(r'\s+|\n'), '');
-  }
-
-  String rubyScriptForTestingDefaultConfigure(
-    String projectPath, {
-    String targetName = 'Runner',
-    String debugSymbolScriptName =
-        'FlutterFire: "flutterfire upload-crashlytics-symbols"',
-  }) {
-    return '''
-      require 'xcodeproj'
-      xcodeFile='$projectPath'
-      debugSymbolScriptName='$debugSymbolScriptName'
-      targetName='$targetName'
-      project = Xcodeproj::Project.open(xcodeFile)
-      target = project.targets.find { |target| target.name == targetName }
-      if(target)
-        # ensure debug symbol script does not exist in build phase scripts
-        debugSymbolScript = target.shell_script_build_phases().find do |script|
-          if defined? script && script.name
-            script.name == debugSymbolScriptName
-          end
-        end
-        
-        # find "GoogleService-Info.plist" bundled with resources
-        serviceFileInResources = target.resources_build_phase.files.find do |file|
-          if defined? file && file.file_ref && file.file_ref.path
-            if file.file_ref.path.is_a? String
-              file.file_ref.path.include? 'GoogleService-Info.plist'
-            end
-          end
-        end
-        if(serviceFileInResources && !debugSymbolScript)
-          \$stdout.write("success")
-        else
-          if(debugSymbolScript)
-            abort("failed, debug symbol script #{debugSymbolScriptName} exists in run script build phases")
-          end
-          if(!serviceFileInResources)
-            abort("failed, cannot find 'GoogleService-Info.plist' bundled in resources")
-          end
-        end
-      else
-        abort("failed, #{targetName} target not found.")
-      end
-''';
-  }
-
-  String rubyScriptForCheckingBundleResourcesScript(
-    String projectPath,
-    String platform, {
-    String runScriptName = 'flutterfire bundle-service-file',
-  }) {
-    final xcodeProjectPath = p.join(projectPath, platform, 'Runner.xcodeproj');
-    return '''
-require 'xcodeproj'
-xcodeFile='$xcodeProjectPath'
-runScriptName='$runScriptName'
-project = Xcodeproj::Project.open(xcodeFile)
-
-
-for target in project.targets 
-  if (target.name == 'Runner')
-    phase = target.shell_script_build_phases().find do |item|
-      if defined?(item) && !item.name.nil? && item.name.is_a?(String)
-        item.name.include?(runScriptName)
-      end
-    end
-
-    if (phase.nil?)
-      abort("failed, #{runScriptName} has not been found in build phase run scripts.")
-    else
-      \$stdout.write("success")
-    end
-  end  
-end
-    ''';
-  }
-
-  String rubyScriptForTestingDebugSymbolScriptExists(
-    String projectPath, {
-    String targetName = 'Runner',
-    String debugSymbolScriptName =
-        'FlutterFire: "flutterfire upload-crashlytics-symbols"',
-  }) {
-    return '''
-      require 'xcodeproj'
-      xcodeFile='$projectPath'
-      debugSymbolScriptName='$debugSymbolScriptName'
-      targetName='$targetName'
-      project = Xcodeproj::Project.open(xcodeFile)
-      target = project.targets.find { |target| target.name == targetName }
-      if(target)
-        # find debug symbol script in build phase scripts
-        debugSymbolScript = target.shell_script_build_phases().find do |script|
-          if defined? script && script.name
-            script.name == debugSymbolScriptName
-          end
-        end
-        
-        if(debugSymbolScript)
-          \$stdout.write("success")
-        else
-          abort("failed, cannot find debug symbol script #{debugSymbolScriptName} in run script build phases")
-        end
-      else
-        abort("failed, #{targetName} target not found.")
-      end
-''';
-  }
-
-  Future<File> findFileInDirectory(
-    String directoryPath,
-    String fileName,
-  ) async {
-    final directory = Directory(directoryPath);
-    if (directory.existsSync()) {
-      final contents = directory.listSync();
-      for (final entity in contents) {
-        if (entity is File && entity.path.endsWith(fileName)) {
-          return entity;
-        }
-      }
-    } else {
-      throw Exception('Directory does not exist: ${directory.path}}');
-    }
-
-    throw Exception('File not found: $fileName');
-  }
-
   String? projectPath;
   setUp(() async {
     projectPath = await createFlutterProject();
@@ -194,25 +45,7 @@ end
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
         final macosPath = p.join(projectPath!, kMacos, defaultTarget);
 
-        final testServiceFile = p.join(
-          Directory.current.path,
-          'test',
-          testFileDirectory,
-          appleServiceFileName,
-        );
-        // Need to find mac file like this for it to work on CI. No idea why.
-        final macFile =
-            await findFileInDirectory(macosPath, appleServiceFileName);
-
-        final iosServiceFileContent = await File(iosPath).readAsString();
-
-        final macosServiceFileContent = await macFile.readAsString();
-
-        final testServiceFileContent =
-            await File(testServiceFile).readAsString();
-
-        expect(iosServiceFileContent, testServiceFileContent);
-        expect(macosServiceFileContent, testServiceFileContent);
+        await testAppleServiceFileValues(iosPath, macosPath);
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -222,60 +55,40 @@ end
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [kFlutter, kPlatforms, kIos, kDefaultConfig];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kIos, kDefaultConfig],
           '$kIos/$defaultTarget/$appleServiceFileName',
         );
-
-        // Check macOS map is correct
-        final keysToMapMacos = [kFlutter, kPlatforms, kMacos, kDefaultConfig];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kMacos,
+            kDefaultConfig,
+          ],
           '$kMacos/$defaultTarget/$appleServiceFileName',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kDefaultConfig
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kDefaultConfig,
+          ],
           'android/app/$androidServiceFileName',
         );
 
-        // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
 
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+        );
 
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
@@ -334,21 +147,7 @@ end
         'app',
         androidServiceFileName,
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        (element) =>
-            // ignore: avoid_dynamic_calls
-            (element['client_info'])['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''
@@ -386,18 +185,8 @@ end
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -407,10 +196,6 @@ end
   test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
-      // The most basic 'flutterfire configure' command that can be run without command line prompts
-      const buildType = 'development';
-      const appleBuildConfiguration = 'Debug';
-
       Process.runSync(
         'flutterfire',
         [
@@ -449,24 +234,7 @@ end
           buildType,
         );
 
-        final testServiceFile = p.join(
-          Directory.current.path,
-          'test',
-          testFileDirectory,
-          appleServiceFileName,
-        );
-        // Need to find mac file like this for it to work on CI. No idea why.
-        final macFile =
-            await findFileInDirectory(macosPath, appleServiceFileName);
-
-        final iosServiceFileContent = await File(iosPath).readAsString();
-        final macosServiceFileContent = await macFile.readAsString();
-
-        final testServiceFileContent =
-            await File(testServiceFile).readAsString();
-
-        expect(iosServiceFileContent, testServiceFileContent);
-        expect(macosServiceFileContent, testServiceFileContent);
+        await testAppleServiceFileValues(iosPath, macosPath);
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -476,73 +244,48 @@ end
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [
-          kFlutter,
-          kPlatforms,
-          kIos,
-          kBuildConfiguration,
-          appleBuildConfiguration,
-        ];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kIos,
+            kBuildConfiguration,
+            appleBuildConfiguration,
+          ],
           'ios/$buildType/GoogleService-Info.plist',
         );
 
-        // Check macOS map is correct
-        final keysToMapMacos = [
-          kFlutter,
-          kPlatforms,
-          kMacos,
-          kBuildConfiguration,
-          appleBuildConfiguration,
-        ];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kMacos,
+            kBuildConfiguration,
+            appleBuildConfiguration,
+          ],
           'macos/$buildType/GoogleService-Info.plist',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kBuildConfiguration,
-          buildType,
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kBuildConfiguration,
+            buildType,
+          ],
           'android/app/$buildType/google-services.json',
         );
 
-        // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
-
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+        );
 
         final scriptToCheckIosPbxprojFile =
             rubyScriptForCheckingBundleResourcesScript(
@@ -593,20 +336,7 @@ end
         buildType,
         'google-services.json',
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        // ignore: avoid_dynamic_calls
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''
@@ -644,18 +374,8 @@ end
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -698,24 +418,7 @@ end
             p.join(projectPath!, kIos, applePath, appleServiceFileName);
         final macosPath = p.join(projectPath!, kMacos, applePath);
 
-        final testServiceFile = p.join(
-          Directory.current.path,
-          'test',
-          testFileDirectory,
-          appleServiceFileName,
-        );
-        // Need to find mac file like this for it to work on CI. No idea why.
-        final macFile =
-            await findFileInDirectory(macosPath, appleServiceFileName);
-
-        final iosServiceFileContent = await File(iosPath).readAsString();
-        final macosServiceFileContent = await macFile.readAsString();
-
-        final testServiceFileContent =
-            await File(testServiceFile).readAsString();
-
-        expect(iosServiceFileContent, testServiceFileContent);
-        expect(macosServiceFileContent, testServiceFileContent);
+        await testAppleServiceFileValues(iosPath, macosPath);
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -725,67 +428,40 @@ end
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        // Check iOS map is correct
-        final keysToMapIos = [kFlutter, kPlatforms, kIos, kTargets, targetType];
-        final iosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapIos);
-        expect(iosDefaultConfig[kAppId], appleAppId);
-        expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(iosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          iosDefaultConfig[kFileOutput],
+        checkIosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kIos,
+            kTargets,
+            targetType,
+          ],
           'ios/$applePath/GoogleService-Info.plist',
         );
 
-        // Check macOS map is correct
-        final keysToMapMacos = [
-          kFlutter,
-          kPlatforms,
-          kMacos,
-          kTargets,
-          targetType
-        ];
-        final macosDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapMacos);
-        expect(macosDefaultConfig[kAppId], appleAppId);
-        expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-        expect(macosDefaultConfig[kUploadDebugSymbols], false);
-        expect(
-          macosDefaultConfig[kFileOutput],
+        checkMacosFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kMacos, kTargets, targetType],
           'macos/$applePath/GoogleService-Info.plist',
         );
 
-        // Check android map is correct
-        final keysToMapAndroid = [
-          kFlutter,
-          kPlatforms,
-          kAndroid,
-          kBuildConfiguration,
-          androidBuildConfiguration,
-        ];
-        final androidDefaultConfig =
-            getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-        expect(androidDefaultConfig[kAppId], androidAppId);
-        expect(androidDefaultConfig[kProjectId], firebaseProjectId);
-        expect(
-          androidDefaultConfig[kFileOutput],
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kBuildConfiguration,
+            androidBuildConfiguration,
+          ],
           'android/app/$androidBuildConfiguration/google-services.json',
         );
 
         // Check dart map is correct
         const defaultFilePath = 'lib/firebase_options.dart';
         final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
-        final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
-        expect(dartConfig[kProjectId], firebaseProjectId);
-        expect(dartConfig[kFileOutput], defaultFilePath);
-
-        final defaultConfigurations =
-            dartConfig[kConfigurations] as Map<String, dynamic>;
-
-        expect(defaultConfigurations[kIos], appleAppId);
-        expect(defaultConfigurations[kMacos], appleAppId);
-        expect(defaultConfigurations[kAndroid], androidAppId);
-        expect(defaultConfigurations[kWeb], webAppId);
+        checkDartFirebaseJsonValues(decodedFirebaseJson, keysToMapDart);
 
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
         final iosXcodeProject = p.join(
@@ -845,20 +521,7 @@ end
         androidBuildConfiguration,
         'google-services.json',
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final findClientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        // ignore: avoid_dynamic_calls
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-      );
-
-      expect(findClientMap, isA<Map<String, dynamic>>());
+      testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       const androidGradleUpdate = '''
@@ -896,18 +559,8 @@ end
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-      final testFirebaseOptions = p.join(
-        Directory.current.path,
-        'test',
-        testFileDirectory,
-        'firebase_options.dart',
-      );
 
-      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
-      final testFirebaseOptionsContent =
-          await File(testFirebaseOptions).readAsString();
-
-      expect(firebaseOptionsContent, testFirebaseOptionsContent);
+      await testFirebaseOptionsFileValues(firebaseOptions);
     },
     timeout: const Timeout(
       Duration(minutes: 2),

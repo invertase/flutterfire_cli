@@ -5,7 +5,6 @@ import 'package:path/path.dart' as path;
 
 import '../utils.dart';
 
-
 String getFirebaseConfigurationFile({
   required String configurationFilePath,
   required String flutterAppPath,

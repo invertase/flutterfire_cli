@@ -58,7 +58,6 @@ const String kFileOutput = 'fileOutput';
 const String kDefaultConfig = 'default';
 const String kConfigurations = 'configurations';
 
-
 // Flags for "flutterfire configure" command
 const String kOutFlag = 'out';
 const String kYesFlag = 'yes';
@@ -384,7 +383,7 @@ Future<void> writeToFirebaseJson({
       map[kFileOutput] = write.fileOutput;
     }
 
-    if(write.configurations != null) {
+    if (write.configurations != null) {
       map[kConfigurations] = write.configurations;
     }
   }
@@ -396,10 +395,23 @@ Future<void> writeToFirebaseJson({
 
 Map<String, dynamic> getNestedMap(Map<String, dynamic> map, List<String> keys) {
   final lastNestedMap = keys.fold<Map<String, dynamic>>(map, (currentMap, key) {
-    return currentMap.putIfAbsent(key, () => <String, dynamic>{}) as Map<String, dynamic>;
+    return currentMap.putIfAbsent(key, () => <String, dynamic>{})
+        as Map<String, dynamic>;
   });
 
   return lastNestedMap;
+}
+
+bool doesNestedMapExist(Map<String, dynamic> map, List<String> keys) {
+  var currentMap = map;
+  return keys.every((key) {
+    if (currentMap.containsKey(key) &&
+        currentMap[key] is Map<String, dynamic>) {
+      currentMap = currentMap[key] as Map<String, dynamic>;
+      return true;
+    }
+    return false;
+  });
 }
 
 Future<List<String>> findTargetsAvailable(

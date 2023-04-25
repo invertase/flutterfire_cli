@@ -19,6 +19,7 @@ import 'dart:convert';
 
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
+import '../firebase.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
@@ -45,6 +46,14 @@ extension FirebaseDartOptions on FirebaseOptions {
       account: firebaseAccount,
       token: token,
     );
+
+    return convertConfigToOptions(appSdkConfig, firebaseProjectId);
+  }
+
+  static FirebaseOptions convertConfigToOptions(
+    FirebaseAppSdkConfig appSdkConfig,
+    String firebaseProjectId,
+  ) {
     final jsonBodyRegex = RegExp(
       r'''firebase\.initializeApp\({(?<jsonBody>[\S\s]*)}\);''',
       multiLine: true,

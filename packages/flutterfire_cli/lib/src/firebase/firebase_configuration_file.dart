@@ -16,7 +16,6 @@
  */
 import 'dart:io';
 
-
 import 'package:path/path.dart';
 
 import '../common/utils.dart';
@@ -93,7 +92,6 @@ class FirebaseConfigurationFile {
     return FirebaseJsonWrites(
       pathToMap: keysToMap,
       projectId: webOptions!.projectId,
-      fileOutput: relativePathConfigurationFile,
       configurations: configurations,
     );
   }

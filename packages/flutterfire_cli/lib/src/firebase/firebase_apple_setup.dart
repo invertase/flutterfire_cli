@@ -19,7 +19,7 @@ Future<FirebaseJsonWrites> appleWrites({
   String? target,
   String? buildConfiguration,
 }) {
-  switch(projectConfiguration) {
+  switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
       return FirebaseAppleBuildConfiguration(
         platformOptions: platformOptions,
@@ -39,7 +39,9 @@ Future<FirebaseJsonWrites> appleWrites({
         logger: logger,
         platform: platform,
         projectConfiguration: projectConfiguration,
-        target: ProjectConfiguration.defaultConfig == projectConfiguration ? 'Runner': target!,
+        target: ProjectConfiguration.defaultConfig == projectConfiguration
+            ? 'Runner'
+            : target!,
       ).apply();
   }
 }

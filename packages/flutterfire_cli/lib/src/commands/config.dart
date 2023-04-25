@@ -496,7 +496,7 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     // 2. Get values for all selected platforms
-    final fetchedFirebaseOptions = await FirebasePlatformOptions(
+    final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
       flutterApp: flutterApp!,
       firebaseProjectId: selectedFirebaseProject.projectId,
       firebaseAccount: accountEmail,
@@ -512,7 +512,7 @@ class ConfigCommand extends FlutterFireCommand {
       windows:
           selectedPlatforms[kWindows] != null && selectedPlatforms[kWindows]!,
       linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
-    ).fetch();
+    );
 
     // 3. Writes for all selected platforms
     final firebaseJsonWrites = <FirebaseJsonWrites>[];
