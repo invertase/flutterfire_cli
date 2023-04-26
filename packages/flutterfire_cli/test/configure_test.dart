@@ -55,12 +55,12 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        checkIosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [kFlutter, kPlatforms, kIos, kDefaultConfig],
           '$kIos/$defaultTarget/$appleServiceFileName',
         );
-        checkMacosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [
             kFlutter,
@@ -244,7 +244,7 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        checkIosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [
             kFlutter,
@@ -256,7 +256,7 @@ void main() {
           'ios/$buildType/GoogleService-Info.plist',
         );
 
-        checkMacosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [
             kFlutter,
@@ -428,7 +428,7 @@ void main() {
         final decodedFirebaseJson =
             jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
 
-        checkIosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [
             kFlutter,
@@ -440,7 +440,7 @@ void main() {
           'ios/$applePath/GoogleService-Info.plist',
         );
 
-        checkMacosFirebaseJsonValues(
+        checkAppleFirebaseJsonValues(
           decodedFirebaseJson,
           [kFlutter, kPlatforms, kMacos, kTargets, targetType],
           'macos/$applePath/GoogleService-Info.plist',
@@ -640,6 +640,192 @@ void main() {
       expect(macosResult.stdout, 'success');
     },
     skip: !Platform.isMacOS,
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
+
+  test(
+    'flutterfire configure: rewrite service files when rerunning "flutterfire configure" with different apps',
+    () async {
+      const defaultTarget = 'Runner';
+      // The initial configuration
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      // The second configuration with different bundle ids which we need to check
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.secondApp',
+          '--android-package-name=com.example.second_app',
+          '--macos-bundle-id=com.example.secondApp',
+          '--web-app-id=com.example.secondApp',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (Platform.isMacOS) {
+        // check Apple service files were created and have correct content
+        final iosPath =
+            p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+        final macosPath = p.join(projectPath!, kMacos, defaultTarget);
+
+        await testAppleServiceFileValues(
+          iosPath,
+          macosPath,
+          appId: secondAppleAppId,
+          bundleId: secondAppleBundleId,
+        );
+
+        // check default "firebase.json" was created and has correct content
+        final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
+        final firebaseJsonFileContent =
+            await File(firebaseJsonFile).readAsString();
+
+        final decodedFirebaseJson =
+            jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
+
+        checkAppleFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kIos, kDefaultConfig],
+          '$kIos/$defaultTarget/$appleServiceFileName',
+          appId: secondAppleAppId,
+        );
+        checkAppleFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kMacos,
+            kDefaultConfig,
+          ],
+          '$kMacos/$defaultTarget/$appleServiceFileName',
+          appId: secondAppleAppId,
+        );
+
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kDefaultConfig,
+          ],
+          'android/app/$androidServiceFileName',
+          appId: secondAndroidAppId,
+        );
+
+        const defaultFilePath = 'lib/firebase_options.dart';
+        final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
+
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+          androidAppId: secondAndroidAppId,
+          appleAppId: secondAppleAppId,
+        );
+
+        // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
+        final iosXcodeProject = p.join(
+          projectPath!,
+          kIos,
+          'Runner.xcodeproj',
+        );
+
+        final scriptToCheckIosPbxprojFile =
+            rubyScriptForTestingDefaultConfigure(iosXcodeProject);
+
+        final iosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckIosPbxprojFile,
+          ],
+        );
+
+        if (iosResult.exitCode != 0) {
+          fail(iosResult.stderr as String);
+        }
+
+        expect(iosResult.stdout, 'success');
+
+        final macosXcodeProject = p.join(
+          projectPath!,
+          kMacos,
+          'Runner.xcodeproj',
+        );
+
+        final scriptToCheckMacosPbxprojFile =
+            rubyScriptForTestingDefaultConfigure(
+          macosXcodeProject,
+        );
+
+        final macosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckMacosPbxprojFile,
+          ],
+        );
+
+        if (macosResult.exitCode != 0) {
+          fail(macosResult.stderr as String);
+        }
+
+        expect(macosResult.stdout, 'success');
+      }
+
+      // check google-services.json was created and has correct content
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        androidServiceFileName,
+      );
+      testAndroidServiceFileValues(
+        androidServiceFilePath,
+        appId: secondAndroidAppId,
+      );
+
+      // check "firebase_options.dart" file is created in lib directory
+      final firebaseOptions =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
+
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      expect(
+        firebaseOptionsContent.split('\n'),
+        containsAll(<Matcher>[
+          contains(secondAppleAppId),
+          contains(secondAppleBundleId),
+          contains(secondAndroidAppId),
+          contains(secondWebAppId),
+          contains('static const FirebaseOptions web = FirebaseOptions'),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+          contains('static const FirebaseOptions macos = FirebaseOptions'),
+        ]),
+      );
+    },
     timeout: const Timeout(
       Duration(minutes: 2),
     ),
