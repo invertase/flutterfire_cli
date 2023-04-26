@@ -12,6 +12,13 @@ const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
 
+// Secondary App Ids
+const secondAppleAppId = '1:262904632156:ios:1de2ea53918d5e802f2799';
+const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
+const secondWebAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
+
+const secondAppleBundleId = 'com.example.secondApp';
+
 const buildType = 'development';
 const appleBuildConfiguration = 'Debug';
 
@@ -172,10 +179,13 @@ String? getValue(XmlElement dictionary, String key) {
   return valueElement?.innerText;
 }
 
+// TODO - we can update this for both apple platforms
 Future<void> testAppleServiceFileValues(
   String iosPath,
-  String macosPath,
-) async {
+  String macosPath, {
+  String? bundleId = appleBundleId,
+  String? appId = appleAppId,
+}) async {
   // Need to find mac file like this for it to work on CI. No idea why.
   final macFile = await findFileInDirectory(macosPath, appleServiceFileName);
 
@@ -195,8 +205,8 @@ Future<void> testAppleServiceFileValues(
   final iosGcmSenderId = getValue(iosDictionary, 'GCM_SENDER_ID');
 
   expect(iosProjectId, firebaseProjectId);
-  expect(iosBundleId, appleBundleId);
-  expect(iosGoogleAppId, appleAppId);
+  expect(iosBundleId, bundleId);
+  expect(iosGoogleAppId, appId);
   expect(iosApiKey, appleApiKey);
   expect(iosGcmSenderId, appleGcmSenderId);
 
@@ -209,13 +219,16 @@ Future<void> testAppleServiceFileValues(
   final macosGcmSenderId = getValue(macosDictionary, 'GCM_SENDER_ID');
 
   expect(macosProjectId, firebaseProjectId);
-  expect(macosBundleId, appleBundleId);
-  expect(macosGoogleAppId, appleAppId);
+  expect(macosBundleId, bundleId);
+  expect(macosGoogleAppId, appId);
   expect(macosApiKey, appleApiKey);
   expect(macosGcmSenderId, appleGcmSenderId);
 }
 
-void testAndroidServiceFileValues(String serviceFilePath) {
+void testAndroidServiceFileValues(
+  String serviceFilePath, {
+  String? appId = androidAppId,
+}) {
   final clientList = Map<String, dynamic>.from(
     jsonDecode(File(serviceFilePath).readAsStringSync())
         as Map<String, dynamic>,
@@ -225,7 +238,7 @@ void testAndroidServiceFileValues(String serviceFilePath) {
       List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
           .firstWhere(
     // ignore: avoid_dynamic_calls
-    (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
+    (element) => element['client_info']['mobilesdk_app_id'] == appId,
   );
 
   expect(findClientMap, isA<Map<String, dynamic>>());
@@ -248,13 +261,14 @@ Future<void> testFirebaseOptionsFileValues(
   expect(firebaseOptionsContent, testFirebaseOptionsContent);
 }
 
-void checkIosFirebaseJsonValues(
+void checkAppleFirebaseJsonValues(
   Map<String, dynamic> decodedFirebaseJson,
-  List<String> keysToMapIos,
-  String pathToServiceFile,
-) {
-  final iosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToMapIos);
-  expect(iosDefaultConfig[kAppId], appleAppId);
+  List<String> keysToAppleMap,
+  String pathToServiceFile, {
+  String? appId = appleAppId,
+}) {
+  final iosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToAppleMap);
+  expect(iosDefaultConfig[kAppId], appId);
   expect(iosDefaultConfig[kProjectId], firebaseProjectId);
   expect(iosDefaultConfig[kUploadDebugSymbols], false);
   expect(
@@ -263,29 +277,15 @@ void checkIosFirebaseJsonValues(
   );
 }
 
-void checkMacosFirebaseJsonValues(
-  Map<String, dynamic> decodedFirebaseJson,
-  List<String> keysToMapMacos,
-  String pathToServiceFile,
-) {
-  final macosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToMapMacos);
-  expect(macosDefaultConfig[kAppId], appleAppId);
-  expect(macosDefaultConfig[kProjectId], firebaseProjectId);
-  expect(macosDefaultConfig[kUploadDebugSymbols], false);
-  expect(
-    macosDefaultConfig[kFileOutput],
-    pathToServiceFile,
-  );
-}
-
 void checkAndroidFirebaseJsonValues(
   Map<String, dynamic> decodedFirebaseJson,
   List<String> keysToMapAndroid,
-  String pathToServiceFile,
-) {
+  String pathToServiceFile, {
+  String? appId = androidAppId,
+}) {
   final androidDefaultConfig =
       getNestedMap(decodedFirebaseJson, keysToMapAndroid);
-  expect(androidDefaultConfig[kAppId], androidAppId);
+  expect(androidDefaultConfig[kAppId], appId);
   expect(androidDefaultConfig[kProjectId], firebaseProjectId);
   expect(
     androidDefaultConfig[kFileOutput],
@@ -295,8 +295,11 @@ void checkAndroidFirebaseJsonValues(
 
 void checkDartFirebaseJsonValues(
   Map<String, dynamic> decodedFirebaseJson,
-  List<String> keysToMapDart,
-) {
+  List<String> keysToMapDart, {
+  String? appleAppId = appleAppId,
+  String? androidAppId = androidAppId,
+  String? webAppId = webAppId,
+}) {
   final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
   expect(dartConfig[kProjectId], firebaseProjectId);
 
