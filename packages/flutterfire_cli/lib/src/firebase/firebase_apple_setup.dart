@@ -5,7 +5,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 
