@@ -256,12 +256,12 @@ void checkAppleFirebaseJsonValues(
   String pathToServiceFile, {
   String? appId = appleAppId,
 }) {
-  final iosDefaultConfig = getNestedMap(decodedFirebaseJson, keysToAppleMap);
-  expect(iosDefaultConfig[kAppId], appId);
-  expect(iosDefaultConfig[kProjectId], firebaseProjectId);
-  expect(iosDefaultConfig[kUploadDebugSymbols], false);
+  final appleDefaultConfig = getNestedMap(decodedFirebaseJson, keysToAppleMap);
+  expect(appleDefaultConfig[kAppId], appId);
+  expect(appleDefaultConfig[kProjectId], firebaseProjectId);
+  expect(appleDefaultConfig[kUploadDebugSymbols], false);
   expect(
-    iosDefaultConfig[kFileOutput],
+    appleDefaultConfig[kFileOutput],
     pathToServiceFile,
   );
 }
