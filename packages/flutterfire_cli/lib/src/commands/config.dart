@@ -26,9 +26,9 @@ import '../common/strings.dart';
 import '../common/utils.dart';
 import '../common/validation.dart';
 import '../firebase.dart' as firebase;
-import '../firebase/firebase_android_gradle_plugins.dart';
-import '../firebase/firebase_apple_setup.dart';
-import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_android_writes.dart';
+import '../firebase/firebase_apple_writes.dart';
+import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
 import '../flutter_app.dart';
@@ -522,7 +522,7 @@ class ConfigCommand extends FlutterFireCommand {
         applyGradlePlugins &&
         flutterApp!.android &&
         androidInputs != null) {
-      final firebaseJsonWrite = await FirebaseAndroidGradlePlugins(
+      final firebaseJsonWrite = await FirebaseAndroidWrites(
         flutterApp: flutterApp!,
         firebaseOptions: fetchedFirebaseOptions.androidOptions!,
         logger: logger,
@@ -568,7 +568,7 @@ class ConfigCommand extends FlutterFireCommand {
       }
     }
     if (firebaseConfigurationFileInputs.writeConfigurationFile) {
-      final firebaseJsonWrite = FirebaseConfigurationFile(
+      final firebaseJsonWrite = FirebaseDartConfigurationWrite(
         configurationFilePath:
             firebaseConfigurationFileInputs.configurationFilePath,
         flutterAppPath: flutterApp!.package.path,

@@ -52,8 +52,8 @@ const _performancePluginClass = 'com.google.firebase.firebase-perf';
 const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
 
-class FirebaseAndroidGradlePlugins {
-  FirebaseAndroidGradlePlugins({
+class FirebaseAndroidWrites {
+  FirebaseAndroidWrites({
     required this.flutterApp,
     required this.firebaseOptions,
     required this.logger,

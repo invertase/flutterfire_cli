@@ -26,7 +26,7 @@ import '../common/utils.dart';
 import '../firebase.dart';
 import '../firebase/firebase_android_options.dart';
 import '../firebase/firebase_apple_options.dart';
-import '../firebase/firebase_configuration_file.dart';
+import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_dart_options.dart';
 import '../firebase/firebase_options.dart';
 import '../flutter_app.dart';
@@ -291,7 +291,7 @@ class Reconfigure extends FlutterFireCommand {
 
     for (final configWrite in configWrites) {
       final future = Future(() async {
-        return FirebaseConfigurationFile(
+        return FirebaseDartConfigurationWrite(
           configurationFilePath: configWrite.pathToConfig,
           flutterAppPath: flutterApp!.package.path,
           androidOptions: configWrite.androidOptions,
