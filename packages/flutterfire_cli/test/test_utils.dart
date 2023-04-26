@@ -179,7 +179,6 @@ String? getValue(XmlElement dictionary, String key) {
   return valueElement?.innerText;
 }
 
-// TODO - we can update this for both apple platforms
 Future<void> testAppleServiceFileValues(
   String applePath,
   // ios or macos
