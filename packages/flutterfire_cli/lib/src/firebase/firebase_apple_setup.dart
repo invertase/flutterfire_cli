@@ -5,7 +5,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 
@@ -152,31 +151,24 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   final String buildConfiguration;
 
   Future<void> _writeBundleServiceFileScriptToProject() async {
-    final paths = _addPathToExecutablesForBuildPhaseScripts();
-    if (paths != null) {
-      final addBuildPhaseScript = _bundleServiceFileScript(paths);
+    final addBuildPhaseScript = _bundleServiceFileScript();
 
-      // Add "bundle-service-file" script to Build Phases in Xcode project
-      final resultBuildPhase = await Process.run('ruby', [
-        '-e',
-        addBuildPhaseScript,
-      ]);
+    // Add "bundle-service-file" script to Build Phases in Xcode project
+    final resultBuildPhase = await Process.run('ruby', [
+      '-e',
+      addBuildPhaseScript,
+    ]);
 
-      if (resultBuildPhase.exitCode != 0) {
-        throw Exception(resultBuildPhase.stderr);
-      }
+    if (resultBuildPhase.exitCode != 0) {
+      throw Exception(resultBuildPhase.stderr);
+    }
 
-      if (resultBuildPhase.stdout != null) {
-        logger.stdout(resultBuildPhase.stdout as String);
-      }
-    } else {
-      logger.stdout(
-        noPathsToExecutables,
-      );
+    if (resultBuildPhase.stdout != null) {
+      logger.stdout(resultBuildPhase.stdout as String);
     }
   }
 
-  String _bundleServiceFileScript(String pathsToExecutables) {
+  String _bundleServiceFileScript() {
     final command =
         'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
 
@@ -190,7 +182,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH=\${PATH}:$pathsToExecutables
+PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
 $command
 )
 
@@ -290,29 +282,22 @@ abstract class FirebaseAppleConfiguration {
 
     if (crashlyticsDependencyExists) {
       // Add the debug script
-      final paths = _addPathToExecutablesForBuildPhaseScripts();
-      if (paths != null) {
-        final debugSymbolScript = await Process.run('ruby', [
-          '-e',
-          _debugSymbolsScript(
-            target,
-            paths,
-          ),
-        ]);
 
-        if (debugSymbolScript.exitCode != 0) {
-          throw Exception(debugSymbolScript.stderr);
-        }
+      final debugSymbolScript = await Process.run('ruby', [
+        '-e',
+        _debugSymbolsScript(
+          target,
+        ),
+      ]);
 
-        if (debugSymbolScript.stdout != null) {
-          logger.stdout(debugSymbolScript.stdout as String);
-        }
-        return true;
-      } else {
-        logger.stdout(
-          noPathsToExecutables,
-        );
+      if (debugSymbolScript.exitCode != 0) {
+        throw Exception(debugSymbolScript.stderr);
       }
+
+      if (debugSymbolScript.stdout != null) {
+        logger.stdout(debugSymbolScript.stdout as String);
+      }
+      return true;
     }
     return false;
   }
@@ -320,7 +305,6 @@ abstract class FirebaseAppleConfiguration {
   String _debugSymbolsScript(
     // Always "Runner" for "build configuration" setup
     String target,
-    String pathsToExecutables,
   ) {
     var command =
         'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
@@ -346,7 +330,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH=\${PATH}:$pathsToExecutables
+PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
 $command
 )
 
@@ -396,34 +380,6 @@ end
       fileOutput: path.relative(serviceFilePath, from: flutterAppPath),
       uploadDebugSymbols: uploadDebugSymbols,
     );
-  }
-
-  String? _addPathToExecutablesForBuildPhaseScripts() {
-    final envVars = Platform.environment;
-    final paths = envVars['PATH'];
-    if (paths != null) {
-      final array = paths.split(':');
-      // Need to add paths to PATH variable in Xcode environment to execute FlutterFire & Dart executables.
-      // The resulting output will be paths specific to your machine. Here is how it might look in the Build Phase script in Xcode:
-      // e.g. PATH=${PATH}:/Users/yourname/sdks/flutter/bin/cache/dart-sdk/bin:/Users/yourname/sdks/flutter/bin:/Users/yourname/.pub-cache/bin
-      // This script is replaced every time you call `flutterfire configure` so the path variable is always specific to the machine
-      // This does work on the presumption that you have the Dart & FlutterFire CLI (in .pub-cache/ directory) on your path on your machine setup
-      final pathsToAddToScript = array.where((path) {
-        if (path.contains('dart-sdk') ||
-            path.contains('flutter') ||
-            path.contains('.pub-cache')) {
-          return true;
-        }
-        return false;
-      });
-
-      return pathsToAddToScript.join(':');
-    } else {
-      logger.stdout(
-        noPathVariableFound,
-      );
-      return null;
-    }
   }
 
   Future<File> _createServiceFileToSpecifiedPath() async {

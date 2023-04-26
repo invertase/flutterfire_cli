@@ -93,9 +93,6 @@ const logSkippingGradleFilesUpdate =
     'Skipping applying Firebase gradle plugins for Android. This may cause '
     'issues with some Firebase services on Android in your application.';
 
-const noPathsToExecutables =
-    'Cannot find paths to flutterfire & dart executables';
-
 const successfullyBundledServiceFile =
     'Successfully bundled GoogleService-Info.plist file with app bundle';
 
