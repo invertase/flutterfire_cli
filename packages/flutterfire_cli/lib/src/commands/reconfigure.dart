@@ -248,21 +248,24 @@ class Reconfigure extends FlutterFireCommand {
               );
               break;
             case kIos:
-              configWrite.iosOptions = FirebaseAppleOptions.convertConfigToOptions(
+              configWrite.iosOptions =
+                  FirebaseAppleOptions.convertConfigToOptions(
                 appSdkConfig,
                 appId,
                 projectId,
               );
               break;
             case kMacos:
-              configWrite.macosOptions = FirebaseAppleOptions.convertConfigToOptions(
+              configWrite.macosOptions =
+                  FirebaseAppleOptions.convertConfigToOptions(
                 appSdkConfig,
                 appId,
                 projectId,
               );
               break;
             case kWeb:
-              configWrite.webOptions = FirebaseDartOptions.convertConfigToOptions(
+              configWrite.webOptions =
+                  FirebaseDartOptions.convertConfigToOptions(
                 appSdkConfig,
                 projectId,
               );

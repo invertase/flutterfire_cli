@@ -125,7 +125,7 @@ AndroidInputs androidValidation({
 DartConfigurationFileInputs dartConfigurationFileValidation({
   String? configurationFilePath,
   required String flutterAppPath,
-  required bool overwrite
+  required bool overwrite,
 }) {
   final validatedConfigurationFilePath = configurationFilePath == null
       // Default service file path
@@ -134,9 +134,10 @@ DartConfigurationFileInputs dartConfigurationFileValidation({
           configurationFilePath: configurationFilePath,
           flutterAppPath: flutterAppPath,
         );
-  final writeConfigurationFile = overwrite || promptWriteConfigurationFile(
-    configurationFilePath: validatedConfigurationFilePath,
-  );
+  final writeConfigurationFile = overwrite ||
+      promptWriteConfigurationFile(
+        configurationFilePath: validatedConfigurationFilePath,
+      );
 
   return DartConfigurationFileInputs(
     configurationFilePath: validatedConfigurationFilePath,
