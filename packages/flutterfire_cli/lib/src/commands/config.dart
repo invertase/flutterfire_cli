@@ -486,6 +486,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
       flutterAppPath: flutterApp!.package.path,
+      overwrite: yes,
     );
 
     final selectedFirebaseProject = await _selectFirebaseProject();

@@ -93,17 +93,21 @@ file = project.new_file(googleFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
-  exists = target.resources_build_phase.files.find do |file|
+  existingServiceFile = target.resources_build_phase.files.find do |file|
     if defined? file && file.file_ref && file.file_ref.path
       if file.file_ref.path.is_a? String
         file.file_ref.path.include? 'GoogleService-Info.plist'
       end
     end
-  end  
-  if !exists
-    target.add_resources([file])
-    project.save
   end
+  
+  if existingServiceFile
+    existingServiceFile.remove_from_project
+  end 
+
+  target.add_resources([file])
+  project.save
+  
 else
   abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
 end  
@@ -431,11 +435,7 @@ end
   Future<void> _writeGoogleServiceFileToPath() async {
     final file = await _createServiceFileToSpecifiedPath();
 
-    if (!file.existsSync()) {
-      await file.writeAsString(platformOptions.optionsSourceContent);
-    } else {
-      logger.stdout(serviceFileAlreadyExists);
-    }
+    await file.writeAsString(platformOptions.optionsSourceContent);
   }
 
   Future<FirebaseJsonWrites> apply();

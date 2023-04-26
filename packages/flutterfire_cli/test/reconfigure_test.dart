@@ -104,7 +104,11 @@ void main() {
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
-        await testAppleServiceFileValues(iosPath!, macosPath!);
+        await testAppleServiceFileValues(iosPath!);
+        await testAppleServiceFileValues(
+          macosPath!,
+          platform: kMacos,
+        );
       }
     },
     timeout: const Timeout(
@@ -188,7 +192,11 @@ void main() {
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
-        await testAppleServiceFileValues(iosPath!, macosPath!);
+        await testAppleServiceFileValues(iosPath!);
+        await testAppleServiceFileValues(
+          macosPath!,
+          platform: kMacos,
+        );
       }
     },
     timeout: const Timeout(
@@ -275,7 +283,11 @@ void main() {
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
-        await testAppleServiceFileValues(iosPath!, macosPath!);
+        await testAppleServiceFileValues(iosPath!);
+        await testAppleServiceFileValues(
+          macosPath!,
+          platform: kMacos,
+        );
       }
     },
     timeout: const Timeout(
