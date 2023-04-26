@@ -182,7 +182,7 @@ String? getValue(XmlElement dictionary, String key) {
 Future<void> testAppleServiceFileValues(
   String applePath,
   // ios or macos
-   {
+  {
   String platform = kIos,
   String? bundleId = appleBundleId,
   String? appId = appleAppId,
@@ -196,7 +196,6 @@ Future<void> testAppleServiceFileValues(
   }
 
   final appleServiceFileContent = await appleFile.readAsString();
-
 
   final applePlist = XmlDocument.parse(appleServiceFileContent);
 
