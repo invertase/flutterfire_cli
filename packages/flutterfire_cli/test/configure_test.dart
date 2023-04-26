@@ -45,7 +45,11 @@ void main() {
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
         final macosPath = p.join(projectPath!, kMacos, defaultTarget);
 
-        await testAppleServiceFileValues(iosPath, macosPath);
+        await testAppleServiceFileValues(iosPath);
+        await testAppleServiceFileValues(
+          macosPath,
+          platform: kMacos,
+        );
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -234,7 +238,11 @@ void main() {
           buildType,
         );
 
-        await testAppleServiceFileValues(iosPath, macosPath);
+        await testAppleServiceFileValues(iosPath);
+        await testAppleServiceFileValues(
+          macosPath,
+          platform: kMacos,
+        );
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -418,7 +426,11 @@ void main() {
             p.join(projectPath!, kIos, applePath, appleServiceFileName);
         final macosPath = p.join(projectPath!, kMacos, applePath);
 
-        await testAppleServiceFileValues(iosPath, macosPath);
+        await testAppleServiceFileValues(iosPath);
+        await testAppleServiceFileValues(
+          macosPath,
+          platform: kMacos,
+        );
 
         // check default "firebase.json" was created and has correct content
         final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
@@ -691,7 +703,12 @@ void main() {
 
         await testAppleServiceFileValues(
           iosPath,
+          appId: secondAppleAppId,
+          bundleId: secondAppleBundleId,
+        );
+        await testAppleServiceFileValues(
           macosPath,
+          platform: kMacos,
           appId: secondAppleAppId,
           bundleId: secondAppleBundleId,
         );

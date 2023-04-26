@@ -181,48 +181,39 @@ String? getValue(XmlElement dictionary, String key) {
 
 // TODO - we can update this for both apple platforms
 Future<void> testAppleServiceFileValues(
-  String iosPath,
-  String macosPath, {
+  String applePath,
+  // ios or macos
+   {
+  String platform = kIos,
   String? bundleId = appleBundleId,
   String? appId = appleAppId,
 }) async {
-  // Need to find mac file like this for it to work on CI. No idea why.
-  final macFile = await findFileInDirectory(macosPath, appleServiceFileName);
+  File? appleFile;
+  if (platform == kMacos) {
+    // Need to find mac file like this for it to work on CI. No idea why.
+    appleFile = await findFileInDirectory(applePath, appleServiceFileName);
+  } else {
+    appleFile = File(applePath);
+  }
 
-  final iosServiceFileContent = await File(iosPath).readAsString();
+  final appleServiceFileContent = await appleFile.readAsString();
 
-  final macosServiceFileContent = await macFile.readAsString();
 
-  final iosPlist = XmlDocument.parse(iosServiceFileContent);
-  final macosPlist = XmlDocument.parse(macosServiceFileContent);
+  final applePlist = XmlDocument.parse(appleServiceFileContent);
 
-  final iosDictionary = iosPlist.rootElement.findElements('dict').single;
+  final appleDictionary = applePlist.rootElement.findElements('dict').single;
 
-  final iosProjectId = getValue(iosDictionary, 'PROJECT_ID');
-  final iosBundleId = getValue(iosDictionary, 'BUNDLE_ID');
-  final iosGoogleAppId = getValue(iosDictionary, 'GOOGLE_APP_ID');
-  final iosApiKey = getValue(iosDictionary, 'API_KEY');
-  final iosGcmSenderId = getValue(iosDictionary, 'GCM_SENDER_ID');
+  final appleProjectId = getValue(appleDictionary, 'PROJECT_ID');
+  final appleBundleId = getValue(appleDictionary, 'BUNDLE_ID');
+  final appleGoogleAppId = getValue(appleDictionary, 'GOOGLE_APP_ID');
+  final appleApiKey = getValue(appleDictionary, 'API_KEY');
+  final appleGcmSenderId = getValue(appleDictionary, 'GCM_SENDER_ID');
 
-  expect(iosProjectId, firebaseProjectId);
-  expect(iosBundleId, bundleId);
-  expect(iosGoogleAppId, appId);
-  expect(iosApiKey, appleApiKey);
-  expect(iosGcmSenderId, appleGcmSenderId);
-
-  final macosDictionary = macosPlist.rootElement.findElements('dict').single;
-
-  final macosProjectId = getValue(macosDictionary, 'PROJECT_ID');
-  final macosBundleId = getValue(macosDictionary, 'BUNDLE_ID');
-  final macosGoogleAppId = getValue(macosDictionary, 'GOOGLE_APP_ID');
-  final macosApiKey = getValue(macosDictionary, 'API_KEY');
-  final macosGcmSenderId = getValue(macosDictionary, 'GCM_SENDER_ID');
-
-  expect(macosProjectId, firebaseProjectId);
-  expect(macosBundleId, bundleId);
-  expect(macosGoogleAppId, appId);
-  expect(macosApiKey, appleApiKey);
-  expect(macosGcmSenderId, appleGcmSenderId);
+  expect(appleProjectId, firebaseProjectId);
+  expect(appleBundleId, bundleId);
+  expect(appleGoogleAppId, appId);
+  expect(appleApiKey, appleApiKey);
+  expect(appleGcmSenderId, appleGcmSenderId);
 }
 
 void testAndroidServiceFileValues(
