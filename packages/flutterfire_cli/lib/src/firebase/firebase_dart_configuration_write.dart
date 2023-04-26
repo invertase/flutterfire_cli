@@ -21,8 +21,8 @@ import 'package:path/path.dart';
 import '../common/utils.dart';
 import 'firebase_options.dart';
 
-class FirebaseConfigurationFile {
-  FirebaseConfigurationFile({
+class FirebaseDartConfigurationWrite {
+  FirebaseDartConfigurationWrite({
     required this.configurationFilePath,
     required this.flutterAppPath,
     this.androidOptions,
