@@ -63,7 +63,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       kIosBundleIdFlag,
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'i',
       help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -72,7 +71,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       kMacosBundleIdFlag,
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'm',
       help: 'The bundle identifier of your macOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -274,7 +272,15 @@ class ConfigCommand extends FlutterFireCommand {
   String? get iosBundleId {
     final value = argResults!['ios-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return value;
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for ios-bundle-id.',
+      );
+    }
+    return null;
   }
 
   String? get webAppId {
@@ -294,7 +300,15 @@ class ConfigCommand extends FlutterFireCommand {
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return value;
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for macos-bundle-id.',
+      );
+    }
+    return null;
   }
 
   String? get token {
