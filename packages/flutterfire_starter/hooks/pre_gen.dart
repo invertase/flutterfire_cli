@@ -17,7 +17,7 @@ Future<void> run(HookContext context) async {
 
 void _validatePluginList(HookContext context) {
   final varsPlugins =
-      ((context.vars['plugins'] as List<dynamic>).cast<String>())
+      (context.vars['plugins'] as List<dynamic>).cast<String>()
           .map((e) => e.split(' ')[0])
           .toList();
   final setPlugins = varsPlugins.toSet().toList();
