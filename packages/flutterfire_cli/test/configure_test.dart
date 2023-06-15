@@ -847,4 +847,133 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+    'flutterfire configure: test when only two platforms are selected, not including "web" platform',
+    () async {
+      const defaultTarget = 'Runner';
+
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (Platform.isMacOS) {
+        // check iOS service files were created and have correct content
+        final iosPath =
+            p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+
+        await testAppleServiceFileValues(
+          iosPath,
+        );
+
+        // check default "firebase.json" was created and has correct content
+        final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
+        final firebaseJsonFileContent =
+            await File(firebaseJsonFile).readAsString();
+
+        final decodedFirebaseJson =
+            jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
+
+        checkAppleFirebaseJsonValues(
+          decodedFirebaseJson,
+          [kFlutter, kPlatforms, kIos, kDefaultConfig],
+          '$kIos/$defaultTarget/$appleServiceFileName',
+        );
+
+        checkAndroidFirebaseJsonValues(
+          decodedFirebaseJson,
+          [
+            kFlutter,
+            kPlatforms,
+            kAndroid,
+            kDefaultConfig,
+          ],
+          'android/app/$androidServiceFileName',
+        );
+
+        const defaultFilePath = 'lib/firebase_options.dart';
+        final keysToMapDart = [kFlutter, kPlatforms, kDart, defaultFilePath];
+
+        checkDartFirebaseJsonValues(
+          decodedFirebaseJson,
+          keysToMapDart,
+          checkMacos: false,
+          checkWeb: false,
+        );
+
+        // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
+        final iosXcodeProject = p.join(
+          projectPath!,
+          kIos,
+          'Runner.xcodeproj',
+        );
+
+        final scriptToCheckIosPbxprojFile =
+            rubyScriptForTestingDefaultConfigure(iosXcodeProject);
+
+        final iosResult = Process.runSync(
+          'ruby',
+          [
+            '-e',
+            scriptToCheckIosPbxprojFile,
+          ],
+        );
+
+        if (iosResult.exitCode != 0) {
+          fail(iosResult.stderr as String);
+        }
+
+        expect(iosResult.stdout, 'success');
+      }
+
+      // check google-services.json was created and has correct content
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        androidServiceFileName,
+      );
+      testAndroidServiceFileValues(
+        androidServiceFilePath,
+      );
+
+      // check "firebase_options.dart" file is created in lib directory
+      final firebaseOptions =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
+
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      final listOfStrings = firebaseOptionsContent.split('\n');
+      expect(
+        listOfStrings,
+        containsAll(<Matcher>[
+          contains(appleAppId),
+          contains(appleBundleId),
+          contains(androidAppId),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+        ]),
+      );
+      expect(
+        firebaseOptionsContent.contains('static const FirebaseOptions web = FirebaseOptions'),
+        isFalse,
+      );
+      
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }
