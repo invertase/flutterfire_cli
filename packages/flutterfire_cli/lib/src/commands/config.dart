@@ -571,6 +571,7 @@ class ConfigCommand extends FlutterFireCommand {
       final firebaseJsonWrite = FirebaseDartConfigurationWrite(
         configurationFilePath:
             firebaseConfigurationFileInputs.configurationFilePath,
+        firebaseProjectId: selectedFirebaseProject.projectId,
         flutterAppPath: flutterApp!.package.path,
         androidOptions: fetchedFirebaseOptions.androidOptions,
         iosOptions: fetchedFirebaseOptions.iosOptions,
