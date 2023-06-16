@@ -293,6 +293,7 @@ class Reconfigure extends FlutterFireCommand {
       final future = Future(() async {
         return FirebaseDartConfigurationWrite(
           configurationFilePath: configWrite.pathToConfig,
+          firebaseProjectId: configWrite.projectId,
           flutterAppPath: flutterApp!.package.path,
           androidOptions: configWrite.androidOptions,
           iosOptions: configWrite.iosOptions,

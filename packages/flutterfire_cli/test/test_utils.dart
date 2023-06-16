@@ -288,6 +288,10 @@ void checkDartFirebaseJsonValues(
   String? appleAppId = appleAppId,
   String? androidAppId = androidAppId,
   String? webAppId = webAppId,
+  bool checkIos = true,
+  bool checkMacos = true,
+  bool checkAndroid = true,
+  bool checkWeb = true,
 }) {
   final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
   expect(dartConfig[kProjectId], firebaseProjectId);
@@ -295,8 +299,16 @@ void checkDartFirebaseJsonValues(
   final defaultConfigurations =
       dartConfig[kConfigurations] as Map<String, dynamic>;
 
-  expect(defaultConfigurations[kIos], appleAppId);
-  expect(defaultConfigurations[kMacos], appleAppId);
-  expect(defaultConfigurations[kAndroid], androidAppId);
-  expect(defaultConfigurations[kWeb], webAppId);
+  if (checkIos) {
+    expect(defaultConfigurations[kIos], appleAppId);
+  }
+  if (checkMacos) {
+    expect(defaultConfigurations[kMacos], appleAppId);
+  }
+  if (checkAndroid) {
+    expect(defaultConfigurations[kAndroid], androidAppId);
+  }
+  if (checkWeb) {
+    expect(defaultConfigurations[kWeb], webAppId);
+  }
 }
