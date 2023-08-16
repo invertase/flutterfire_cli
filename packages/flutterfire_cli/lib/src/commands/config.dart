@@ -311,7 +311,7 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get serviceAccount {
-    final value = argResults!['serviceAccount'] as String?;
+    final value = argResults!['service-account'] as String?;
     return value;
   }
 
