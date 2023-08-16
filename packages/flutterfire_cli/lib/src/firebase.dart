@@ -91,7 +91,8 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     execArgs,
     workingDirectory: workingDirectoryPath,
     environment: {
-      if (serviceAccount != null) 'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
+      if (serviceAccount != null)
+        'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
     },
     runInShell: true,
   );

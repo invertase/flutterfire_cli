@@ -114,7 +114,8 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       kServiceAccountFlag,
       valueHelp: 'serviceAccount',
-      help: 'The path to a Google service account JSON file, used for authentication',
+      help:
+          'The path to a Google service account JSON file, used for authentication',
     );
 
     argParser.addFlag(
@@ -320,7 +321,7 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String? get serviceAccount {
-    final value = argResults!['serviceAccount'] as String?;
+    final value = argResults!['service-account'] as String?;
     return value;
   }
 
