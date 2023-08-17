@@ -967,10 +967,10 @@ void main() {
         ]),
       );
       expect(
-        firebaseOptionsContent.contains('static const FirebaseOptions web = FirebaseOptions'),
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
         isFalse,
       );
-      
     },
     timeout: const Timeout(
       Duration(minutes: 2),

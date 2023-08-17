@@ -50,7 +50,7 @@ final flutterfirePackages = [
   'firebase_database',
   'firebase_ml_vision',
   'firebase_ui_firestore',
-  'firebase_ui_oauth_twitter'
+  'firebase_ui_oauth_twitter',
 ];
 
 class UpdateCommand extends FlutterFireCommand {
