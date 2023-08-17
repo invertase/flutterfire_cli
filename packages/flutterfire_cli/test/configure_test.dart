@@ -967,10 +967,105 @@ void main() {
         ]),
       );
       expect(
-        firebaseOptionsContent.contains('static const FirebaseOptions web = FirebaseOptions'),
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
         isFalse,
       );
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
+
+  test(
+    'flutterfire configure: test will reconfigure project if no args and `firebase.json` is present',
+    () async {
+      const defaultTarget = 'Runner';
+      // Set up  initial configuration
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      // Now firebase.json file has been written, clear values from service files to test they are rewritten
+      if (Platform.isMacOS) {
+        final iosPath =
+            p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+
+        await File(iosPath).writeAsString('');
+      }
+
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        androidServiceFileName,
+      );
+
+      await File(androidServiceFilePath).writeAsString('');
+
+      final firebaseOptions =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
+
+      await File(firebaseOptions).writeAsString('');    
+
+      // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+        ],
+        workingDirectory: projectPath,
+        environment: {'TEST_ENVIRONMENT': 'true'},
+      );
       
+
+      if (Platform.isMacOS) {
+        // check iOS service file was recreated and has correct content
+        final iosPath =
+            p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+
+        await testAppleServiceFileValues(
+          iosPath,
+        );
+
+      }
+
+      // check google-services.json was recreated and has correct content
+      testAndroidServiceFileValues(
+        androidServiceFilePath,
+      );
+
+      // check "firebase_options.dart" file was recreated in lib directory
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      final listOfStrings = firebaseOptionsContent.split('\n');
+      expect(
+        listOfStrings,
+        containsAll(<Matcher>[
+          contains(appleAppId),
+          contains(appleBundleId),
+          contains(androidAppId),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+        ]),
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
+        isFalse,
+      );
     },
     timeout: const Timeout(
       Duration(minutes: 2),
