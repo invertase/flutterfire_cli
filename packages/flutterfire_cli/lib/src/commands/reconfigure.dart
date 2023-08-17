@@ -73,7 +73,12 @@ class Reconfigure extends FlutterFireCommand {
   String? _accessToken;
 
   String? get accessToken {
-    return _accessToken ?? argResults!['ci-access-token'] as String?;
+    // If we call reconfigure from `flutterfire configure`, `argResults` will be null and throw exception
+    if (argResults != null) {
+      _accessToken ?? argResults!['ci-access-token'] as String?;
+    }
+
+    return _accessToken;
   }
 
   set accessToken(String? value) {

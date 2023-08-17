@@ -32,6 +32,7 @@ import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
 import '../flutter_app.dart';
+import './reconfigure.dart';
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
@@ -310,6 +311,10 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['overwrite-firebase-options'] as bool?;
   }
 
+  bool get testingEnvironment {
+    return Platform.environment['TEST_ENVIRONMENT'] != null;
+  }
+
   AppleInputs? macosInputs;
   AppleInputs? iosInputs;
   AndroidInputs? androidInputs;
@@ -451,9 +456,37 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
+  Future<bool> checkIfUserRequiresReconfigure() async {
+    final firebaseJsonPath =
+        path.join(flutterApp!.package.path, 'firebase.json');
+    final file = File(firebaseJsonPath);
+
+    if (file.existsSync()) {
+      if (argResults != null && argResults!.arguments.isEmpty) {
+        // If arguments are null, user is probably trying to call `flutterfire reconfigure`
+        final reuseFirebaseJsonValues = testingEnvironment || promptBool(
+          'You have an existing `firebase.json` file and possibly already configured your project for Firebase. Would you prefer to reuse the values in your existing `firebase.json` file to configure your project?',
+        );
+
+        if(reuseFirebaseJsonValues) {
+          final reconfigure = Reconfigure(flutterApp);
+          await reconfigure.run();
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
+    final reconfigured = await checkIfUserRequiresReconfigure();
+
+    if(reconfigured) {
+      return;
+    }
 
     // 1. Validate and prompt first
     if (Platform.isMacOS) {
