@@ -420,7 +420,8 @@ class ConfigCommand extends FlutterFireCommand {
         // Prompt user if they would like to create a new project.
         // Cannot choose nor input project because we cannot validate if we cannot fetch projects.
         logger.stderr(
-            'Failed to fetch your Firebase projects. Fetch failed with this: $e');
+          'Failed to fetch your Firebase projects. Fetch failed with this: $e',
+        );
         final createProject =
             promptBool('Would you like to create a new Firebase project?');
 
