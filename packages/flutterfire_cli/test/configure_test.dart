@@ -154,17 +154,6 @@ void main() {
       testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-      const androidGradleUpdate = '''
-        // START: FlutterFire Configuration
-        classpath 'com.google.gms:google-services:4.3.10'
-        // END: FlutterFire Configuration
-''';
-
-      const androidAppGradleUpdate = '''
-        // START: FlutterFire Configuration
-        apply plugin: 'com.google.gms.google-services'
-        // END: FlutterFire Configuration
-        ''';
 
       final androidBuildGradle =
           p.join(projectPath!, 'android', 'build.gradle');
@@ -347,18 +336,6 @@ void main() {
       testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-      const androidGradleUpdate = '''
-        // START: FlutterFire Configuration
-        classpath 'com.google.gms:google-services:4.3.10'
-        // END: FlutterFire Configuration
-''';
-
-      const androidAppGradleUpdate = '''
-        // START: FlutterFire Configuration
-        apply plugin: 'com.google.gms.google-services'
-        // END: FlutterFire Configuration
-        ''';
-
       final androidBuildGradle =
           p.join(projectPath!, 'android', 'build.gradle');
       final androidAppBuildGradle =
@@ -536,18 +513,6 @@ void main() {
       testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-      const androidGradleUpdate = '''
-        // START: FlutterFire Configuration
-        classpath 'com.google.gms:google-services:4.3.10'
-        // END: FlutterFire Configuration
-''';
-
-      const androidAppGradleUpdate = '''
-        // START: FlutterFire Configuration
-        apply plugin: 'com.google.gms.google-services'
-        // END: FlutterFire Configuration
-        ''';
-
       final androidBuildGradle =
           p.join(projectPath!, 'android', 'build.gradle');
       final androidAppBuildGradle =
