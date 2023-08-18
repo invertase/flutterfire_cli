@@ -934,9 +934,7 @@ void main() {
       expect(
         firebaseOptionsContent
             .contains('static const FirebaseOptions web = FirebaseOptions'),
-        firebaseOptionsContent
-            .contains('static const FirebaseOptions web = FirebaseOptions'),
-        isFalse,
+            isFalse,
       );
     },
     timeout: const Timeout(
