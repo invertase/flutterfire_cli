@@ -27,6 +27,18 @@ const appleBundleId = 'com.example.flutterTestCli';
 const appleApiKey = 'AIzaSyBKopB-r1-sAAc99XLfZ71dURkLHab1AJE';
 const appleGcmSenderId = '262904632156';
 
+const androidGradleUpdate = '''
+        // START: FlutterFire Configuration
+        classpath 'com.google.gms:google-services:4.3.10'
+        // END: FlutterFire Configuration
+''';
+
+const androidAppGradleUpdate = '''
+        // START: FlutterFire Configuration
+        id: 'com.google.gms.google-services'
+        // END: FlutterFire Configuration
+        ''';
+
 Future<String> createFlutterProject() async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
