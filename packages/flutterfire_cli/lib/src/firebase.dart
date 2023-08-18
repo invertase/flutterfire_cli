@@ -157,7 +157,7 @@ Future<FirebaseProject> createProject({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseProject.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'state': 'ACTIVE'
+    'state': 'ACTIVE',
   });
 }
 
@@ -380,7 +380,7 @@ Future<FirebaseApp> createWebApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': kWeb
+    'platform': kWeb,
   });
 }
 
@@ -408,7 +408,7 @@ Future<FirebaseApp> createAndroidApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': kAndroid
+    'platform': kAndroid,
   });
 }
 
@@ -427,7 +427,7 @@ Future<FirebaseApp> createAppleApp({
       'ios',
       displayName,
       '--bundle-id=$bundleId',
-      if (token != null) '--token=$token'
+      if (token != null) '--token=$token',
     ],
     project: project,
     account: account,
@@ -436,7 +436,7 @@ Future<FirebaseApp> createAppleApp({
   final result = Map<String, dynamic>.from(response['result'] as Map);
   return FirebaseApp.fromJson(<String, dynamic>{
     ...Map<String, dynamic>.from(result),
-    'platform': kIos
+    'platform': kIos,
   });
 }
 
