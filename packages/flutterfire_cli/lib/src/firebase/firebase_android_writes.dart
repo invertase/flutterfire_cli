@@ -12,9 +12,9 @@ final _androidBuildGradleRegex = RegExp(
   r'''(?:\s*?dependencies\s?{$\n(?<indentation>[\s\S\w]*?)classpath\s?['"]{1}com\.android\.tools\.build:gradle:.*?['"]{1}\s*?$)''',
   multiLine: true,
 );
-// https://regex101.com/r/rbfAdd/1
+// https://regex101.com/r/OZnO1j/1
 final _androidAppBuildGradleRegex = RegExp(
-  r'''(?:^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})''',
+  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})|(^[\s]*?id[\s]+["']com\.android\.application["']))''',
   multiLine: true,
 );
 // https://regex101.com/r/ndlYVL/1
@@ -22,9 +22,9 @@ final _androidBuildGradleGoogleServicesRegex = RegExp(
   r'''((?<indentation>^[\s]*?)classpath\s?['"]{1}com\.google\.gms:google-services:.*?['"]{1}\s*?$)''',
   multiLine: true,
 );
-// https://regex101.com/r/buEbed/1
+// https://regex101.com/r/pP1k6i/1
 final _androidAppBuildGradleGoogleServicesRegex = RegExp(
-  r'''(?:^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.google\.gms\.google-services['"]{1})''',
+  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.google\.gms\.google-services['"]{1})|(^[\s]*?id[\s]+['"]com\.google\.gms\.google-services['"]))''',
   multiLine: true,
 );
 
@@ -190,9 +190,22 @@ class FirebaseAndroidWrites {
       // Already applied.
       return;
     }
+
     androidAppBuildGradleFileContents = androidAppBuildGradleFileContents
         .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
-      return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginName'\n$_flutterFireConfigCommentEnd";
+      // Check which pattern was matched and insert the appropriate content
+      if (match.group(0) != null) {
+        if (match.group(0)!.trim().startsWith('id')) {
+          // If matched pattern is 'id "com.android.application"'
+          return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginName'\n    $_flutterFireConfigCommentEnd";
+        } else {
+          // If matched pattern is 'apply plugin:...'
+          return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginName'\n$_flutterFireConfigCommentEnd";
+        }
+      }
+      throw Exception(
+        'Could not match pattern in android/app `build.gradle` file for plugin $_googleServicesPluginName',
+      );
     });
   }
 
@@ -231,7 +244,19 @@ class FirebaseAndroidWrites {
     }
     androidAppBuildGradleFileContents = androidAppBuildGradleFileContents
         .replaceFirstMapped(_androidAppBuildGradleGoogleServicesRegex, (match) {
-      return "${match.group(0)}\napply plugin: '$pluginClass'";
+      // Check which pattern was matched and insert the appropriate content
+      if (match.group(0) != null) {
+        if (match.group(0)!.trim().startsWith('id')) {
+          // If matched pattern is 'id "com.google.gms.google-services"'
+          return "${match.group(0)}\n    id '$pluginClass'";
+        } else {
+          // If matched pattern is 'apply plugin:...'
+          return "${match.group(0)}\napply plugin: '$pluginClass'";
+        }
+      }
+      throw Exception(
+        'Could not match pattern in android/app `build.gradle` file for plugin $pluginClass',
+      );
     });
   }
 

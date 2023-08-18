@@ -81,7 +81,7 @@ Future<void> _copyGeneratedFilesToLib(HookContext context) async {
     Process.run('mv', [
       'macos/Podfile',
       './$appName/macos',
-    ])
+    ]),
   ]);
 
   // Cleaning empty folders

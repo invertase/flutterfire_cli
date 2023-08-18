@@ -9,7 +9,7 @@ Future<void> main() async {
       'packages',
       'flutterfire_cli',
       'lib',
-      'version.g.dart'
+      'version.g.dart',
     ],
   );
   // ignore: avoid_print
