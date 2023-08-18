@@ -128,7 +128,7 @@ class FirebaseDartConfigurationWrite {
       <String>[
         'class DefaultFirebaseOptions {',
         '  static FirebaseOptions get currentPlatform {',
-        ''
+        '',
       ],
       '\n',
     );
