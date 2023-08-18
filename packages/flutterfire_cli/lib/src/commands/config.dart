@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import './reconfigure.dart';
 import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -32,7 +33,6 @@ import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
 import '../flutter_app.dart';
-import './reconfigure.dart';
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
