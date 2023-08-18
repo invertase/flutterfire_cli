@@ -35,7 +35,7 @@ const androidGradleUpdate = '''
 
 const androidAppGradleUpdate = '''
         // START: FlutterFire Configuration
-        id: 'com.google.gms.google-services'
+        id 'com.google.gms.google-services'
         // END: FlutterFire Configuration
         ''';
 
