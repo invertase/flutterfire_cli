@@ -495,11 +495,12 @@ class ConfigCommand extends FlutterFireCommand {
     if (file.existsSync()) {
       if (argResults != null && argResults!.arguments.isEmpty) {
         // If arguments are null, user is probably trying to call `flutterfire reconfigure`
-        final reuseFirebaseJsonValues = testingEnvironment || promptBool(
-          'You have an existing `firebase.json` file and possibly already configured your project for Firebase. Would you prefer to reuse the values in your existing `firebase.json` file to configure your project?',
-        );
+        final reuseFirebaseJsonValues = testingEnvironment ||
+            promptBool(
+              'You have an existing `firebase.json` file and possibly already configured your project for Firebase. Would you prefer to reuse the values in your existing `firebase.json` file to configure your project?',
+            );
 
-        if(reuseFirebaseJsonValues) {
+        if (reuseFirebaseJsonValues) {
           final reconfigure = Reconfigure(flutterApp);
           await reconfigure.run();
           return true;
@@ -515,7 +516,7 @@ class ConfigCommand extends FlutterFireCommand {
     commandRequiresFlutterApp();
     final reconfigured = await checkIfUserRequiresReconfigure();
 
-    if(reconfigured) {
+    if (reconfigured) {
       return;
     }
 
