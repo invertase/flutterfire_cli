@@ -968,7 +968,7 @@ void main() {
         final iosPath =
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
 
-        await File(iosPath).delete();
+        await File(iosPath).writeAsString('');
       }
 
       final androidServiceFilePath = p.join(
@@ -978,7 +978,7 @@ void main() {
         androidServiceFileName,
       );
 
-      await File(androidServiceFilePath).delete();
+      await File(androidServiceFilePath).writeAsString('');
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
