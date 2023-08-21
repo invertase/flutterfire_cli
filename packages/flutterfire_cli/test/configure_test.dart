@@ -968,7 +968,7 @@ void main() {
         final iosPath =
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
 
-        await File(iosPath).writeAsString('');
+        await File(iosPath).delete();
       }
 
       final androidServiceFilePath = p.join(
@@ -978,12 +978,12 @@ void main() {
         androidServiceFileName,
       );
 
-      await File(androidServiceFilePath).writeAsString('');
+      await File(androidServiceFilePath).delete();
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
 
-      await File(firebaseOptions).writeAsString('');
+      await File(firebaseOptions).delete();
 
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
       Process.runSync(
