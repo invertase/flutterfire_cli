@@ -418,6 +418,7 @@ Future<FirebaseApp> createAppleApp({
 }
 
 Future<String> getAccessToken() async {
+  stdout.write('7777777');
   // Use refresh token to get access token, cannot simply use access token found in "firebase-tools.json"
   final homeDir = Platform.isWindows
       ? Platform.environment['UserProfile']!
