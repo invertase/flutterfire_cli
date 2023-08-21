@@ -993,7 +993,7 @@ void main() {
         androidServiceFileName,
       );
 
-      await File(androidServiceFilePath).writeAsString('');
+      await File(androidServiceFilePath).delete();
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
