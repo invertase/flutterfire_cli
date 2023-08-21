@@ -513,12 +513,12 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    // commandRequiresFlutterApp();
-    // final reconfigured = await checkIfUserRequiresReconfigure();
+    commandRequiresFlutterApp();
+    final reconfigured = await checkIfUserRequiresReconfigure();
 
-    // if (reconfigured) {
-    //   return;
-    // }
+    if (reconfigured) {
+      return;
+    }
 
     // 1. Validate and prompt first
     if (Platform.isMacOS) {

@@ -226,14 +226,13 @@ Future<void> testAppleServiceFileValues(
   expect(appleGcmSenderId, appleGcmSenderId);
 }
 
-Future<void> testAndroidServiceFileValues(
+void testAndroidServiceFileValues(
   String serviceFilePath, {
   String? appId = androidAppId,
-}) async {
-  final file = await findFileInDirectory(
-      p.dirname(serviceFilePath), androidServiceFileName);
+}) {
   final clientList = Map<String, dynamic>.from(
-    jsonDecode(file.readAsStringSync()) as Map<String, dynamic>,
+    jsonDecode(File(serviceFilePath).readAsStringSync())
+        as Map<String, dynamic>,
   );
 
   final findClientMap =

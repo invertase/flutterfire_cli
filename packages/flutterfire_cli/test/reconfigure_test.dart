@@ -91,7 +91,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      final result = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -100,9 +100,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      print('AAAAAAAAAA: ${result.stdout}');
-
-      await testAndroidServiceFileValues(androidServiceFilePath);
+      testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
@@ -190,7 +188,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      await testAndroidServiceFileValues(androidServiceFilePath);
+      testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
@@ -281,7 +279,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      await testAndroidServiceFileValues(androidServiceFilePath);
+      testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
