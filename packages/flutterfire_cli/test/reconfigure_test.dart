@@ -100,7 +100,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
@@ -188,7 +188,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
@@ -279,7 +279,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {

@@ -151,7 +151,7 @@ void main() {
         'app',
         androidServiceFileName,
       );
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
 
@@ -333,7 +333,7 @@ void main() {
         buildType,
         'google-services.json',
       );
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       final androidBuildGradle =
@@ -510,7 +510,7 @@ void main() {
         androidBuildConfiguration,
         'google-services.json',
       );
-      testAndroidServiceFileValues(androidServiceFilePath);
+      await testAndroidServiceFileValues(androidServiceFilePath);
 
       // Check android "android/build.gradle" & "android/app/build.gradle" were updated
       final androidBuildGradle =
@@ -783,7 +783,7 @@ void main() {
         'app',
         androidServiceFileName,
       );
-      testAndroidServiceFileValues(
+      await testAndroidServiceFileValues(
         androidServiceFilePath,
         appId: secondAndroidAppId,
       );
@@ -910,7 +910,7 @@ void main() {
         'app',
         androidServiceFileName,
       );
-      testAndroidServiceFileValues(
+      await testAndroidServiceFileValues(
         androidServiceFilePath,
       );
 
@@ -1006,7 +1006,7 @@ void main() {
       }
 
       // check google-services.json was recreated and has correct content
-      testAndroidServiceFileValues(
+      await testAndroidServiceFileValues(
         androidServiceFilePath,
       );
 
