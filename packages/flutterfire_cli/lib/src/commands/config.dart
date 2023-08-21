@@ -344,6 +344,7 @@ class ConfigCommand extends FlutterFireCommand {
 
   Future<FirebaseProject> _selectFirebaseProject() async {
     var selectedProjectId = projectId;
+    var projectListFail = false;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
     if ((isCI || yes) && selectedProjectId == null) {
@@ -359,51 +360,81 @@ class ConfigCommand extends FlutterFireCommand {
         }
         final baseMessage =
             'Found ${AnsiStyles.cyan('${firebaseProjects?.length ?? 0}')} Firebase projects.';
-        if (selectedProjectId != null) {
+        if (selectedProjectId != null && !projectListFail) {
           return '$baseMessage Selecting project ${AnsiStyles.cyan(selectedProjectId)}.';
         }
         return baseMessage;
       },
     );
-    firebaseProjects = await firebase.getProjects(
-      account: accountEmail,
-      token: token,
-    );
 
-    fetchingProjectsSpinner.done();
-    if (selectedProjectId != null) {
-      return firebaseProjects.firstWhere(
-        (project) => project.projectId == selectedProjectId,
-        orElse: () {
-          throw FirebaseProjectNotFoundException(selectedProjectId!);
-        },
+    try {
+      firebaseProjects = await firebase
+          .getProjects(
+            account: accountEmail,
+            token: token,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      fetchingProjectsSpinner.done();
+
+      if (selectedProjectId != null) {
+        return firebaseProjects.firstWhere(
+          (project) => project.projectId == selectedProjectId,
+          orElse: () {
+            throw FirebaseProjectNotFoundException(selectedProjectId!);
+          },
+        );
+      }
+
+      // No projects to choose from so lets
+      // prompt to create straight away.
+      if (firebaseProjects.isEmpty) {
+        return _promptCreateFirebaseProject();
+      }
+
+      final choices = <String>[
+        ...firebaseProjects.map(
+          (p) => '${p.projectId} (${p.displayName})',
+        ),
+        AnsiStyles.green('<create a new project>'),
+      ];
+
+      final selectedChoiceIndex = promptSelect(
+        'Select a Firebase project to configure your Flutter application with',
+        choices,
       );
+
+      // Last choice is to create a new project.
+      if (selectedChoiceIndex == choices.length - 1) {
+        return _promptCreateFirebaseProject();
+      }
+
+      return firebaseProjects[selectedChoiceIndex];
+    } catch (e) {
+      if (firebaseProjects == null) {
+        projectListFail = true;
+        // This won't have been called if `firebaseProjects` is null
+        fetchingProjectsSpinner.done();
+
+        // Warn user that we couldn't fetch projects
+        // Prompt user if they would like to create a new project.
+        // Cannot choose nor input project because we cannot validate if we cannot fetch projects.
+        logger.stderr(
+          'Failed to fetch your Firebase projects. Fetch failed with this: $e',
+        );
+        final createProject =
+            promptBool('Would you like to create a new Firebase project?');
+
+        if (createProject) {
+          return _promptCreateFirebaseProject();
+        } else {
+          throw FirebaseProjectRequiredException();
+        }
+      } else {
+        // It wasn't Firebase projects list API call, rethrow
+        rethrow;
+      }
     }
-
-    // No projects to choose from so lets
-    // prompt to create straight away.
-    if (firebaseProjects.isEmpty) {
-      return _promptCreateFirebaseProject();
-    }
-
-    final choices = <String>[
-      ...firebaseProjects.map(
-        (p) => '${p.projectId} (${p.displayName})',
-      ),
-      AnsiStyles.green('<create a new project>'),
-    ];
-
-    final selectedChoiceIndex = promptSelect(
-      'Select a Firebase project to configure your Flutter application with',
-      choices,
-    );
-
-    // Last choice is to create a new project.
-    if (selectedChoiceIndex == choices.length - 1) {
-      return _promptCreateFirebaseProject();
-    }
-
-    return firebaseProjects[selectedChoiceIndex];
   }
 
   Map<String, bool> _selectPlatforms() {
