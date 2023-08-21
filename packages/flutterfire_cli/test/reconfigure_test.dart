@@ -91,7 +91,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -99,6 +99,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      print('AAAAAAAAAA: ${result.stdout}');
 
       await testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
