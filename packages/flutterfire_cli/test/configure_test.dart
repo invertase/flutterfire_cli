@@ -5,6 +5,7 @@ import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:xml/xml.dart';
 
 import 'test_utils.dart';
 
@@ -968,7 +969,21 @@ void main() {
         final iosPath =
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
 
-        await File(iosPath).writeAsString('');
+        final appleServiceFileContent = await File(iosPath).readAsString();
+
+        final applePlist = XmlDocument.parse(appleServiceFileContent);
+
+        final appleDictionary =
+            applePlist.rootElement.findElements('dict').single;
+
+        final projectIdKey = appleDictionary
+            .findElements('key')
+            .firstWhere((keyElement) => keyElement.innerText == 'PROJECT_ID');
+
+        final projectIdValue = projectIdKey.nextElementSibling;
+
+        // This will be rewritten in "flutterfire reconfigure"
+        projectIdValue!.innerText = 'INCORRECT_VALUE';
       }
 
       final androidServiceFilePath = p.join(
