@@ -58,7 +58,7 @@ jobs:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
 
   test_macos:
-    runs-on: macos-latest
+    runs-on: macos-13
     timeout-minutes: 25
     environment: CI Environment 
     env:
