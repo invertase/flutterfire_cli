@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
+import 'reconfigure_test.dart';
 import 'test_utils.dart';
 
 void main() {
@@ -1025,11 +1026,13 @@ void main() {
       // Edit value to be rewritten on reconfigure
       await File(firebaseOptions).writeAsString(updatedContent2);
 
+      final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
       final result = Process.runSync(
         'flutterfire',
         [
           'configure',
+          if (accessToken != null) '--token=$accessToken',
         ],
         workingDirectory: projectPath,
         environment: {'TEST_ENVIRONMENT': 'true'},

@@ -501,7 +501,7 @@ class ConfigCommand extends FlutterFireCommand {
             );
 
         if (reuseFirebaseJsonValues) {
-          final reconfigure = Reconfigure(flutterApp);
+          final reconfigure = Reconfigure(flutterApp, token: token);
           await reconfigure.run();
           return true;
         }

@@ -51,9 +51,9 @@ class ConfigFileWrite {
 }
 
 class Reconfigure extends FlutterFireCommand {
-  Reconfigure(FlutterApp? flutterApp) : super(flutterApp) {
+  Reconfigure(FlutterApp? flutterApp, {String? token}) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
-
+    _accessToken = token;
     argParser.addOption(
       'ci-access-token',
       valueHelp: 'ciAccessToken',
@@ -313,12 +313,12 @@ class Reconfigure extends FlutterFireCommand {
  Future<void> _writeFile(Future writeFileFuture, String name) async {
   try {
     await writeFileFuture;
-  } catch (e, stacktrace) {
+  } catch (e) {
     // ignore: avoid_print
     print(
-        'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e');
-    // ignore: avoid_print
-    print(stacktrace); // print the original stacktrace for diagnostics
+        'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e',
+        );
+
     rethrow; // rethrow the original exception
   }
 }
