@@ -42,13 +42,21 @@ const androidAppGradleUpdate = '''
 Future<String> createFlutterProject() async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
+  
+  final flutterProjectPath = p.join(tempDir.path, flutterProject);
+
+  // Check if the directory already exists and remove it if it does
+  final existingDirectory = Directory(flutterProjectPath);
+  
+  if (existingDirectory.existsSync()) {
+    await existingDirectory.delete(recursive: true);
+  }
+
   await Process.run(
     'flutter',
     ['create', flutterProject],
     workingDirectory: tempDir.path,
   );
-
-  final flutterProjectPath = p.join(tempDir.path, flutterProject);
 
   return flutterProjectPath;
 }
