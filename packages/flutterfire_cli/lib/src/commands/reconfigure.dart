@@ -51,9 +51,9 @@ class ConfigFileWrite {
 }
 
 class Reconfigure extends FlutterFireCommand {
-  Reconfigure(FlutterApp? flutterApp) : super(flutterApp) {
+  Reconfigure(FlutterApp? flutterApp, {String? token}) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
-
+    _accessToken = token;
     argParser.addOption(
       'ci-access-token',
       valueHelp: 'ciAccessToken',
@@ -73,7 +73,12 @@ class Reconfigure extends FlutterFireCommand {
   String? _accessToken;
 
   String? get accessToken {
-    return _accessToken ?? argResults!['ci-access-token'] as String?;
+    // If we call reconfigure from `flutterfire configure`, `argResults` will be null and throw exception
+    if (argResults != null) {
+      _accessToken ??= argResults!['ci-access-token'] as String?;
+    }
+
+    return _accessToken;
   }
 
   set accessToken(String? value) {
@@ -103,7 +108,6 @@ class Reconfigure extends FlutterFireCommand {
       if (!serviceFilePathAbsolute.existsSync()) {
         serviceFilePathAbsolute.createSync(recursive: true);
       }
-
       serviceFilePathAbsolute.writeAsStringSync(serviceFileContent);
     }
   }
@@ -310,9 +314,12 @@ class Reconfigure extends FlutterFireCommand {
     try {
       await writeFileFuture;
     } catch (e) {
-      throw Exception(
+      // ignore: avoid_print
+      print(
         'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e',
       );
+
+      rethrow;
     }
   }
 

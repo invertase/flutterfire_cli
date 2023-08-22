@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import './reconfigure.dart';
 import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -174,6 +175,14 @@ class ConfigCommand extends FlutterFireCommand {
       help:
           "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
     );
+
+    argParser.addOption(
+      kTestAccessTokenFlag,
+      valueHelp: 'testAccessToken',
+      hide: true,
+      help:
+          'Firebase test access token for use in integration tests. This is not required for normal usage.',
+    );
   }
 
   @override
@@ -308,6 +317,16 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool? get overwriteFirebaseOptions {
     return argResults!['overwrite-firebase-options'] as bool?;
+  }
+
+  // Still needed for local CI testing
+  bool get testingEnvironment {
+    return Platform.environment['TEST_ENVIRONMENT'] != null;
+  }
+
+  String? get testAccessToken {
+    final value = argResults![kTestAccessTokenFlag] as String?;
+    return value;
   }
 
   AppleInputs? macosInputs;
@@ -482,9 +501,39 @@ class ConfigCommand extends FlutterFireCommand {
     return selectedPlatforms;
   }
 
+  Future<bool> checkIfUserRequiresReconfigure() async {
+    final firebaseJsonPath =
+        path.join(flutterApp!.package.path, 'firebase.json');
+    final file = File(firebaseJsonPath);
+
+    if (file.existsSync()) {
+      if (argResults != null &&
+          (argResults!.arguments.isEmpty || testAccessToken != null)) {
+        // If arguments are null, user is probably trying to call `flutterfire reconfigure`
+        final reuseFirebaseJsonValues = testingEnvironment ||
+            promptBool(
+              'You have an existing `firebase.json` file and possibly already configured your project for Firebase. Would you prefer to reuse the values in your existing `firebase.json` file to configure your project?',
+            );
+
+        if (reuseFirebaseJsonValues) {
+          final reconfigure = Reconfigure(flutterApp, token: testAccessToken);
+          await reconfigure.run();
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   @override
   Future<void> run() async {
     commandRequiresFlutterApp();
+    final reconfigured = await checkIfUserRequiresReconfigure();
+
+    if (reconfigured) {
+      return;
+    }
 
     // 1. Validate and prompt first
     if (Platform.isMacOS) {
