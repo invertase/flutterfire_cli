@@ -353,6 +353,7 @@ class ConfigCommand extends FlutterFireCommand {
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
     if ((isCI || yes) && selectedProjectId == null) {
+      stdout.write('TTTTTTTTT');
       throw FirebaseProjectRequiredException();
     }
 
@@ -433,6 +434,7 @@ class ConfigCommand extends FlutterFireCommand {
         if (createProject) {
           return _promptCreateFirebaseProject();
         } else {
+          stdout.write('YYYYYYYYYYY');
           throw FirebaseProjectRequiredException();
         }
       } else {
