@@ -108,7 +108,7 @@ class Reconfigure extends FlutterFireCommand {
       if (!serviceFilePathAbsolute.existsSync()) {
         serviceFilePathAbsolute.createSync(recursive: true);
       }
-
+      // std
       serviceFilePathAbsolute.writeAsStringSync(serviceFileContent);
     }
   }
@@ -379,7 +379,9 @@ class Reconfigure extends FlutterFireCommand {
           doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
       if (defaultAndroidExists) {
+        stdout.write('1111111');
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
+        stdout.write('2222222: $defaultAndroid');
 
         await _writeFile(
           _updateServiceFile(defaultAndroid, kAndroid),
