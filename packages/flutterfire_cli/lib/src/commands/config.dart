@@ -521,8 +521,6 @@ class ConfigCommand extends FlutterFireCommand {
           await reconfigure.run();
           return true;
         }
-      } else {
-        throw Exception('failed failed');
       }
     }
 
