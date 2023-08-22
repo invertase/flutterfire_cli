@@ -1025,6 +1025,7 @@ void main() {
       // Edit value to be rewritten on reconfigure
       await File(firebaseOptions).writeAsString(updatedContent2);
 
+      await Future.delayed(const Duration(seconds: 8));
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
       final result = Process.runSync(
         'flutterfire',
