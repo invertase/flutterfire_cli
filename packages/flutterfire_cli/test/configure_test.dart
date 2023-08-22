@@ -964,7 +964,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      // Now firebase.json file has been written, clear values from service files to test they are rewritten
+      // Now firebase.json file has been written, change values in service files to test they are rewritten
       if (Platform.isMacOS) {
         final iosPath =
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
@@ -982,7 +982,7 @@ void main() {
 
         final projectIdValue = projectIdKey.nextElementSibling;
 
-        // This will be rewritten in "flutterfire reconfigure"
+        // Edit value to be rewritten on reconfigure
         projectIdValue!.innerText = 'INCORRECT_VALUE';
       }
 
@@ -993,12 +993,35 @@ void main() {
         androidServiceFileName,
       );
 
-      await File(androidServiceFilePath).delete();
+      final clientList = Map<String, dynamic>.from(
+        jsonDecode(File(androidServiceFilePath).readAsStringSync())
+            as Map<String, dynamic>,
+      );
+
+      final clientMap =
+          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
+              .firstWhere(
+        // ignore: avoid_dynamic_calls
+        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
+      );
+
+      // Edit value to be rewritten on reconfigure
+      // ignore: avoid_dynamic_calls
+      clientMap['client_info']['mobilesdk_app_id'] = 'fake-client-id';
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
 
-      await File(firebaseOptions).delete();
+      final content = await File(firebaseOptions).readAsString();
+
+      final updatedContent = content.replaceFirst(appleAppId, 'fake id');
+      final updatedContent1 =
+          updatedContent.replaceFirst(appleBundleId, 'fake id');
+      final updatedContent2 =
+          updatedContent1.replaceFirst(androidAppId, 'fake id');
+
+      // Edit value to be rewritten on reconfigure
+      await File(firebaseOptions).writeAsString(updatedContent2);
 
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
       Process.runSync(
