@@ -1013,16 +1013,16 @@ void main() {
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
 
-      final content = await File(firebaseOptions).readAsString();
+      await File(firebaseOptions).writeAsString('');
 
-      final updatedContent = content.replaceFirst(appleAppId, 'fake id');
-      final updatedContent1 =
-          updatedContent.replaceFirst(appleBundleId, 'fake id');
-      final updatedContent2 =
-          updatedContent1.replaceFirst(androidAppId, 'fake id');
+      // final updatedContent = content.replaceFirst(appleAppId, 'fake id');
+      // final updatedContent1 =
+      //     updatedContent.replaceFirst(appleBundleId, 'fake id');
+      // final updatedContent2 =
+      //     updatedContent1.replaceFirst(androidAppId, 'fake id');
 
-      // Edit value to be rewritten on reconfigure
-      await File(firebaseOptions).writeAsString(updatedContent2);
+      // // Edit value to be rewritten on reconfigure
+      // await File(firebaseOptions).writeAsString(updatedContent2);
 
       final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
