@@ -319,6 +319,7 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['overwrite-firebase-options'] as bool?;
   }
 
+  // Still needed for local CI testing
   bool get testingEnvironment {
     return Platform.environment['TEST_ENVIRONMENT'] != null;
   }
@@ -366,7 +367,6 @@ class ConfigCommand extends FlutterFireCommand {
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
     if ((isCI || yes) && selectedProjectId == null) {
-      stdout.write('TTTTTTTTT');
       throw FirebaseProjectRequiredException();
     }
 
@@ -447,7 +447,6 @@ class ConfigCommand extends FlutterFireCommand {
         if (createProject) {
           return _promptCreateFirebaseProject();
         } else {
-          stdout.write('YYYYYYYYYYY');
           throw FirebaseProjectRequiredException();
         }
       } else {
@@ -508,9 +507,9 @@ class ConfigCommand extends FlutterFireCommand {
     final file = File(firebaseJsonPath);
 
     if (file.existsSync()) {
-      stdout.write('777777: ${argResults!.arguments.length}');
-      stdout.write('777777: $testAccessToken');
-      if (argResults != null && argResults!.arguments.length == 1 && testAccessToken != null) {
+      if (argResults != null &&
+          (argResults!.arguments.isEmpty ||
+              argResults!.arguments.length == 1 && testAccessToken != null)) {
         // If arguments are null, user is probably trying to call `flutterfire reconfigure`
         final reuseFirebaseJsonValues = testingEnvironment ||
             promptBool(

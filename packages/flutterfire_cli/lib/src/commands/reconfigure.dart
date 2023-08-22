@@ -310,18 +310,18 @@ class Reconfigure extends FlutterFireCommand {
     }
   }
 
- Future<void> _writeFile(Future writeFileFuture, String name) async {
-  try {
-    await writeFileFuture;
-  } catch (e) {
-    // ignore: avoid_print
-    print(
+  Future<void> _writeFile(Future writeFileFuture, String name) async {
+    try {
+      await writeFileFuture;
+    } catch (e) {
+      // ignore: avoid_print
+      print(
         'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e',
-        );
+      );
 
-    rethrow; // rethrow the original exception
+      rethrow;
+    }
   }
-}
 
   @override
   Future<void> run() async {
@@ -381,9 +381,7 @@ class Reconfigure extends FlutterFireCommand {
           doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
 
       if (defaultAndroidExists) {
-        stdout.write('1111111');
         final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
-        stdout.write('2222222: $defaultAndroid');
 
         await _writeFile(
           _updateServiceFile(defaultAndroid, kAndroid),
