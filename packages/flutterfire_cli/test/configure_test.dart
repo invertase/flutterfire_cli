@@ -1026,7 +1026,7 @@ void main() {
       await File(firebaseOptions).writeAsString(updatedContent2);
 
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -1034,6 +1034,9 @@ void main() {
         workingDirectory: projectPath,
         environment: {'TEST_ENVIRONMENT': 'true'},
       );
+
+      print('111111: ${result.stdout}');
+      print('222222: ${result.stderr}');
 
       if (Platform.isMacOS) {
         // check iOS service file was recreated and has correct content
