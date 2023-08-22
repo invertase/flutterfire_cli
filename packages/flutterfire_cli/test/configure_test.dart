@@ -1053,6 +1053,8 @@ void main() {
       // check "firebase_options.dart" file was recreated in lib directory
       final firebaseOptionsContent = await File(firebaseOptions).readAsString();
 
+      print('GGGGGGGG: $firebaseOptionsContent');
+
       final listOfStrings = firebaseOptionsContent.split('\n');
       expect(
         listOfStrings,
