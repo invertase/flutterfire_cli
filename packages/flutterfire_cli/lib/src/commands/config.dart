@@ -175,6 +175,14 @@ class ConfigCommand extends FlutterFireCommand {
       help:
           "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
     );
+
+    argParser.addOption(
+      kTestAccessTokenFlag,
+      valueHelp: 'testAccessToken',
+      hide: true,
+      help:
+          'Firebase test access token for use in integration tests. This is not required for normal usage.',
+    );
   }
 
   @override
@@ -313,6 +321,11 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get testingEnvironment {
     return Platform.environment['TEST_ENVIRONMENT'] != null;
+  }
+
+  String? get testAccessToken {
+    final value = argResults![kTestAccessTokenFlag] as String?;
+    return value;
   }
 
   AppleInputs? macosInputs;
@@ -495,7 +508,9 @@ class ConfigCommand extends FlutterFireCommand {
     final file = File(firebaseJsonPath);
 
     if (file.existsSync()) {
-      if (argResults != null && argResults!.arguments.isEmpty) {
+      stdout.write('777777: ${argResults!.arguments.length}');
+      stdout.write('777777: $testAccessToken');
+      if (argResults != null && argResults!.arguments.length == 1 && testAccessToken != null) {
         // If arguments are null, user is probably trying to call `flutterfire reconfigure`
         final reuseFirebaseJsonValues = testingEnvironment ||
             promptBool(
@@ -503,10 +518,12 @@ class ConfigCommand extends FlutterFireCommand {
             );
 
         if (reuseFirebaseJsonValues) {
-          final reconfigure = Reconfigure(flutterApp, token: token);
+          final reconfigure = Reconfigure(flutterApp, token: testAccessToken);
           await reconfigure.run();
           return true;
         }
+      } else {
+        throw Exception('failed failed');
       }
     }
 

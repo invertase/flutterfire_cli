@@ -1015,8 +1015,6 @@ void main() {
 
       final content = await File(firebaseOptions).readAsString();
 
-      print('WWWWWW: $content');
-
       final updatedContent = content.replaceFirst(appleAppId, 'fake id');
       final updatedContent1 =
           updatedContent.replaceFirst(appleBundleId, 'fake id');
@@ -1032,7 +1030,7 @@ void main() {
         'flutterfire',
         [
           'configure',
-          if (accessToken != null) '--token=$accessToken',
+          if (accessToken != null) '--test-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
         environment: {'TEST_ENVIRONMENT': 'true'},
