@@ -5,7 +5,6 @@ import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:xml/xml.dart';
 
 import 'reconfigure_test.dart';
 import 'test_utils.dart';
@@ -970,21 +969,8 @@ void main() {
         final iosPath =
             p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
 
-        final appleServiceFileContent = await File(iosPath).readAsString();
-
-        final applePlist = XmlDocument.parse(appleServiceFileContent);
-
-        final appleDictionary =
-            applePlist.rootElement.findElements('dict').single;
-
-        final projectIdKey = appleDictionary
-            .findElements('key')
-            .firstWhere((keyElement) => keyElement.innerText == 'PROJECT_ID');
-
-        final projectIdValue = projectIdKey.nextElementSibling;
-
-        // Edit value to be rewritten on reconfigure
-        projectIdValue!.innerText = 'INCORRECT_VALUE';
+        // Clean out file to test it was recreated
+        await File(iosPath).writeAsString('');
       }
 
       final androidServiceFilePath = p.join(
@@ -993,36 +979,14 @@ void main() {
         'app',
         androidServiceFileName,
       );
-
-      final clientList = Map<String, dynamic>.from(
-        jsonDecode(File(androidServiceFilePath).readAsStringSync())
-            as Map<String, dynamic>,
-      );
-
-      final clientMap =
-          List<Map<String, dynamic>>.from(clientList['client'] as List<dynamic>)
-              .firstWhere(
-        // ignore: avoid_dynamic_calls
-        (element) => element['client_info']['mobilesdk_app_id'] == androidAppId,
-      );
-
-      // Edit value to be rewritten on reconfigure
-      // ignore: avoid_dynamic_calls
-      clientMap['client_info']['mobilesdk_app_id'] = 'fake-client-id';
+      // Clean out file to test it was recreated
+      await File(androidServiceFilePath).writeAsString('');
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
 
+      // Clean out file to test it was recreated
       await File(firebaseOptions).writeAsString('');
-
-      // final updatedContent = content.replaceFirst(appleAppId, 'fake id');
-      // final updatedContent1 =
-      //     updatedContent.replaceFirst(appleBundleId, 'fake id');
-      // final updatedContent2 =
-      //     updatedContent1.replaceFirst(androidAppId, 'fake id');
-
-      // // Edit value to be rewritten on reconfigure
-      // await File(firebaseOptions).writeAsString(updatedContent2);
 
       final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
