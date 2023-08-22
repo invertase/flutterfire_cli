@@ -108,7 +108,6 @@ class Reconfigure extends FlutterFireCommand {
       if (!serviceFilePathAbsolute.existsSync()) {
         serviceFilePathAbsolute.createSync(recursive: true);
       }
-      // std
       serviceFilePathAbsolute.writeAsStringSync(serviceFileContent);
     }
   }
@@ -311,15 +310,18 @@ class Reconfigure extends FlutterFireCommand {
     }
   }
 
-  Future<void> _writeFile(Future writeFileFuture, String name) async {
-    try {
-      await writeFileFuture;
-    } catch (e) {
-      throw Exception(
-        'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e',
-      );
-    }
+ Future<void> _writeFile(Future writeFileFuture, String name) async {
+  try {
+    await writeFileFuture;
+  } catch (e, stacktrace) {
+    // ignore: avoid_print
+    print(
+        'Failed to write $name. Please report this issue at:https://github.com/invertase/flutterfire_cli. Exception: $e');
+    // ignore: avoid_print
+    print(stacktrace); // print the original stacktrace for diagnostics
+    rethrow; // rethrow the original exception
   }
+}
 
   @override
   Future<void> run() async {
