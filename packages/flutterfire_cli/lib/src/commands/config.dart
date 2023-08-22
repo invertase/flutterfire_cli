@@ -508,8 +508,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (file.existsSync()) {
       if (argResults != null &&
-          (argResults!.arguments.isEmpty ||
-              argResults!.arguments.length == 1 && testAccessToken != null)) {
+          (argResults!.arguments.isEmpty || testAccessToken != null)) {
         // If arguments are null, user is probably trying to call `flutterfire reconfigure`
         final reuseFirebaseJsonValues = testingEnvironment ||
             promptBool(

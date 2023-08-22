@@ -42,7 +42,6 @@ const androidAppGradleUpdate = '''
 Future<String> createFlutterProject() async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
-
   await Process.run(
     'flutter',
     ['create', flutterProject],
