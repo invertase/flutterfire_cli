@@ -1066,7 +1066,7 @@ void main() {
       final firebaseOptions =
           p.join(projectPath!, 'lib', configurationFileName);
 
-      // check "firebase_options.dart" file was recreated in lib directory
+      // check "different_firebase_options.dart" file was recreated in lib directory
       final firebaseOptionsContent = await File(firebaseOptions).readAsString();
 
       final listOfStrings = firebaseOptionsContent.split('\n');
