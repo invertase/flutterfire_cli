@@ -123,17 +123,14 @@ AndroidInputs androidValidation({
 }
 
 DartConfigurationFileInputs dartConfigurationFileValidation({
-  String? configurationFilePath,
+  required String configurationFilePath,
   required String flutterAppPath,
   required bool overwrite,
 }) {
-  final validatedConfigurationFilePath = configurationFilePath == null
-      // Default service file path
-      ? path.join(flutterAppPath, 'lib', 'firebase_options.dart')
-      : getFirebaseConfigurationFile(
-          configurationFilePath: configurationFilePath,
-          flutterAppPath: flutterAppPath,
-        );
+  final validatedConfigurationFilePath = getFirebaseConfigurationFile(
+    configurationFilePath: configurationFilePath,
+    flutterAppPath: flutterAppPath,
+  );
   final writeConfigurationFile = overwrite ||
       promptWriteConfigurationFile(
         configurationFilePath: validatedConfigurationFilePath,

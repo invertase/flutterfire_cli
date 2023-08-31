@@ -1039,4 +1039,55 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+    'flutterfire configure: write Dart configuration file to different output',
+    () async {
+      const configurationFileName = 'different_firebase_options.dart';
+      // Set up  initial configuration
+      Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=com.example.flutterTestCli',
+          // Output to different file
+          '--out=lib/$configurationFileName',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      final firebaseOptions =
+          p.join(projectPath!, 'lib', configurationFileName);
+
+      // check "different_firebase_options.dart" file was recreated in lib directory
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      final listOfStrings = firebaseOptionsContent.split('\n');
+      expect(
+        listOfStrings,
+        containsAll(<Matcher>[
+          contains(appleAppId),
+          contains(appleBundleId),
+          contains(androidAppId),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+        ]),
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
+        isFalse,
+      );
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }
