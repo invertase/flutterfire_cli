@@ -128,9 +128,9 @@ DartConfigurationFileInputs dartConfigurationFileValidation({
   required bool overwrite,
 }) {
   final validatedConfigurationFilePath = getFirebaseConfigurationFile(
-          configurationFilePath: configurationFilePath,
-          flutterAppPath: flutterAppPath,
-        );
+    configurationFilePath: configurationFilePath,
+    flutterAppPath: flutterAppPath,
+  );
   final writeConfigurationFile = overwrite ||
       promptWriteConfigurationFile(
         configurationFilePath: validatedConfigurationFilePath,

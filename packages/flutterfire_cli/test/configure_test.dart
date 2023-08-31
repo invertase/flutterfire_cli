@@ -1063,11 +1063,9 @@ void main() {
         workingDirectory: projectPath,
       );
 
-
       final firebaseOptions =
           p.join(projectPath!, 'lib', configurationFileName);
 
-      
       // check "firebase_options.dart" file was recreated in lib directory
       final firebaseOptionsContent = await File(firebaseOptions).readAsString();
 
