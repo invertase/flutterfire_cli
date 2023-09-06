@@ -98,9 +98,19 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   );
 
   final jsonString = process.stdout.toString();
-  final commandResult = Map<String, dynamic>.from(
-    const JsonDecoder().convert(jsonString) as Map,
-  );
+
+  Map<String, dynamic> commandResult;
+
+  try {
+    commandResult = Map<String, dynamic>.from(
+      const JsonDecoder().convert(jsonString) as Map,
+    );
+  } catch (e) {
+    throw FirebaseCommandException(
+      execArgs.join(' '),
+      'Failed to parse JSON response from Firebase CLI. JSON response: $jsonString\n Error response: $e',
+    );
+  }
 
   if (process.exitCode > 0 || commandResult['status'] == 'error') {
     throw FirebaseCommandException(
