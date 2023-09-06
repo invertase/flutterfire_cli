@@ -190,7 +190,7 @@ void main() {
   test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
-      Process.runSync(
+     final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -213,6 +213,9 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      print('1111111111: ${result.stdout}');
+      print('2222222222: ${result.stderr}');
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
