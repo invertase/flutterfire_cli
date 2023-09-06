@@ -15,6 +15,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -86,7 +87,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     if (account != null) '--account=$account',
   ];
 
-  final process = await Process.run(
+  final process = await Process.start(
     'firebase',
     execArgs,
     workingDirectory: workingDirectoryPath,
@@ -97,7 +98,20 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     runInShell: true,
   );
 
-  final jsonString = process.stdout.toString();
+  final outputCompleter = Completer<String>();
+  final output = StringBuffer();
+
+  process.stdout.transform(utf8.decoder).listen(
+    output.write,
+    onError: (e) {
+      outputCompleter.completeError(e);
+    },
+    onDone: () {
+      outputCompleter.complete(output.toString());
+    },
+  );
+
+  final jsonString = await outputCompleter.future;
 
   Map<String, dynamic> commandResult;
 
@@ -112,7 +126,9 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     );
   }
 
-  if (process.exitCode > 0 || commandResult['status'] == 'error') {
+  final exitCode = await process.exitCode;
+
+  if (exitCode > 0 || commandResult['status'] == 'error') {
     throw FirebaseCommandException(
       execArgs.join(' '),
       commandResult['error'] as String,
