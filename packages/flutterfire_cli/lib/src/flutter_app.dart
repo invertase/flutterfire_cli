@@ -48,6 +48,17 @@ class FlutterApp {
   // Cached Android package name if available.
   String? _androidApplicationId;
 
+  // ios Xcode package name. Default 'Runner'
+  String? _iosXcodeProjectName;
+
+  String get iosXcodeProjectName {
+    return _iosXcodeProjectName ?? 'Runner';
+  }
+
+  set iosXcodeProjectName(String name) {
+    _iosXcodeProjectName = name;
+  }
+
   // Cached iOS bundle identifier if available.
   String? _iosBundleId;
 
@@ -56,7 +67,19 @@ class FlutterApp {
     if (_iosBundleId != null) {
       return _iosBundleId;
     }
-    return _iosBundleId = _readBundleIdForPlatform(kIos);
+
+    return _iosBundleId = _readBundleIdForPlatform(kIos, iosXcodeProjectName);
+  }
+
+  // ios Xcode package name. Default 'Runner'
+  String? _macosXcodeProjectName;
+
+  String get macosXcodeProjectName {
+    return _macosXcodeProjectName ?? 'Runner';
+  }
+
+  set macosXcodeProjectName(String name) {
+    _macosXcodeProjectName = name;
   }
 
   // Cached macOS bundle identifier if available.
@@ -67,20 +90,18 @@ class FlutterApp {
     if (_macosBundleId != null) {
       return _macosBundleId;
     }
-    return _macosBundleId = _readBundleIdForPlatform(kMacos);
+    return _macosBundleId = _readBundleIdForPlatform(kMacos, macosXcodeProjectName);
   }
 
-  String? _readBundleIdForPlatform(String platform) {
-    final xcodeProjFile =
-        xcodeProjectFileInDirectory(Directory(package.path), platform);
-    final xcodeAppInfoConfigFile =
-        xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
+  String? _readBundleIdForPlatform(String platform, String xCodeProjectName) {
+    final xcodeProjFile = xcodeProjectFileInDirectory(Directory(package.path), platform, xCodeProjectName);
+    final xcodeAppInfoConfigFile = xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform, xCodeProjectName);
     final bundleIdRegex = RegExp(
       r'''^[\s]*PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+)[;]*$''',
       multiLine: true,
     );
 
-    if (xcodeProjFile.existsSync()) {
+    if (xcodeProjFile.existsSync() && platform == kIos) {
       final fileContents = xcodeProjFile.readAsStringSync();
       // TODO there can be multiple matches, e.g. build variants,
       //      perhaps we should build a set and prompt for a choice?
@@ -155,8 +176,7 @@ class FlutterApp {
 
   /// Returns whether the package depends on the given package.
   bool dependsOnPackage(String packageName) {
-    return package.dependencies.contains(packageName) ||
-        package.devDependencies.contains(packageName);
+    return package.dependencies.contains(packageName) || package.devDependencies.contains(packageName);
   }
 
   /// Returns whether this Flutter app can run on Android.
@@ -227,12 +247,7 @@ class FlutterApp {
 
   Directory _platformDirectory(String platform) {
     assert(
-      platform == kIos ||
-          platform == kAndroid ||
-          platform == kWeb ||
-          platform == kMacos ||
-          platform == kWindows ||
-          platform == kLinux,
+      platform == kIos || platform == kAndroid || platform == kWeb || platform == kMacos || platform == kWindows || platform == kLinux,
     );
     return Directory(
       '${package.path}${currentPlatform.pathSeparator}$platform',

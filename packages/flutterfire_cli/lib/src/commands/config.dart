@@ -62,6 +62,13 @@ class ConfigCommand extends FlutterFireCommand {
           'as a comma separated list. For example "android,ios,macos,web,linux,windows".',
     );
     argParser.addOption(
+      'ios-xc-project-name',
+      defaultsTo: 'Runner',
+      valueHelp: 'projectName',
+      mandatory: isCI,
+      help: 'The Xcode project name of your iOS app, e.g. "MyApp". ',
+    );
+    argParser.addOption(
       'ios-bundle-id',
       valueHelp: 'bundleIdentifier',
       mandatory: isCI,
@@ -69,6 +76,13 @@ class ConfigCommand extends FlutterFireCommand {
       help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
           'automatically detect it from your "ios" folder (if it exists).',
+    );
+    argParser.addOption(
+      'macos-xc-project-name',
+      defaultsTo: 'Runner',
+      valueHelp: 'projectName',
+      mandatory: isCI,
+      help: 'The Xcode project name of your macOS app, e.g. "MyApp". ',
     );
     argParser.addOption(
       'macos-bundle-id',
@@ -205,6 +219,11 @@ class ConfigCommand extends FlutterFireCommand {
     return value;
   }
 
+  String get iosXcodeProjectName {
+    final value = argResults?['ios-xc-project-name'] as String?;
+    return value ?? 'Runner';
+  }
+
   String? get webAppId {
     final value = argResults!['web-app-id'] as String?;
 
@@ -223,6 +242,11 @@ class ConfigCommand extends FlutterFireCommand {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
     return value;
+  }
+
+  String get macosXcodeProjectName {
+    final value = argResults!['macos-xc-project-name'] as String?;
+    return value ?? 'Runner';
   }
 
   String? get token {
@@ -407,6 +431,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     FirebaseOptions? iosOptions;
     if (selectedPlatforms[kIos]!) {
+      flutterApp?.iosXcodeProjectName = iosXcodeProjectName;
       iosOptions = await FirebaseAppleOptions.forFlutterApp(
         flutterApp!,
         appleBundleIdentifier: iosBundleId,
@@ -418,6 +443,7 @@ class ConfigCommand extends FlutterFireCommand {
 
     FirebaseOptions? macosOptions;
     if (selectedPlatforms[kMacos]!) {
+      flutterApp?.macosXcodeProjectName = macosXcodeProjectName;
       macosOptions = await FirebaseAppleOptions.forFlutterApp(
         flutterApp!,
         appleBundleIdentifier: macosBundleId,
@@ -524,11 +550,11 @@ class ConfigCommand extends FlutterFireCommand {
         await file.writeAsString(iosOptions.optionsSourceContent);
       }
 
-      final xcodeProjFilePath =
-          path.join(flutterApp!.iosDirectory.path, 'Runner.xcodeproj');
+      final xcodeProjFilePath = path.join(
+          flutterApp!.iosDirectory.path, '$iosXcodeProjectName.xcodeproj');
 
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+      final rubyScript = generateRubyScript(
+          googleServiceInfoFile, xcodeProjFilePath, iosXcodeProjectName);
 
       if (Platform.isMacOS) {
         final result = await Process.run('ruby', [
@@ -554,11 +580,11 @@ class ConfigCommand extends FlutterFireCommand {
         await file.writeAsString(macosOptions.optionsSourceContent);
       }
 
-      final xcodeProjFilePath =
-          path.join(flutterApp!.macosDirectory.path, 'Runner.xcodeproj');
+      final xcodeProjFilePath = path.join(
+          flutterApp!.macosDirectory.path, '$macosXcodeProjectName.xcodeproj');
 
-      final rubyScript =
-          generateRubyScript(googleServiceInfoFile, xcodeProjFilePath);
+      final rubyScript = generateRubyScript(
+          googleServiceInfoFile, xcodeProjFilePath, macosXcodeProjectName);
 
       if (Platform.isMacOS) {
         final result = await Process.run('ruby', [

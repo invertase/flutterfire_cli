@@ -173,18 +173,20 @@ String androidAppBuildGradlePathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle']);
 }
 
-File xcodeProjectFileInDirectory(Directory directory, String platform) {
+File xcodeProjectFileInDirectory(
+    Directory directory, String platform, String xcProjectName) {
   return File(
     joinAll(
-      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
+      [directory.path, platform, '$xcProjectName.xcodeproj', 'project.pbxproj'],
     ),
   );
 }
 
-File xcodeAppInfoConfigFileInDirectory(Directory directory, String platform) {
+File xcodeAppInfoConfigFileInDirectory(
+    Directory directory, String platform, String xcProjectName) {
   return File(
     joinAll(
-      [directory.path, platform, 'Runner', 'Configs', 'AppInfo.xcconfig'],
+      [directory.path, platform, xcProjectName, 'Configs', 'AppInfo.xcconfig'],
     ),
   );
 }
@@ -212,11 +214,13 @@ String relativePath(String path, String from) {
 String generateRubyScript(
   String googleServiceInfoFile,
   String xcodeProjFilePath,
+  String xcodeProjectName,
 ) {
   return '''
 require 'xcodeproj'
 googleFile='$googleServiceInfoFile'
 xcodeFile='$xcodeProjFilePath'
+xcodeProjectName='$xcodeProjectName'
 
 # define the path to your .xcodeproj file
 project_path = xcodeFile
@@ -235,14 +239,14 @@ end
 # Write only if config doesn't exist
 if googleConfigExists == false
   file = project.new_file(googleFile)
-  main_target = project.targets.find { |target| target.name == 'Runner' }
+  main_target = project.targets.find { |target| target.name == xcodeProjectName }
   
   if(main_target)
     main_target.add_resources([file])
     project.save
   else
-    abort("Could not find target 'Runner' in your Xcode workspace. Please rename your target to 'Runner' and try again.")
-  end  
+      abort("Could not find target '$xcodeProjectName' in your Xcode workspace. Please rename your target to '$xcodeProjectName' and try again.")
+    end  
 end
 ''';
 }
