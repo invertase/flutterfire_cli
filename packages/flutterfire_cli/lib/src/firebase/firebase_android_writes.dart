@@ -32,7 +32,7 @@ final _androidAppBuildGradleGoogleServicesRegex = RegExp(
 const _googleServicesPluginClass = 'com.google.gms:google-services';
 const _googleServicesPluginName = 'com.google.gms.google-services';
 // TODO read from firebase_core pubspec.yaml firebase.google_services_gradle_plugin_version
-const _googleServicesPluginVersion = '4.3.10';
+const _googleServicesPluginVersion = '4.3.15';
 const _googleServicesPlugin =
     "classpath '$_googleServicesPluginClass:$_googleServicesPluginVersion'";
 

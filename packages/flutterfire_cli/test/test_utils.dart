@@ -29,7 +29,7 @@ const appleGcmSenderId = '262904632156';
 
 const androidGradleUpdate = '''
         // START: FlutterFire Configuration
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.gms:google-services:4.3.15'
         // END: FlutterFire Configuration
 ''';
 
