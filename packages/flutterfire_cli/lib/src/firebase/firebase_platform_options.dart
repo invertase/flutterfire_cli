@@ -38,6 +38,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? iosBundleId,
   String? macosBundleId,
   String? token,
+  String? serviceAccount,
 }) async {
   FirebaseOptions? androidOptions;
   FirebaseOptions? iosOptions;
@@ -53,6 +54,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseProjectId: firebaseProjectId,
       firebaseAccount: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
 
@@ -63,6 +65,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseProjectId: firebaseProjectId,
       firebaseAccount: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
   if (macos) {
@@ -73,6 +76,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       macos: true,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
 
@@ -83,6 +87,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       webAppId: webAppId,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
 
@@ -93,6 +98,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       platform: kWindows,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
 
@@ -103,6 +109,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       platform: kLinux,
       token: token,
+      serviceAccount: serviceAccount,
     );
   }
 

@@ -31,6 +31,7 @@ extension FirebaseDartOptions on FirebaseOptions {
     String? webAppId,
     String platform = kWeb,
     required String? token,
+    required String? serviceAccount,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       displayName: flutterApp.package.pubSpec.name ?? 'flutterfire_app',
@@ -38,6 +39,7 @@ extension FirebaseDartOptions on FirebaseOptions {
       project: firebaseProjectId,
       account: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
       webAppId: webAppId,
     );
     final appSdkConfig = await firebase.getAppSdkConfig(
@@ -45,6 +47,7 @@ extension FirebaseDartOptions on FirebaseOptions {
       platform: kWeb,
       account: firebaseAccount,
       token: token,
+      serviceAccount: serviceAccount,
     );
 
     return convertConfigToOptions(appSdkConfig, firebaseProjectId);
