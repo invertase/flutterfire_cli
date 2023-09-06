@@ -90,10 +90,10 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     'firebase',
     execArgs,
     workingDirectory: workingDirectoryPath,
-    // environment: {
-    //   if (serviceAccount != null)
-    //     'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
-    // },
+    environment: {
+      if (serviceAccount != null)
+        'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
+    },
     runInShell: true,
   );
 
