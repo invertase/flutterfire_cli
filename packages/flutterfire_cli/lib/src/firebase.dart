@@ -80,11 +80,15 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     );
   }
   final workingDirectoryPath = Directory.current.path;
+  final tempFile = await File('${Directory.systemTemp.path}/firebase_output.json').create();
+
   final execArgs = [
     ...commandAndArgs,
     '--json',
     if (project != null) '--project=$project',
     if (account != null) '--account=$account',
+    '>',  // This redirects the command's output
+    tempFile.path, 
   ];
 
   final process = await Process.start(
@@ -98,17 +102,12 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     runInShell: true,
   );
 
-  final outputFile = File('${Directory.systemTemp.path}/firebase_output.json');
-  final outputSink = outputFile.openWrite();
-
-  await process.stdout.pipe(outputSink);
   final exitCode = await process.exitCode;
-  await outputSink.flush();
-  await outputSink.close();
+  
 
-  final jsonString = await outputFile.readAsString();
+  final jsonString = await tempFile.readAsString();
 
-  await outputFile.delete();
+  await tempFile.delete();
 
   Map<String, dynamic> commandResult;
 
