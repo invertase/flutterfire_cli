@@ -27,8 +27,3 @@ dev_dependencies:
   test: ^1.24.3
 executables:
   flutterfire:
-
-false_secrets:
-  - /lib/src/firebase.dart
-  - /test/test_files/firebase_options.dart
-  - /test/test_utils.dart
