@@ -41,6 +41,10 @@ void main() {
       );
 
       if (result.exitCode != 0) {
+        if(result.stdout) {
+          // ignore: avoid_print
+          print(result.stdout);
+        }
         fail('FlutterFire CLI failure: ${result.stderr}');
       }
 
