@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-09-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.17`](#flutterfire_cli---v030-dev17)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.17`
+
+ - **REFACTOR**: internal update to names to be clear about their function. ([fb02d510](https://github.com/invertase/flutterfire_cli/commit/fb02d510a1181b0f7e325cea10a6f2057d2a1811))
+ - **FEAT**: check if user requires flutterfire reconfigure. ([c0bc462e](https://github.com/invertase/flutterfire_cli/commit/c0bc462ed96df9487874a4602f021990e1c0c698))
+ - **FEAT**: `flutterfire reconfigure` command. Pulls latest values for Firebase apps and rewrites service files. ([90f07261](https://github.com/invertase/flutterfire_cli/commit/90f072612edff32637f4cb664da791dd035eb996))
+ - **FEAT**: update implementation to make it more modular and easier to understand. ([6a61ccf5](https://github.com/invertase/flutterfire_cli/commit/6a61ccf55504d2da2b119954b3aaf3e5d63d751e))
+ - **FEAT**: automatically add debug symbols script by detecting crashlytics dependency. ([55c0cee9](https://github.com/invertase/flutterfire_cli/commit/55c0cee9262284adb3eb4e4a78d369df1c1076c8))
+ - **FEAT**: update "firebase.json" values for web, android and apple. Updated validation for service files for android & apple. ([dff23710](https://github.com/invertase/flutterfire_cli/commit/dff2371010959b9c713dd18d77e66c94a4fafb45))
+ - **FIX**: improve regex for finding gradle dependency. ([24d33f83](https://github.com/invertase/flutterfire_cli/commit/24d33f835cee02eed438df677966b91ce48dbe00))
+ - **FIX**: update google services version dependency for android. ([17680734](https://github.com/invertase/flutterfire_cli/commit/17680734582388e962fce32c5d8335faeb6600fe))
+ - **FIX**: Dart configuration output is respected if selected as argument. ([097b4109](https://github.com/invertase/flutterfire_cli/commit/097b4109374aeaf59799152277cbd2b99fb445a9))
+ - **FIX**: android app build.gradle has two ways to apply plugin. ([0bf6541c](https://github.com/invertase/flutterfire_cli/commit/0bf6541c210102e11d1ab04ec7363c894a422f5e))
+ - **FIX**: catch when project list command does not work. ([073ec67f](https://github.com/invertase/flutterfire_cli/commit/073ec67f58aefca5b7d682d35aaeb116f6c3eb8a))
+ - **FIX**: if web not selected as platform, breaking flutterfire configure command. ([117868d5](https://github.com/invertase/flutterfire_cli/commit/117868d50758ee02ba2b8fcac19624310ffc1f6c))
+ - **FIX**: remove absolute paths from run phase build script. ([4ba1e4e7](https://github.com/invertase/flutterfire_cli/commit/4ba1e4e78faa3866f3f491af63b891e3e52cf302))
+ - **FIX**: overwrite Apple service files if they exist already. ([da029d3a](https://github.com/invertase/flutterfire_cli/commit/da029d3a0a0a41cf2329027d090ccc5d1037a27e))
+
+
 ## 2023-02-24
 
 ### Changes
