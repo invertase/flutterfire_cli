@@ -24,7 +24,7 @@ void main() {
     () async {
       // the most basic 'flutterfire configure' command that can be run without command line prompts
       const defaultTarget = 'Runner';
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -39,6 +39,10 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      if (result.exitCode != 0) {
+        fail('FlutterFire CLI failure: ${result.stderr}');
+      }
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
