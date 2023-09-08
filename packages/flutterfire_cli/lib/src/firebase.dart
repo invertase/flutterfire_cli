@@ -98,20 +98,17 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     runInShell: true,
   );
 
-  final outputCompleter = Completer<String>();
-  final output = StringBuffer();
+  final outputFile = File('${Directory.systemTemp.path}/firebase_output.json');
+  final outputSink = outputFile.openWrite();
 
-  process.stdout.transform(utf8.decoder).listen(
-    output.write,
-    onError: (e) {
-      outputCompleter.completeError(e);
-    },
-    onDone: () {
-      outputCompleter.complete(output.toString());
-    },
-  );
+  await process.stdout.pipe(outputSink);
+  final exitCode = await process.exitCode;
+  await outputSink.flush();
+  await outputSink.close();
 
-  final jsonString = await outputCompleter.future;
+  final jsonString = await outputFile.readAsString();
+
+  await outputFile.delete();
 
   Map<String, dynamic> commandResult;
 
@@ -120,13 +117,12 @@ Future<Map<String, dynamic>> runFirebaseCommand(
       const JsonDecoder().convert(jsonString) as Map,
     );
   } catch (e) {
-    throw FirebaseCommandException(
-      execArgs.join(' '),
-      'Failed to parse JSON response from Firebase CLI. JSON response: $jsonString\n Error response: $e',
+    // ignore: avoid_print
+    print(
+      'Failed to parse JSON response from Firebase CLI. JSON response: $jsonString',
     );
+    rethrow;
   }
-
-  final exitCode = await process.exitCode;
 
   if (exitCode > 0 || commandResult['status'] == 'error') {
     throw FirebaseCommandException(
