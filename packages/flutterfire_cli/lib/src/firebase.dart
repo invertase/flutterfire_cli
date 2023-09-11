@@ -106,6 +106,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   
 
   final jsonString = await tempFile.readAsString();
+  stdout.write('JSON OUTPUT: $jsonString');
 
   await tempFile.delete();
 
