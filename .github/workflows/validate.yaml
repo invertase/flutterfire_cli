@@ -85,6 +85,7 @@ jobs:
         run: melos run test --no-select
         env:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
+      - run: echo hello > ${{ github.workspace }}/test_output.txt
       - name: Upload test output
         uses: actions/upload-artifact@v3
         with:
