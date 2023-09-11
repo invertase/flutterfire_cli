@@ -82,6 +82,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   
   final workingDirectoryPath = Directory.current.path;
   final execArgs = [
+    if(commandAndArgs.contains('projects:list')) 'unbuffer',
     ...commandAndArgs,
     '--json',
     if (project != null) '--project=$project',
