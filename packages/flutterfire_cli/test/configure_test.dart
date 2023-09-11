@@ -10,12 +10,13 @@ import 'reconfigure_test.dart';
 import 'test_utils.dart';
 
 final isGithubActions = Platform.environment['GITHUB_ACTIONS'];
+final workspace = Platform.environment['GITHUB_WORKSPACE'];
 
 bool firstRun = true;
 Future<void> outputCommand(ProcessResult result) async {
   if (firstRun) {
     final name = isGithubActions != null
-        ? 'test_output.txt'
+        ? '$workspace/test_output.txt'
         : '${p.current}/responses-success.txt';
     final responses = await File(name).create();
     // ignore: avoid_print
@@ -25,7 +26,7 @@ Future<void> outputCommand(ProcessResult result) async {
   }
   if (result.stdout != null) {
     final name = isGithubActions != null
-        ? 'test_output.txt'
+        ? '$workspace/test_output.txt'
         : '${p.current}/responses-success.txt';
     final responses = File(name);
     responses.writeAsStringSync(result.stdout as String);
@@ -33,7 +34,7 @@ Future<void> outputCommand(ProcessResult result) async {
 
   if (result.exitCode != 0) {
     final name = isGithubActions != null
-        ? 'test_output.txt'
+        ? '$workspace/test_output.txt'
         : '${p.current}/responses-failure.txt';
     final responses = File(name);
     responses.writeAsStringSync('TEST FAILURE');
