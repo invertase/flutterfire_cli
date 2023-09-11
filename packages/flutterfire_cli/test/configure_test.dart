@@ -11,7 +11,18 @@ import 'test_utils.dart';
 
 final isGithubActions = Platform.environment['GITHUB_ACTIONS'];
 
-void outputCommand(ProcessResult result) {
+bool firstRun = true;
+Future<void> outputCommand(ProcessResult result) async {
+  if (firstRun) {
+    final name = isGithubActions != null
+        ? 'test_output.txt'
+        : '${p.current}/responses-success.txt';
+    final responses = await File(name).create();
+    // ignore: avoid_print
+    print('FILENAME: $name');
+    responses.writeAsStringSync('first line');
+    firstRun = false;
+  }
   if (result.stdout != null) {
     final name = isGithubActions != null
         ? 'test_output.txt'
