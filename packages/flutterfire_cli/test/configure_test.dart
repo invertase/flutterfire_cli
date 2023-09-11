@@ -9,6 +9,29 @@ import 'package:test/test.dart';
 import 'reconfigure_test.dart';
 import 'test_utils.dart';
 
+final isGithubActions = Platform.environment['GITHUB_ACTIONS'];
+
+void outputCommand(ProcessResult result) {
+  if (result.stdout != null) {
+    final name = isGithubActions != null
+        ? 'test_output.txt'
+        : '${p.current}/responses-success.txt';
+    final responses = File(name);
+    responses.writeAsStringSync(result.stdout as String);
+  }
+
+  if (result.exitCode != 0) {
+    final name = isGithubActions != null
+        ? 'test_output.txt'
+        : '${p.current}/responses-failure.txt';
+    final responses = File(name);
+    responses.writeAsStringSync('TEST FAILURE');
+    responses.writeAsStringSync('STDOUT: ${result.stdout}');
+    responses.writeAsStringSync(result.stderr as String);
+    fail('FlutterFire CLI failure: ${result.stderr}');
+  }
+}
+
 void main() {
   String? projectPath;
   setUp(() async {
@@ -40,12 +63,7 @@ void main() {
         workingDirectory: projectPath,
       );
 
-      // ignore: avoid_print
-      print('FlutterFire STDOUT: ${result.stdout}');
-
-      if (result.exitCode != 0) {
-        fail('FlutterFire CLI failure: ${result.stderr}');
-      }
+      outputCommand(result);
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
@@ -197,7 +215,7 @@ void main() {
   test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -220,6 +238,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result);
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
@@ -381,7 +401,7 @@ void main() {
       const targetType = 'Runner';
       const applePath = 'staging/target';
       const androidBuildConfiguration = 'development';
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -404,6 +424,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result);
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
@@ -555,13 +577,15 @@ void main() {
   test(
     'Validate `flutterfire upload-crashlytics-symbols` script is included when `firebase_crashlytics` is a dependency',
     () {
-      Process.runSync(
+      final result = Process.runSync(
         'flutter',
         ['pub', 'add', 'firebase_crashlytics'],
         workingDirectory: projectPath,
       );
 
-      Process.runSync(
+      outputCommand(result);
+
+      final result1 = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -576,6 +600,9 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result1);
+
       final iosXcodeProject = p.join(
         projectPath!,
         kIos,
@@ -635,7 +662,7 @@ void main() {
     () async {
       const defaultTarget = 'Runner';
       // The initial configuration
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -651,8 +678,10 @@ void main() {
         workingDirectory: projectPath,
       );
 
+      outputCommand(result);
+
       // The second configuration with different bundle ids which we need to check
-      Process.runSync(
+      final result1 = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -667,6 +696,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result1);
 
       if (Platform.isMacOS) {
         // check Apple service files were created and have correct content
@@ -826,7 +857,7 @@ void main() {
     () async {
       const defaultTarget = 'Runner';
 
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -841,6 +872,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result);
 
       if (Platform.isMacOS) {
         // check iOS service files were created and have correct content
@@ -955,7 +988,7 @@ void main() {
     () async {
       const defaultTarget = 'Runner';
       // Set up  initial configuration
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -970,6 +1003,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result);
 
       // Now firebase.json file has been written, change values in service files to test they are rewritten
       if (Platform.isMacOS) {
@@ -997,7 +1032,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
-      Process.runSync(
+      final result1 = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -1006,6 +1041,8 @@ void main() {
         workingDirectory: projectPath,
         environment: {'TEST_ENVIRONMENT': 'true'},
       );
+
+      outputCommand(result);
 
       if (Platform.isMacOS) {
         // check iOS service file was recreated and has correct content
@@ -1052,7 +1089,7 @@ void main() {
     () async {
       const configurationFileName = 'different_firebase_options.dart';
       // Set up  initial configuration
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -1069,6 +1106,8 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      outputCommand(result);
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', configurationFileName);
