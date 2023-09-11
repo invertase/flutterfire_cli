@@ -83,7 +83,7 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
       - name: Upload test output
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-artifact
           path: test_output.txt
