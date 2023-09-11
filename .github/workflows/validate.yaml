@@ -82,6 +82,11 @@ jobs:
         run: melos run test --no-select
         env:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
+      - name: Upload test output
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-artifact
+          path: test_output.txt
   # Temporarily disabled windows test run until there is time and a machine to test this environment
   # test_windows:
   #   runs-on: windows-latest
