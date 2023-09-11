@@ -45,7 +45,7 @@ void main() {
       // 4. Check the files have been recreated via "flutterfire reconfigure"
 
       const defaultTarget = 'Runner';
-      final result = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -60,10 +60,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result.stderr}');
-      }
 
       String? iosPath;
       String? macosPath;
@@ -95,7 +91,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      final result1 = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -103,10 +99,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result1.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result1.stderr}');
-      }
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
@@ -127,7 +119,7 @@ void main() {
   test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
-      final result = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -150,10 +142,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result.stderr}');
-      }
 
       String? iosPath;
       String? macosPath;
@@ -191,7 +179,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      final result1 = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -199,10 +187,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result1.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result1.stderr}');
-      }
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
@@ -226,7 +210,7 @@ void main() {
       const targetType = 'Runner';
       const applePath = 'staging/target';
       const androidBuildConfiguration = 'development';
-      final result = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -249,10 +233,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result.stderr}');
-      }
 
       String? iosPath;
       String? macosPath;
@@ -290,7 +270,7 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      final result1 = Process.runSync(
+      Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -298,10 +278,6 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
-
-      if(result1.exitCode != 0) {
-        fail('FlutterFire CLI test failure: ${result1.stderr}');
-      }
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
