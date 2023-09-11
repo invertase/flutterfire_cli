@@ -72,6 +72,9 @@ jobs:
       - uses: bluefireteam/melos-action@v2
         with:
           melos-version: '3.0.0'
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools  
