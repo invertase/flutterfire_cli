@@ -175,7 +175,7 @@ class FirebaseAndroidWrites {
     androidBuildGradleFileContents = androidBuildGradleFileContents
         .replaceFirstMapped(_androidBuildGradleRegex, (match) {
       final indentation = match.group(1);
-      return '${match.group(0)}$indentation$_flutterFireConfigCommentStart$indentation$_googleServicesPlugin$indentation$_flutterFireConfigCommentEnd';
+      return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$_googleServicesPlugin\n$indentation$_flutterFireConfigCommentEnd';
     });
 
     if (!androidAppBuildGradleFileContents
