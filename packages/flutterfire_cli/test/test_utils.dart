@@ -55,11 +55,23 @@ Future<String> createFlutterProject() async {
 
 bool containsInOrder(String content, List<String> lines) {
   var lastIndex = 0;
+
   for (final line in lines) {
     final trimmedLine = line.trim();
+
+    if (lastIndex != 0 && content[lastIndex] != '\n') {
+      // Ensure we are at the start of a new line
+      lastIndex++;
+    }
+
     final foundIndex = content.indexOf(trimmedLine, lastIndex);
     if (foundIndex == -1) return false;
     lastIndex = foundIndex + trimmedLine.length;
+
+    // Check if the found line ends with a newline or the end of the content
+    if (lastIndex < content.length && content[lastIndex] != '\n') {
+      return false;
+    }
   }
   return true;
 }
