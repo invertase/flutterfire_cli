@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-09-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.18`](#flutterfire_cli---v030-dev18)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.18`
+
+ - **FIX**: ensure build.gradle content is written on new lines. ([b6ba072f](https://github.com/invertase/flutterfire_cli/commit/b6ba072fc8f361dbd7cdcc31a270d71cafd8489e))
+
+
 ## 2023-09-11
 
 ### Changes
