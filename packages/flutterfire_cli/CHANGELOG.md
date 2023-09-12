@@ -1,3 +1,7 @@
+## 0.3.0-dev.18
+
+ - **FIX**: ensure build.gradle content is written on new lines. ([b6ba072f](https://github.com/invertase/flutterfire_cli/commit/b6ba072fc8f361dbd7cdcc31a270d71cafd8489e))
+
 ## 0.3.0-dev.17
 
  - **REFACTOR**: internal update to names to be clear about their function. ([fb02d510](https://github.com/invertase/flutterfire_cli/commit/fb02d510a1181b0f7e325cea10a6f2057d2a1811))
