@@ -53,6 +53,17 @@ Future<String> createFlutterProject() async {
   return flutterProjectPath;
 }
 
+bool containsInOrder(String content, List<String> lines) {
+  var lastIndex = 0;
+  for (final line in lines) {
+    final trimmedLine = line.trim();
+    final foundIndex = content.indexOf(trimmedLine, lastIndex);
+    if (foundIndex == -1) return false;
+    lastIndex = foundIndex + trimmedLine.length;
+  }
+  return true;
+}
+
 String rubyScriptForTestingDefaultConfigure(
   String projectPath, {
   String targetName = 'Runner',

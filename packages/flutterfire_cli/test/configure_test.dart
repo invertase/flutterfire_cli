@@ -167,13 +167,18 @@ void main() {
       final androidAppBuildGradleContent =
           await File(androidAppBuildGradle).readAsString();
 
+      final buildGradleLines = androidGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
+        containsInOrder(androidBuildGradleContent, buildGradleLines),
+        isTrue,
       );
+
+      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidAppBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
+        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
+        isTrue,
       );
 
       // check "firebase_options.dart" file is created in lib directory
@@ -348,13 +353,18 @@ void main() {
       final androidAppBuildGradleContent =
           await File(androidAppBuildGradle).readAsString();
 
+      final buildGradleLines = androidGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
+        containsInOrder(androidBuildGradleContent, buildGradleLines),
+        isTrue,
       );
+
+      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidAppBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
+        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
+        isTrue,
       );
 
       // check "firebase_options.dart" file is created in lib directory
@@ -525,13 +535,18 @@ void main() {
       final androidAppBuildGradleContent =
           await File(androidAppBuildGradle).readAsString();
 
+      final buildGradleLines = androidGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidGradleUpdate)),
+        containsInOrder(androidBuildGradleContent, buildGradleLines),
+        isTrue,
       );
+
+      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
+
       expect(
-        removeWhitepaceAndNewLines(androidAppBuildGradleContent),
-        contains(removeWhitepaceAndNewLines(androidAppGradleUpdate)),
+        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
+        isTrue,
       );
 
       // check "firebase_options.dart" file is created in lib directory
