@@ -292,7 +292,15 @@ class ConfigCommand extends FlutterFireCommand {
   String? get iosBundleId {
     final value = argResults!['ios-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return value;
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for ios-bundle-id.',
+      );
+    }
+    return null;
   }
 
   String? get webAppId {
@@ -312,7 +320,15 @@ class ConfigCommand extends FlutterFireCommand {
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    return value;
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for macos-bundle-id.',
+      );
+    }
+    return null;
   }
 
   String? get token {
