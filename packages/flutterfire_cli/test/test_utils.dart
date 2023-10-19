@@ -349,24 +349,24 @@ void checkDartFirebaseJsonValues(
 }
 
 // Use this variable to debug the process run commands in the integration tests
-const kDebugProcess = false;
+// const kDebugProcess = false;
 
-void debugProcessRun(ProcessResult result, String name) {
+// void debugProcessRun(ProcessResult result, String name) {
 
-  if (!kDebugProcess) {
-    return;
-  }
-  // ignore: avoid_print
-  print('------------------------------------');
-  // ignore: avoid_print
-  print(name);
-  // ignore: avoid_print
-  print('ERROR CODE: ${result.exitCode}');
-  // ignore: avoid_print
-  print('STDOUT: ${result.stdout}');
-  // ignore: avoid_print
-  print('STDERR: ${result.stderr}');
-  // ignore: avoid_print
-  print('------------------------------------');
-}
+//   if (!kDebugProcess) {
+//     return;
+//   }
+//   // ignore: avoid_print
+//   print('------------------------------------');
+//   // ignore: avoid_print
+//   print(name);
+//   // ignore: avoid_print
+//   print('ERROR CODE: ${result.exitCode}');
+//   // ignore: avoid_print
+//   print('STDOUT: ${result.stdout}');
+//   // ignore: avoid_print
+//   print('STDERR: ${result.stderr}');
+//   // ignore: avoid_print
+//   print('------------------------------------');
+// }
 
