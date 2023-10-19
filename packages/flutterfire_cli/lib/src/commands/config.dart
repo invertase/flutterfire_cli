@@ -64,7 +64,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       kIosBundleIdFlag,
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'i',
       help: 'The bundle identifier of your iOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
@@ -73,7 +72,6 @@ class ConfigCommand extends FlutterFireCommand {
     argParser.addOption(
       kMacosBundleIdFlag,
       valueHelp: 'bundleIdentifier',
-      mandatory: isCI,
       abbr: 'm',
       help: 'The bundle identifier of your macOS app, e.g. "com.example.app". '
           'If no identifier is provided then an attempt will be made to '
