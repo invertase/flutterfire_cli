@@ -16,10 +16,10 @@ Future<void> run(HookContext context) async {
 }
 
 void _validatePluginList(HookContext context) {
-  final varsPlugins =
-      ((context.vars['plugins'] as List<dynamic>).cast<String>())
-          .map((e) => e.split(' ')[0])
-          .toList();
+  final varsPlugins = (context.vars['plugins'] as List<dynamic>)
+      .cast<String>()
+      .map((e) => e.split(' ')[0])
+      .toList();
   final setPlugins = varsPlugins.toSet().toList();
   if (setPlugins.length != varsPlugins.length) {
     context.logger.err(
@@ -35,7 +35,7 @@ void _injectInContext(HookContext context) {
   context.vars = <String, dynamic>{
     'analyticswithgorouter': false,
     'analyticswithnavigator': false,
-    ...context.vars
+    ...context.vars,
   };
   final varsPlugins = (context.vars['plugins'] as List<dynamic>).cast<String>();
   for (final element in varsPlugins) {

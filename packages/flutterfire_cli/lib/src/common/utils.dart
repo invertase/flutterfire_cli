@@ -68,6 +68,7 @@ const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
 const String kTokenFlag = 'token';
+const String kServiceAccountFlag = 'service-account';
 const String kAppleGradlePluginFlag = 'apply-gradle-plugins';
 const String kIosBuildConfigFlag = 'ios-build-config';
 const String kMacosBuildConfigFlag = 'macos-build-config';
@@ -77,6 +78,7 @@ const String kIosOutFlag = 'ios-out';
 const String kMacosOutFlag = 'macos-out';
 const String kAndroidOutFlag = 'android-out';
 const String kOverwriteFirebaseOptionsFlag = 'overwrite-firebase-options';
+const String kTestAccessTokenFlag = 'test-access-token';
 
 enum ProjectConfiguration {
   target,
@@ -300,7 +302,7 @@ String getProjectConfigurationProperty(
 
 Map<String, dynamic> _generateFlutterMap() {
   return <String, dynamic>{
-    kFlutter: {kPlatforms: <String, Object>{}}
+    kFlutter: {kPlatforms: <String, Object>{}},
   };
 }
 

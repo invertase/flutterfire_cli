@@ -27,6 +27,18 @@ const appleBundleId = 'com.example.flutterTestCli';
 const appleApiKey = 'AIzaSyBKopB-r1-sAAc99XLfZ71dURkLHab1AJE';
 const appleGcmSenderId = '262904632156';
 
+const androidGradleUpdate = '''
+        // START: FlutterFire Configuration
+        classpath 'com.google.gms:google-services:4.3.15'
+        // END: FlutterFire Configuration
+''';
+
+const androidAppGradleUpdate = '''
+        // START: FlutterFire Configuration
+        id 'com.google.gms.google-services'
+        // END: FlutterFire Configuration
+        ''';
+
 Future<String> createFlutterProject() async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
@@ -39,6 +51,29 @@ Future<String> createFlutterProject() async {
   final flutterProjectPath = p.join(tempDir.path, flutterProject);
 
   return flutterProjectPath;
+}
+
+bool containsInOrder(String content, List<String> lines) {
+  var lastIndex = 0;
+
+  for (final line in lines) {
+    final trimmedLine = line.trim();
+
+    if (lastIndex != 0 && content[lastIndex] != '\n') {
+      // Ensure we are at the start of a new line
+      lastIndex++;
+    }
+
+    final foundIndex = content.indexOf(trimmedLine, lastIndex);
+    if (foundIndex == -1) return false;
+    lastIndex = foundIndex + trimmedLine.length;
+
+    // Check if the found line ends with a newline or the end of the content
+    if (lastIndex < content.length && content[lastIndex] != '\n') {
+      return false;
+    }
+  }
+  return true;
 }
 
 String rubyScriptForTestingDefaultConfigure(
@@ -288,6 +323,10 @@ void checkDartFirebaseJsonValues(
   String? appleAppId = appleAppId,
   String? androidAppId = androidAppId,
   String? webAppId = webAppId,
+  bool checkIos = true,
+  bool checkMacos = true,
+  bool checkAndroid = true,
+  bool checkWeb = true,
 }) {
   final dartConfig = getNestedMap(decodedFirebaseJson, keysToMapDart);
   expect(dartConfig[kProjectId], firebaseProjectId);
@@ -295,8 +334,16 @@ void checkDartFirebaseJsonValues(
   final defaultConfigurations =
       dartConfig[kConfigurations] as Map<String, dynamic>;
 
-  expect(defaultConfigurations[kIos], appleAppId);
-  expect(defaultConfigurations[kMacos], appleAppId);
-  expect(defaultConfigurations[kAndroid], androidAppId);
-  expect(defaultConfigurations[kWeb], webAppId);
+  if (checkIos) {
+    expect(defaultConfigurations[kIos], appleAppId);
+  }
+  if (checkMacos) {
+    expect(defaultConfigurations[kMacos], appleAppId);
+  }
+  if (checkAndroid) {
+    expect(defaultConfigurations[kAndroid], androidAppId);
+  }
+  if (checkWeb) {
+    expect(defaultConfigurations[kWeb], webAppId);
+  }
 }

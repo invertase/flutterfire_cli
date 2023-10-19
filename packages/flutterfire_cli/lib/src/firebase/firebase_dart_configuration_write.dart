@@ -25,6 +25,7 @@ class FirebaseDartConfigurationWrite {
   FirebaseDartConfigurationWrite({
     required this.configurationFilePath,
     required this.flutterAppPath,
+    required this.firebaseProjectId,
     this.androidOptions,
     this.iosOptions,
     this.macosOptions,
@@ -36,6 +37,7 @@ class FirebaseDartConfigurationWrite {
   final StringBuffer _stringBuffer = StringBuffer();
   final String configurationFilePath;
   final String flutterAppPath;
+  final String firebaseProjectId;
 
   FirebaseOptions? webOptions;
 
@@ -91,7 +93,7 @@ class FirebaseDartConfigurationWrite {
 
     return FirebaseJsonWrites(
       pathToMap: keysToMap,
-      projectId: webOptions!.projectId,
+      projectId: firebaseProjectId,
       configurations: configurations,
     );
   }
@@ -126,7 +128,7 @@ class FirebaseDartConfigurationWrite {
       <String>[
         'class DefaultFirebaseOptions {',
         '  static FirebaseOptions get currentPlatform {',
-        ''
+        '',
       ],
       '\n',
     );
