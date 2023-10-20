@@ -645,7 +645,7 @@ class ConfigCommand extends FlutterFireCommand {
         logger: logger,
         androidServiceFilePath: androidInputs!.serviceFilePath,
         projectConfiguration: androidInputs!.projectConfiguration,
-      ).apply(force: isCI || yes);
+      ).apply();
 
       firebaseJsonWrites.add(firebaseJsonWrite);
     }

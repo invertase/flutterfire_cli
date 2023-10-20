@@ -152,9 +152,7 @@ class FirebaseAndroidWrites {
       _androidAppBuildGradleFileContents ??=
           androidAppBuildGradleFile.readAsStringSync();
 
-  Future<void> applyGoogleServicesPlugin({
-    bool force = false,
-  }) async {
+  Future<void> applyGoogleServicesPlugin() async {
     await createAndroidGoogleServicesJsonFile();
 
     await androidGoogleServicesJsonFile.writeAsString(
@@ -260,9 +258,7 @@ class FirebaseAndroidWrites {
     });
   }
 
-  Future<void> applyCrashlyticsPlugin({
-    bool force = false,
-  }) async {
+  Future<void> applyCrashlyticsPlugin() async {
     if (!flutterApp.dependsOnPackage('firebase_crashlytics')) {
       // Skip since user doesn't have the plugin installed.
       return;
@@ -274,9 +270,7 @@ class FirebaseAndroidWrites {
     );
   }
 
-  Future<void> applyPerformancePlugin({
-    bool force = false,
-  }) async {
+  Future<void> applyPerformancePlugin() async {
     if (!flutterApp.dependsOnPackage('firebase_performance')) {
       // Skip since user doesn't have the plugin installed.
       return;
@@ -288,12 +282,10 @@ class FirebaseAndroidWrites {
     );
   }
 
-  Future<FirebaseJsonWrites> apply({
-    bool force = false,
-  }) async {
-    await applyGoogleServicesPlugin(force: force);
-    await applyCrashlyticsPlugin(force: force);
-    await applyPerformancePlugin(force: force);
+  Future<FirebaseJsonWrites> apply() async {
+    await applyGoogleServicesPlugin();
+    await applyCrashlyticsPlugin();
+    await applyPerformancePlugin();
 
     // WRITE <app>/android/build.gradle
     await androidBuildGradleFile.writeAsString(androidBuildGradleFileContents);
