@@ -80,8 +80,11 @@ class FlutterApp {
       multiLine: true,
     );
 
-    if (xcodeProjFile.existsSync()) {
-      final fileContents = xcodeProjFile.readAsStringSync();
+    // Check AppInfo.xcconfig file first. It doesn't exist for iOS, but macOS has it with correct value.
+    // macOS project.pbxproj file contains incorrect PRODUCT_BUNDLE_IDENTIFIER value (e.g. some.project.RunnerTests).
+    // iOS will skip this check and will use project.pbxproj file.
+    if (xcodeAppInfoConfigFile.existsSync()) {
+      final fileContents = xcodeAppInfoConfigFile.readAsStringSync();
       // TODO there can be multiple matches, e.g. build variants,
       //      perhaps we should build a set and prompt for a choice?
       final match = bundleIdRegex.firstMatch(fileContents);
@@ -90,8 +93,8 @@ class FlutterApp {
       }
     }
 
-    if (xcodeAppInfoConfigFile.existsSync()) {
-      final fileContents = xcodeAppInfoConfigFile.readAsStringSync();
+    if (xcodeProjFile.existsSync()) {
+      final fileContents = xcodeProjFile.readAsStringSync();
       // TODO there can be multiple matches, e.g. build variants,
       //      perhaps we should build a set and prompt for a choice?
       final match = bundleIdRegex.firstMatch(fileContents);
