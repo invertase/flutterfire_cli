@@ -37,7 +37,7 @@ flutterfire --help
 dart pub global activate flutterfire_cli
 ```
 
-## Documentation
+## Documentation for `v0.3.0-dev.18`
 
 ### Default setup
 
