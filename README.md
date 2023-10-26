@@ -215,9 +215,9 @@ flutterfire reconfigure
 ```
 It will rewrite all your service files in place and your Dart initialization file. It does this by using the `firebase.json` to track each of your configurations to update the service file at the correct location.
 
-### Further recommendation
+### Further recommendations
 - Use the Firebase service files for android (`google-services.json`), iOS & macOS (`GoogleService-Info.plist`). [See this comment](https://github.com/invertase/flutterfire_cli/issues/14#issuecomment-1270781026) for further information why we don't recommend Dart initialization for these platforms.
-
+- Do not update your `Runner` target name for Apple platform when using `build configuration` set up. We do not currently support it.
 ---
 
 <p align="center">
