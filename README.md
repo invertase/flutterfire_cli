@@ -99,7 +99,7 @@ flutterfire configure --platforms=macos --macos-bundle-id=your.bundle.id --macos
 
 ##### target configuration
 
-A more advance configuration for developers more experienced with Xcode development would be to utilize multiple targets for their Flutter Apple platform setup. By default, a Flutter app comes with only one target - `Runner`. Once again, it does not matter where you write the `GoogleService-Info.plist` for target configuration. Let's imagine you have created a target for release and called it `ReleaseRunner`. Here is how to setup your Flutter Apple platform with target configuration: 
+A more advanced configuration for developers more experienced with Xcode development would be to utilize multiple targets for their Flutter Apple platform setup. By default, a Flutter app comes with only one target - `Runner`. Once again, it does not matter where you write the `GoogleService-Info.plist` for target configuration. Let's imagine you have created a target for release and called it `ReleaseRunner`. Here is how to setup your Flutter Apple platform with target configuration: 
 
 for iOS:
 ```
@@ -146,7 +146,8 @@ Future<void> main() async {
 ```
 
 ### Default Flutter app 
-A default Flutter app out of the box has three different build modes; debug, profile and release. If you wished, you can create a Firebase app for each one. 
+
+A default Flutter app out of the box has three different build modes; debug, profile and release. If you wish, you can create a Firebase app for each one. 
 
 Imagine you want a debug Firebase app configured for iOS, macOS, android & web, you could run the following:
 
@@ -206,6 +207,7 @@ buildTypes {
 If you require further granular builds i.e. build flavors, you can refer to [this article](https://codewithandrea.com/articles/flutter-flavors-for-firebase-apps/) which demonstrates how to configure different build flavors using [VGV CLI](https://github.com/VeryGoodOpenSource/very_good_cli) to create a Flutter app that has build flavors out of the box. 
 
 ### Flutterfire reconfigure
+
 There is another command that you might want to run each time you configure your project with another Firebase product. For example, if you configure Real time database for your Firebase project, you will be required to reinstall every service file for each platform. By running,
 
 ```
