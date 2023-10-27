@@ -45,12 +45,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBkBG7WezXYWiQqeMpxBLt7rMoz6itOTyw',
-    appId: '1:262904632156:web:22fdf07f28e76b062f2799',
+    appId: '1:262904632156:web:b4a12a4ae43da5e42f2799',
     messagingSenderId: '262904632156',
     projectId: 'flutterfire-cli-test-f6f57',
     authDomain: 'flutterfire-cli-test-f6f57.firebaseapp.com',
     storageBucket: 'flutterfire-cli-test-f6f57.appspot.com',
-    measurementId: 'G-QVLFZKWZDS',
+    measurementId: 'G-NXRGDGCTBE',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

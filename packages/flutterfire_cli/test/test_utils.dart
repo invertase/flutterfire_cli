@@ -10,12 +10,12 @@ const firebaseProjectId = 'flutterfire-cli-test-f6f57';
 const testFileDirectory = 'test_files';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
-const webAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
+const webAppId = '1:262904632156:web:b4a12a4ae43da5e42f2799';
 
 // Secondary App Ids
 const secondAppleAppId = '1:262904632156:ios:1de2ea53918d5e802f2799';
 const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
-const secondWebAppId = '1:262904632156:web:22fdf07f28e76b062f2799';
+const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
 
