@@ -289,33 +289,49 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     token: token,
     serviceAccount: serviceAccount,
   );
-  var filteredFirebaseApps = unfilteredFirebaseApps.where(
-    (firebaseApp) {
-      if (packageNameOrBundleIdentifier != null) {
-        return firebaseApp.packageNameOrBundleIdentifier ==
-                packageNameOrBundleIdentifier &&
-            firebaseApp.platform == platformFirebase;
-      }
-      // Web has no package name or bundle identifier so we try match on
-      // our generated display name.
-      return firebaseApp.displayName == displayNameWithPlatform;
-    },
-  );
 
-  // Try find any web app for web only. For Windows and Linux we
-  // explicitly search via name only above so that named web app instances are
-  // created for these platforms.
-  if (platform == kWeb && filteredFirebaseApps.isEmpty) {
+  Iterable<FirebaseApp> filteredFirebaseApps;
+
+  if (platform == kWeb) {
+    if (webAppId != null) {
+      // If webAppId provided, find it, otherwise throw Exception that it doesn't exist
+      final webApp = unfilteredFirebaseApps.firstWhere(
+        (firebaseApp) => firebaseApp.appId == webAppId,
+        orElse: () {
+          fetchingAppsSpinner.done();
+          throw Exception(
+            'The web-app-id: $webAppId provided does not match the web app id of any existing Firebase app.',
+          );
+        },
+      );
+      foundFirebaseApp = true;
+      fetchingAppsSpinner.done();
+      return webApp;
+    }
+    // Try find any web app for web only. For Windows and Linux we
+    // explicitly search via name only above so that named web app instances are
+    // created for these platforms.
     filteredFirebaseApps = unfilteredFirebaseApps.where(
       (firebaseApp) {
-        if (webAppId != null) {
-          return firebaseApp.appId == webAppId && firebaseApp.platform == kWeb;
+        if (firebaseApp.displayName == displayNameWithPlatform) {
+          return true;
         }
-
         return firebaseApp.platform == kWeb;
       },
     );
+  } else {
+    filteredFirebaseApps = unfilteredFirebaseApps.where(
+      (firebaseApp) {
+        if (packageNameOrBundleIdentifier != null) {
+          return firebaseApp.packageNameOrBundleIdentifier ==
+                  packageNameOrBundleIdentifier &&
+              firebaseApp.platform == platformFirebase;
+        }
+        return false;
+      },
+    );
   }
+
   foundFirebaseApp = filteredFirebaseApps.isNotEmpty;
   fetchingAppsSpinner.done();
   if (foundFirebaseApp) {
