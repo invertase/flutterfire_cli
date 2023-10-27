@@ -30,12 +30,6 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -213,12 +207,6 @@ void main() {
           '--ios-build-config=$appleBuildConfiguration',
           '--macos-out=macos/$buildType',
           '--macos-build-config=$appleBuildConfiguration',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -406,12 +394,6 @@ void main() {
           '--ios-target=$targetType',
           '--macos-out=macos/$applePath',
           '--macos-target=$targetType',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -591,12 +573,6 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -670,12 +646,6 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -696,7 +666,7 @@ void main() {
           '--ios-bundle-id=com.example.secondApp',
           '--android-package-name=com.example.second_app',
           '--macos-bundle-id=com.example.secondApp',
-          '--web-app-id=com.example.secondApp',
+          '--web-app-id=$secondWebAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -869,12 +839,6 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -1004,10 +968,6 @@ void main() {
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--platforms=android,ios',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -1109,10 +1069,6 @@ void main() {
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--platforms=android,ios',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
           // Output to different file
           '--out=lib/$configurationFileName',
         ],
@@ -1150,4 +1106,53 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test('flutterfire configure: incorrect `--web-app-id` should throw exception',
+      () async {
+
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--platforms=web',
+        '--web-app-id=a-non-existent-web-app-id',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode != 0, isTrue);
+    expect(
+      (result.stderr as String).contains(
+        'does not match the web app id of any existing Firebase app',
+      ),
+      isTrue,
+    );
+  });
+
+  test(
+      'flutterfire configure: get correct Firebase App with manually created Firebase web app via `--web-app-id`',
+      () async {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--platforms=web',
+        '--web-app-id=$secondWebAppId',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode, 0);
+    // Console out put looks like this on success: "web       1:262904632156:web:cb3a00412ed430ca2f2799"
+    expect(
+      (result.stdout as String).contains(
+        'web       $secondWebAppId',
+      ),
+      isTrue,
+    );
+  });
 }
