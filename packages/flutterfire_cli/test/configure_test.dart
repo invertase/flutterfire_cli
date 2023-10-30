@@ -739,6 +739,7 @@ void main() {
           keysToMapDart,
           androidAppId: secondAndroidAppId,
           appleAppId: secondAppleAppId,
+          webAppId: secondWebAppId,
         );
 
         // check GoogleService-Info.plist file is included & debug symbols script (until firebase crashlytics is a dependency) is not included in Apple "project.pbxproj" files
@@ -838,6 +839,7 @@ void main() {
         [
           'configure',
           '--yes',
+          '--platforms=ios,android',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -1109,7 +1111,6 @@ void main() {
 
   test('flutterfire configure: incorrect `--web-app-id` should throw exception',
       () async {
-
     final result = Process.runSync(
       'flutterfire',
       [
