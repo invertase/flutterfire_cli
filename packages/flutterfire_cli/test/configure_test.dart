@@ -1167,8 +1167,6 @@ void main() {
       workingDirectory: projectPath,
     );
 
-    print('1111 ${result.stderr}');
-    print('2222 ${result.stdout}');
     expect(result.exitCode != 0, isTrue);
     expect(
       (result.stderr as String).contains(
@@ -1196,8 +1194,7 @@ void main() {
       ],
       workingDirectory: projectPath,
     );
-    print('1111 ${result.stderr}');
-    print('2222 ${result.stdout}');
+
     expect(result.exitCode, 0);
     // Console out put looks like this on success: "web       1:262904632156:web:cb3a00412ed430ca2f2799"
     expect(
