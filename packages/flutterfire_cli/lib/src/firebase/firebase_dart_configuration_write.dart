@@ -53,13 +53,108 @@ class FirebaseDartConfigurationWrite {
 
   FirebaseJsonWrites write() {
     final outputFile = File(configurationFilePath);
-    _writeHeader();
-    _writeClass();
+    if (outputFile.existsSync()) {
+      final updatedFileString = _updateExistingConfigurationFile(
+        outputFile,
+      );
+      outputFile.writeAsStringSync(updatedFileString);
+    } else {
+      _writeHeader();
+      _writeClass();
 
-    outputFile.createSync(recursive: true);
-    outputFile.writeAsStringSync(_stringBuffer.toString());
+      outputFile.createSync(recursive: true);
+      outputFile.writeAsStringSync(_stringBuffer.toString());
+    }
 
     return _firebaseJsonWrites();
+  }
+
+  String _updateExistingConfigurationFile(
+    File outputFile,
+  ) {
+    final fileConfigurationLines = outputFile.readAsLinesSync();
+
+    final optionsList = [
+      {'options': webOptions, 'platform': kWeb},
+      {'options': macosOptions, 'platform': kMacos},
+      {'options': iosOptions, 'platform': kIos},
+      {'options': androidOptions, 'platform': kAndroid},
+      {'options': windowsOptions, 'platform': kWindows},
+      {'options': linuxOptions, 'platform': kLinux},
+    ];
+
+    for (var i = 0; i < optionsList.length; i++) {
+      final map = optionsList[i];
+      final options = map['options'] as FirebaseOptions?;
+      final platform = map['platform']! as String;
+
+      // Stop this iteration if the FirebaseOptions are null for that platform
+      if (options == null) continue;
+
+      final configExists = fileConfigurationLines.any(
+        (line) => line.contains('static const FirebaseOptions $platform'),
+      );
+      if (configExists) {
+        // find the indexes for start/end of existing platform configuration
+        final startIndex = fileConfigurationLines.indexWhere(
+          (line) => line.contains(
+            'static const FirebaseOptions $platform',
+          ),
+        );
+        final endIndex = fileConfigurationLines.indexWhere(
+          (line) => line.contains(');'),
+          startIndex,
+        );
+
+        fileConfigurationLines.removeRange(startIndex, endIndex + 1);
+
+        // Insert the new platform configuration
+        fileConfigurationLines.insertAll(
+          startIndex,
+          _buildFirebaseOptions(options, platform),
+        );
+      } else {
+        // remove `UnsupportedError` and write static const FirebaseOptions $platform
+        late int unsupportedErrorLine;
+        for (var i = 0; i < fileConfigurationLines.length; i++) {
+          if (fileConfigurationLines[i]
+              .contains('case TargetPlatform.$platform:')) {
+            unsupportedErrorLine = i + 1;
+            break;
+          }
+        }
+
+        if (fileConfigurationLines[unsupportedErrorLine]
+            .contains('UnsupportedError')) {
+          // remove `UnsupportedError` exception & the return the static property for the platform
+          fileConfigurationLines[unsupportedErrorLine] = 'return $platform';
+        } else {
+          throw Exception('`UnsupportedError` not found in $platform');
+        }
+
+        final insertIndex = fileConfigurationLines.lastIndexOf('}');
+
+        // write the static property for the platform
+        fileConfigurationLines.insertAll(
+          insertIndex,
+          _buildFirebaseOptions(options, platform),
+        );
+      }
+    }
+
+    return fileConfigurationLines.join('\n');
+  }
+
+  List<String> _buildFirebaseOptions(FirebaseOptions options, String platform) {
+    return <String>[
+      '',
+      '  static const FirebaseOptions $platform = FirebaseOptions(',
+      ...options.asMap.entries
+          .where((entry) => entry.value != null)
+          .map((entry) => "    ${entry.key}: '${entry.value}',"),
+      '  );', // FirebaseOptions
+      '',
+    ];
   }
 
   FirebaseJsonWrites _firebaseJsonWrites() {
@@ -161,15 +256,7 @@ class FirebaseDartConfigurationWrite {
   void _writeFirebaseOptionsStatic(String platform, FirebaseOptions? options) {
     if (options == null) return;
     _stringBuffer.writeAll(
-      <String>[
-        '',
-        '  static const FirebaseOptions $platform = FirebaseOptions(',
-        ...options.asMap.entries
-            .where((entry) => entry.value != null)
-            .map((entry) => "    ${entry.key}: '${entry.value}',"),
-        '  );', // FirebaseOptions
-        '',
-      ],
+      _buildFirebaseOptions(options, platform),
       '\n',
     );
   }
