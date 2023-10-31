@@ -1159,6 +1159,10 @@ void main() {
         '--project=$firebaseProjectId',
         '--platforms=web',
         '--web-app-id=a-non-existent-web-app-id',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
     );
@@ -1185,6 +1189,10 @@ void main() {
         '--project=$firebaseProjectId',
         '--platforms=web',
         '--web-app-id=$secondWebAppId',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
     );
