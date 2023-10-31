@@ -1140,12 +1140,8 @@ void main() {
           contains(androidAppId),
           contains('static const FirebaseOptions android = FirebaseOptions'),
           contains('static const FirebaseOptions ios = FirebaseOptions'),
+          contains('static const FirebaseOptions web = FirebaseOptions'),
         ]),
-      );
-      expect(
-        firebaseOptionsContent
-            .contains('static const FirebaseOptions web = FirebaseOptions'),
-        isFalse,
       );
     },
     timeout: const Timeout(
