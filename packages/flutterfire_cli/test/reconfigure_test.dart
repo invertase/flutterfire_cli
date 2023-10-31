@@ -270,8 +270,11 @@ void main() {
         await File(iosPath).delete();
         await macFile.delete();
       }
-      final firebaseOptionsPath =
-          p.join(projectPath!, 'lib', 'firebase_options.dart');
+      final firebaseOptionsFile = await findFileInDirectory(
+        p.join(projectPath!, 'lib'),
+        'firebase_options.dart',
+      );
+
       final androidServiceFilePath = p.join(
         projectPath!,
         'android',
@@ -280,7 +283,7 @@ void main() {
         'google-services.json',
       );
 
-      await File(firebaseOptionsPath).delete();
+      await firebaseOptionsFile.delete();
       await File(androidServiceFilePath).delete();
 
       final accessToken = await generateAccessTokenCI();
@@ -295,6 +298,8 @@ void main() {
       );
 
       testAndroidServiceFileValues(androidServiceFilePath);
+      final firebaseOptionsPath =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
