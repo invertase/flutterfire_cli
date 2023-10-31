@@ -34,6 +34,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -209,6 +210,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$buildType',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -401,6 +403,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$androidBuildConfiguration',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -593,6 +596,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -671,6 +675,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -868,6 +873,8 @@ void main() {
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -1000,6 +1007,8 @@ void main() {
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -1104,6 +1113,8 @@ void main() {
           '--platforms=android,ios,macos,web',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           // Output to different file
           '--out=lib/$configurationFileName',
         ],
