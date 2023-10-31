@@ -55,6 +55,7 @@ void main() {
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
