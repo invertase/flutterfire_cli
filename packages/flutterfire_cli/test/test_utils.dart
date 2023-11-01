@@ -18,6 +18,7 @@ const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
 const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
+const secondAndroidApplicationId = 'com.example.second_app';
 
 const buildType = 'development';
 const appleBuildConfiguration = 'Debug';

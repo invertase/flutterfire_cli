@@ -1204,4 +1204,170 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'flutterfire configure: check Dart file configuration is updated correctly',
+    () async {
+      // Set up  initial configuration
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptions = p.join(
+        projectPath!,
+        'lib',
+        'firebase_options.dart',
+      );
+
+      // check "different_firebase_options.dart" file was recreated in lib directory
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      final listOfStrings = firebaseOptionsContent.split('\n');
+      expect(
+        listOfStrings,
+        containsAll(<Matcher>[
+          contains(androidAppId),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+        ]),
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
+        isFalse,
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions ios = FirebaseOptions'),
+        isFalse,
+      );
+
+      // Now reconfigure with different platforms and check Dart file is updated correctly
+      final result2 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptionsContent2 =
+          await File(firebaseOptions).readAsString();
+      final listOfStrings2 = firebaseOptionsContent2.split('\n');
+
+      expect(
+        listOfStrings2,
+        containsAll(<Matcher>[
+          contains(androidAppId),
+          contains('static const FirebaseOptions web = FirebaseOptions'),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+        ]),
+      );
+
+      final startIndexWeb = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'if (kIsWeb)',
+        ),
+      );
+
+      listOfStrings2[startIndexWeb + 1].contains(
+        'return web;',
+      );
+
+      final startIndexAndroid = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.android:',
+        ),
+      );
+
+      listOfStrings2[startIndexAndroid + 1].contains(
+        'return android;',
+      );
+
+      final startIndexIos = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.iOS:',
+        ),
+      );
+
+      listOfStrings2[startIndexIos + 1].contains(
+        'return ios;',
+      );
+
+      final startIndexMacos = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.macOS:',
+        ),
+      );
+
+      listOfStrings2[startIndexMacos + 1].contains(
+        'return macos;',
+      );
+
+      // Now reconfigure with different apps and check Dart file is updated correctly
+      final result3 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=ios,macos,web,android',
+          '--ios-bundle-id=$secondAppleBundleId',
+          '--android-package-name=$secondAndroidApplicationId',
+          '--macos-bundle-id=$secondAppleBundleId',
+          '--web-app-id=$secondWebAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result3.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptionsContent3 =
+          await File(firebaseOptions).readAsString();
+      final listOfStrings3 = firebaseOptionsContent3.split('\n');
+
+      expect(
+        listOfStrings3,
+        containsAll(<Matcher>[
+          contains(secondAndroidAppId),
+          contains(secondAppleAppId),
+          contains(secondWebAppId),
+        ]),
+      );
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }
