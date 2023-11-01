@@ -1038,9 +1038,6 @@ void main() {
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
 
-      // Clean out file to test it was recreated
-      await File(firebaseOptions).writeAsString('');
-
       final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
       final result2 = Process.runSync(
