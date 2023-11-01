@@ -50,13 +50,13 @@ void main() {
         [
           'configure',
           '--yes',
-          '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--platforms=android,ios,macos,web',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
+          '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
       );
@@ -133,6 +133,12 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$buildType',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -141,12 +147,6 @@ void main() {
           '--ios-build-config=$appleBuildConfiguration',
           '--macos-out=macos/$buildType',
           '--macos-build-config=$appleBuildConfiguration',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -232,6 +232,12 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=android,ios,macos,web',
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$androidBuildConfiguration',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -240,12 +246,6 @@ void main() {
           '--ios-target=$targetType',
           '--macos-out=macos/$applePath',
           '--macos-target=$targetType',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--android-package-name=com.example.flutter_test_cli',
-          '--macos-bundle-id=com.example.flutterTestCli',
-          '--web-app-id=com.example.flutterTestCli',
         ],
         workingDirectory: projectPath,
       );
@@ -271,8 +271,11 @@ void main() {
         await File(iosPath).delete();
         await macFile.delete();
       }
-      final firebaseOptionsPath =
-          p.join(projectPath!, 'lib', 'firebase_options.dart');
+      final firebaseOptionsFile = await findFileInDirectory(
+        p.join(projectPath!, 'lib'),
+        'firebase_options.dart',
+      );
+
       final androidServiceFilePath = p.join(
         projectPath!,
         'android',
@@ -281,7 +284,7 @@ void main() {
         'google-services.json',
       );
 
-      await File(firebaseOptionsPath).delete();
+      await firebaseOptionsFile.delete();
       await File(androidServiceFilePath).delete();
 
       final accessToken = await generateAccessTokenCI();
@@ -296,6 +299,8 @@ void main() {
       );
 
       testAndroidServiceFileValues(androidServiceFilePath);
+      final firebaseOptionsPath =
+          p.join(projectPath!, 'lib', 'firebase_options.dart');
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
 
       if (Platform.isMacOS) {
