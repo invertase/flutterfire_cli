@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
 const firebaseProjectId = 'flutterfire-cli-test-f6f57';
-const testFileDirectory = 'test_files';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:b4a12a4ae43da5e42f2799';
@@ -18,6 +17,7 @@ const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
 const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
+const secondAndroidApplicationId = 'com.example.second_app';
 
 const buildType = 'development';
 const appleBuildConfiguration = 'Debug';
@@ -271,18 +271,49 @@ void testAndroidServiceFileValues(
 Future<void> testFirebaseOptionsFileValues(
   String firebaseOptionsPath,
 ) async {
-  final testFirebaseOptions = p.join(
-    Directory.current.path,
-    'test',
-    testFileDirectory,
-    'firebase_options.dart',
-  );
+  final baseRequiredProperties = [
+    'apiKey',
+    'appId',
+    'messagingSenderId',
+    'projectId',
+    'storageBucket',
+  ];
 
-  final firebaseOptionsContent = await File(firebaseOptionsPath).readAsString();
-  final testFirebaseOptionsContent =
-      await File(testFirebaseOptions).readAsString();
+  // Reading the file as a string
+  final content = await File(firebaseOptionsPath).readAsString();
 
-  expect(firebaseOptionsContent, testFirebaseOptionsContent);
+  // Regular expressions to identify the static properties (e.g. web, android, ios, macos) and their values
+  final propertyPattern = RegExp(r'static const FirebaseOptions (\w+) =');
+
+  final matches = propertyPattern.allMatches(content);
+  for (final match in matches) {
+    final platform = match.group(1);
+    final start = match.start;
+    final end = content.indexOf(');', start);
+
+    final propertyContent = content.substring(start, end);
+
+    var requiredProperties = baseRequiredProperties;
+    if (platform == kWeb) {
+      requiredProperties = [
+        ...requiredProperties,
+        'measurementId',
+        'authDomain',
+      ];
+    }
+    if (platform == kMacos || platform == kIos) {
+      requiredProperties = [
+        ...requiredProperties,
+        'iosClientId',
+        'iosBundleId',
+      ];
+    }
+    for (final prop in requiredProperties) {
+      if (!propertyContent.contains(prop)) {
+        fail('Property $prop is missing in - $platform FirebaseOptions.');
+      }
+    }
+  }
 }
 
 void checkAppleFirebaseJsonValues(

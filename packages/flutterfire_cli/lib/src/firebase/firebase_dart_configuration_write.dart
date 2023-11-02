@@ -53,13 +53,145 @@ class FirebaseDartConfigurationWrite {
 
   FirebaseJsonWrites write() {
     final outputFile = File(configurationFilePath);
-    _writeHeader();
-    _writeClass();
+    if (outputFile.existsSync()) {
+      final updatedFileString = _updateExistingConfigurationFile(
+        outputFile,
+      );
+      outputFile.writeAsStringSync(updatedFileString);
+    } else {
+      _writeHeader();
+      _writeClass();
 
-    outputFile.createSync(recursive: true);
-    outputFile.writeAsStringSync(_stringBuffer.toString());
+      outputFile.createSync(recursive: true);
+      outputFile.writeAsStringSync(_stringBuffer.toString());
+    }
 
     return _firebaseJsonWrites();
+  }
+
+  String _updateExistingConfigurationFile(
+    File outputFile,
+  ) {
+    final fileConfigurationLines = outputFile.readAsLinesSync();
+
+    final optionsList = [
+      {'options': webOptions, 'platform': kWeb},
+      {'options': macosOptions, 'platform': 'macOS'},
+      {'options': iosOptions, 'platform': 'iOS'},
+      {'options': androidOptions, 'platform': kAndroid},
+      {'options': windowsOptions, 'platform': kWindows},
+      {'options': linuxOptions, 'platform': kLinux},
+    ];
+
+    for (var i = 0; i < optionsList.length; i++) {
+      final map = optionsList[i];
+      final options = map['options'] as FirebaseOptions?;
+      final platform = map['platform']! as String;
+
+      // Stop this iteration if the FirebaseOptions are null for that platform
+      if (options == null) continue;
+
+      final configExists = fileConfigurationLines.any(
+        (line) => line
+            .contains('static const FirebaseOptions ${platform.toLowerCase()}'),
+      );
+      if (configExists) {
+        // find the indexes for start/end of existing platform configuration
+        final startIndex = fileConfigurationLines.indexWhere(
+          (line) => line.contains(
+            'static const FirebaseOptions ${platform.toLowerCase()}',
+          ),
+        );
+        final endIndex = fileConfigurationLines.indexWhere(
+          (line) => line.contains(');'),
+          startIndex,
+        );
+
+        if (endIndex == -1 || startIndex == -1) {
+          throw Exception(
+            'unable to find existing Dart configuration for platform: $platform',
+          );
+        }
+
+        fileConfigurationLines.removeRange(startIndex, endIndex + 1);
+
+        // Insert the new platform configuration
+        fileConfigurationLines.insertAll(
+          startIndex - 1,
+          _buildFirebaseOptions(
+            options,
+            platform.toLowerCase(),
+          ),
+        );
+      } else {
+        // remove `UnsupportedError` and write static const FirebaseOptions $platform
+        final startIndex = fileConfigurationLines.indexWhere(
+          (line) => line.contains(
+            platform == kWeb ? 'if (kIsWeb)' : 'case TargetPlatform.$platform:',
+          ),
+        );
+        final unsupportedErrorLineIndex = startIndex + 1;
+
+        if (fileConfigurationLines[unsupportedErrorLineIndex]
+            .contains('UnsupportedError')) {
+          final endIndex = fileConfigurationLines.indexWhere(
+            (line) => line.contains(');'),
+            unsupportedErrorLineIndex,
+          );
+          fileConfigurationLines.removeRange(
+            unsupportedErrorLineIndex,
+            endIndex + 1,
+          );
+          // remove `UnsupportedError` exception & write the static property for the platform
+          fileConfigurationLines.insert(
+            unsupportedErrorLineIndex,
+            platform == kWeb
+                ? '      return ${platform.toLowerCase()};'
+                : '        return ${platform.toLowerCase()};',
+          );
+        } else {
+          throw Exception('`UnsupportedError` not found in $platform');
+        }
+
+        final insertIndex = fileConfigurationLines.lastIndexOf('}');
+
+        // write the static property for the platform
+        fileConfigurationLines.insertAll(
+          insertIndex,
+          _buildFirebaseOptions(
+            options,
+            platform.toLowerCase(),
+          ),
+        );
+      }
+    }
+
+    return formatList(fileConfigurationLines).join('\n');
+  }
+
+  // ensure only one empty line between each static property
+  List<String> formatList(List<String> items) {
+    return items.fold<List<String>>([], (acc, item) {
+      if (item.isNotEmpty || acc.isEmpty || acc.last.isNotEmpty) {
+        acc.add(item);
+      }
+      return acc;
+    });
+  }
+
+  List<String> _buildFirebaseOptions(
+    FirebaseOptions options,
+    String platform,
+  ) {
+    return <String>[
+      '',
+      '  static const FirebaseOptions $platform = FirebaseOptions(',
+      ...options.asMap.entries
+          .where((entry) => entry.value != null)
+          .map((entry) => "    ${entry.key}: '${entry.value}',"),
+      '  );', // FirebaseOptions
+      '',
+    ];
   }
 
   FirebaseJsonWrites _firebaseJsonWrites() {
@@ -161,15 +293,7 @@ class FirebaseDartConfigurationWrite {
   void _writeFirebaseOptionsStatic(String platform, FirebaseOptions? options) {
     if (options == null) return;
     _stringBuffer.writeAll(
-      <String>[
-        '',
-        '  static const FirebaseOptions $platform = FirebaseOptions(',
-        ...options.asMap.entries
-            .where((entry) => entry.value != null)
-            .map((entry) => "    ${entry.key}: '${entry.value}',"),
-        '  );', // FirebaseOptions
-        '',
-      ],
+      _buildFirebaseOptions(options, platform),
       '\n',
     );
   }
