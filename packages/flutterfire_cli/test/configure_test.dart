@@ -1212,8 +1212,9 @@ void main() {
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          // Only configuring android initially
           '--platforms=android',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
@@ -1232,9 +1233,10 @@ void main() {
         'firebase_options.dart',
       );
 
-      // check "different_firebase_options.dart" file was recreated in lib directory
+      // check "firebase_options.dart" file was created and updates android only
       final firebaseOptionsContent = await File(firebaseOptions).readAsString();
 
+      // only configure android initially
       final listOfStrings = firebaseOptionsContent.split('\n');
       expect(
         listOfStrings,
@@ -1254,15 +1256,16 @@ void main() {
         isFalse,
       );
 
-      // Now reconfigure with different platforms and check Dart file is updated correctly
+      // Now reconfigure with ios, macos & web platforms and check Dart file is updated correctly
       final result2 = Process.runSync(
         'flutterfire',
         [
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
-          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          // Configure the rest of the platforms
           '--platforms=ios,macos,web',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
@@ -1329,7 +1332,7 @@ void main() {
         'return macos;',
       );
 
-      // Now reconfigure with different apps and check Dart file is updated correctly
+      // Now reconfigure with different apps across platforms and check Dart file is updated correctly
       final result3 = Process.runSync(
         'flutterfire',
         [
