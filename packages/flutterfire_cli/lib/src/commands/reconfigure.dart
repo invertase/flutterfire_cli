@@ -18,6 +18,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import '../common/strings.dart';
@@ -73,6 +74,7 @@ class Reconfigure extends FlutterFireCommand {
   final String name = 'reconfigure';
 
   String? _accessToken;
+  late Logger _logger;
 
   String? get accessToken {
     // If we call reconfigure from `flutterfire configure`, `argResults` will be null and throw exception
@@ -85,6 +87,18 @@ class Reconfigure extends FlutterFireCommand {
 
   set accessToken(String? value) {
     _accessToken = value;
+  }
+
+  // Necessary as we don't have access to the logger when we run this command from `flutterfire configure`
+  @override
+  Logger get logger => globalResults != null
+      ? globalResults!['verbose'] as bool
+          ? Logger.verbose()
+          : Logger.standard()
+      : _logger;
+
+  set logger(Logger value) {
+    _logger = value;
   }
 
   Future<void> _updateServiceFile(
