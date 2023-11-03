@@ -65,6 +65,21 @@ void main() {
         fail(result.stderr);
       }
 
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
+      }
+
       String? iosPath;
       String? macosPath;
       if (Platform.isMacOS) {
@@ -81,6 +96,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
@@ -94,6 +111,9 @@ void main() {
       await File(androidServiceFilePath).delete();
 
       final accessToken = await generateAccessTokenCI();
+
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
 
       final result2 = Process.runSync(
         'flutterfire',
@@ -110,6 +130,11 @@ void main() {
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -117,6 +142,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(
@@ -155,6 +181,21 @@ void main() {
         fail(result.stderr);
       }
 
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
+      }
+
       String? iosPath;
       String? macosPath;
       if (Platform.isMacOS) {
@@ -175,6 +216,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
@@ -188,6 +231,8 @@ void main() {
 
       await File(firebaseOptionsPath).delete();
       await File(androidServiceFilePath).delete();
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
 
       final accessToken = await generateAccessTokenCI();
 
@@ -206,6 +251,11 @@ void main() {
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -213,6 +263,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(
@@ -226,7 +277,7 @@ void main() {
       const targetType = 'Runner';
       const applePath = 'staging/target';
       const androidBuildConfiguration = 'development';
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
@@ -250,6 +301,25 @@ void main() {
         workingDirectory: projectPath,
       );
 
+      if (result.exitCode != 0) {
+        fail(result.stderr);
+      }
+
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
+      }
+
       String? iosPath;
       String? macosPath;
       if (Platform.isMacOS) {
@@ -270,6 +340,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsFile = await findFileInDirectory(
         p.join(projectPath!, 'lib'),
@@ -289,7 +361,10 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      Process.runSync(
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
+
+      final result2 = Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -298,10 +373,20 @@ void main() {
         workingDirectory: projectPath,
       );
 
+      if (result2.exitCode != 0) {
+        fail(result.stderr);
+      }
+
       testAndroidServiceFileValues(androidServiceFilePath);
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -309,6 +394,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(
