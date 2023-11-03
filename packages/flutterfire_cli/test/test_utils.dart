@@ -388,7 +388,6 @@ Future<void> cleanBuildGradleFiles(String projectPath) async {
   final androidAppBuildGradleContent =
       File(androidAppBuildGradle).readAsStringSync();
 
-// Remove the FlutterFire Configuration block
   final pattern = RegExp(
     r'\/\/ START: FlutterFire Configuration.*?\/\/ END: FlutterFire Configuration\s*\n',
     dotAll: true,
@@ -412,8 +411,6 @@ Future<void> cleanXcodeProjFiles(String projectPath) async {
   final iosContent = File(iosProj).readAsStringSync();
   final macosContent = File(macosProj).readAsStringSync();
 
-// Remove the FlutterFire Configuration block
-  // Define the regex pattern to match the FlutterFire section
   final pattern = RegExp(
     r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
   );
@@ -485,8 +482,6 @@ Future<void> checkXcodeProjFiles(String projectPath) async {
   final iosContent = File(iosProj).readAsStringSync();
   final macosContent = File(macosProj).readAsStringSync();
 
-// Remove the FlutterFire Configuration block
-  // Define the regex pattern to match the FlutterFire section
   final pattern = RegExp(
     r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
   );
