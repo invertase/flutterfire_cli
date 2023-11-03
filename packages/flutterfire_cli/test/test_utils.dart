@@ -436,8 +436,10 @@ Future<void> checkBuildGradleFileUpdated(
   final pluginsPattern = [
     '// START: FlutterFire Configuration',
     r"classpath 'com\.google\.gms:google-services:\d+\.\d+\.\d+'\s*",
-    if (checkPerf) r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
-    if (checkCrashlytics) r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
+    if (checkPerf)
+      r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
+    if (checkCrashlytics)
+      r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
@@ -451,16 +453,20 @@ Future<void> checkBuildGradleFileUpdated(
 
   final androidAppBuildGradlePath =
       p.join(projectPath, 'android', 'app', 'build.gradle');
-  final androidAppBuildGradle = File(androidAppBuildGradlePath).readAsStringSync();
+  final androidAppBuildGradle =
+      File(androidAppBuildGradlePath).readAsStringSync();
   final pluginsPatternApp = [
     '// START: FlutterFire Configuration',
     r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
-    if (checkPerf) r"(apply plugin: 'com\.google\.firebase\.firebase-perf'|id 'com\.google\.firebase\.firebase-perf')",
-    if (checkCrashlytics) r"(apply plugin: 'com\.google\.firebase\.crashlytics'|id 'com\.google\.firebase\.crashlytics')",
+    if (checkPerf)
+      r"(apply plugin: 'com\.google\.firebase\.firebase-perf'|id 'com\.google\.firebase\.firebase-perf')",
+    if (checkCrashlytics)
+      r"(apply plugin: 'com\.google\.firebase\.crashlytics'|id 'com\.google\.firebase\.crashlytics')",
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
-  final patternForApp = RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
+  final patternForApp =
+      RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
 
   final existsForApp = patternForApp.hasMatch(androidAppBuildGradle);
 
