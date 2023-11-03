@@ -18,6 +18,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import '../common/strings.dart';
@@ -25,7 +26,9 @@ import '../common/utils.dart';
 
 import '../firebase.dart';
 import '../firebase/firebase_android_options.dart';
+import '../firebase/firebase_android_writes.dart';
 import '../firebase/firebase_apple_options.dart';
+import '../firebase/firebase_apple_writes.dart';
 import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_dart_options.dart';
 import '../firebase/firebase_options.dart';
@@ -71,6 +74,7 @@ class Reconfigure extends FlutterFireCommand {
   final String name = 'reconfigure';
 
   String? _accessToken;
+  late Logger _logger;
 
   String? get accessToken {
     // If we call reconfigure from `flutterfire configure`, `argResults` will be null and throw exception
@@ -83,6 +87,18 @@ class Reconfigure extends FlutterFireCommand {
 
   set accessToken(String? value) {
     _accessToken = value;
+  }
+
+  // Necessary as we don't have access to the logger when we run this command from `flutterfire configure`
+  @override
+  Logger get logger => globalResults != null
+      ? globalResults!['verbose'] as bool
+          ? Logger.verbose()
+          : Logger.standard()
+      : _logger;
+
+  set logger(Logger value) {
+    _logger = value;
   }
 
   Future<void> _updateServiceFile(
@@ -133,6 +149,13 @@ class Reconfigure extends FlutterFireCommand {
     );
 
     if (buildConfigurationsExist) {
+      await addFlutterFireDebugSymbolsScript(
+        flutterAppPath: flutterApp!.package.path,
+        platform: platform,
+        logger: logger,
+        projectConfiguration: ProjectConfiguration.buildConfiguration,
+      );
+
       final buildConfigurations = getNestedMap(
         firebaseJsonMap,
         buildConfigurationKeys,
@@ -166,6 +189,13 @@ class Reconfigure extends FlutterFireCommand {
     );
 
     if (defaultConfigurationExists) {
+      await addFlutterFireDebugSymbolsScript(
+        flutterAppPath: flutterApp!.package.path,
+        platform: platform,
+        logger: logger,
+        projectConfiguration: ProjectConfiguration.defaultConfig,
+      );
+
       await _writeFile(
         _updateServiceFile(
           getNestedMap(
@@ -192,6 +222,13 @@ class Reconfigure extends FlutterFireCommand {
 
       final futures = <Future<void>>[];
       targets.forEach((key, dynamic value) async {
+        await addFlutterFireDebugSymbolsScript(
+          target: key,
+          flutterAppPath: flutterApp!.package.path,
+          platform: platform,
+          logger: logger,
+          projectConfiguration: ProjectConfiguration.target,
+        );
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, dynamic>;
         futures.add(
@@ -353,6 +390,8 @@ class Reconfigure extends FlutterFireCommand {
       final buildConfigurationKeys = [...androidKeys, kBuildConfiguration];
       final androidBuildConfigurationsExist =
           doesNestedMapExist(firebaseJsonMap, buildConfigurationKeys);
+
+      await gradleContentUpdates(flutterApp!);
 
       if (androidBuildConfigurationsExist) {
         final buildConfigurations =

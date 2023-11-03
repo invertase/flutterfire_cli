@@ -379,6 +379,130 @@ void checkDartFirebaseJsonValues(
   }
 }
 
+Future<void> cleanBuildGradleFiles(String projectPath) async {
+  final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
+  final androidAppBuildGradle =
+      p.join(projectPath, 'android', 'app', 'build.gradle');
+
+  final androidBuildGradleContent = File(androidBuildGradle).readAsStringSync();
+  final androidAppBuildGradleContent =
+      File(androidAppBuildGradle).readAsStringSync();
+
+  final pattern = RegExp(
+    r'\/\/ START: FlutterFire Configuration.*?\/\/ END: FlutterFire Configuration\s*\n',
+    dotAll: true,
+  );
+
+  final updatedContentBuildGradle =
+      androidBuildGradleContent.replaceAll(pattern, '');
+  final updatedContentAppBuildGradle =
+      androidAppBuildGradleContent.replaceAll(pattern, '');
+
+  File(androidBuildGradle).writeAsStringSync(updatedContentBuildGradle);
+  File(androidAppBuildGradle).writeAsStringSync(updatedContentAppBuildGradle);
+}
+
+Future<void> cleanXcodeProjFiles(String projectPath) async {
+  final iosProj =
+      p.join(projectPath, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+  final macosProj =
+      p.join(projectPath, 'macos', 'Runner.xcodeproj', 'project.pbxproj');
+
+  final iosContent = File(iosProj).readAsStringSync();
+  final macosContent = File(macosProj).readAsStringSync();
+
+  final pattern = RegExp(
+    r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
+  );
+
+  final updatedContentIos = iosContent.replaceAll(pattern, '');
+  final updatedContentMacos = macosContent.replaceAll(pattern, '');
+
+  File(iosProj).writeAsStringSync(updatedContentIos);
+  File(macosProj).writeAsStringSync(updatedContentMacos);
+}
+
+Future<void> checkBuildGradleFileUpdated(
+  String projectPath, {
+  bool checkPerf = false,
+  bool checkCrashlytics = false,
+}) async {
+  final androidBuildGradlePath = p.join(projectPath, 'android', 'build.gradle');
+  final androidBuildGradle = File(androidBuildGradlePath).readAsStringSync();
+
+  final pluginsPattern = [
+    '// START: FlutterFire Configuration',
+    r"classpath 'com\.google\.gms:google-services:\d+\.\d+\.\d+'\s*",
+    if (checkPerf)
+      r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
+    if (checkCrashlytics)
+      r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
+    '// END: FlutterFire Configuration',
+  ].join(r'\s*');
+
+  final pattern = RegExp(pluginsPattern, multiLine: true, dotAll: true);
+
+  final exists = pattern.hasMatch(androidBuildGradle);
+
+  if (!exists) {
+    fail('android/build.gradle file was not updated as expected');
+  }
+
+  final androidAppBuildGradlePath =
+      p.join(projectPath, 'android', 'app', 'build.gradle');
+  final androidAppBuildGradle =
+      File(androidAppBuildGradlePath).readAsStringSync();
+  final pluginsPatternApp = [
+    '// START: FlutterFire Configuration',
+    r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
+    if (checkPerf)
+      r"(apply plugin: 'com\.google\.firebase\.firebase-perf'|id 'com\.google\.firebase\.firebase-perf')",
+    if (checkCrashlytics)
+      r"(apply plugin: 'com\.google\.firebase\.crashlytics'|id 'com\.google\.firebase\.crashlytics')",
+    '// END: FlutterFire Configuration',
+  ].join(r'\s*');
+
+  final patternForApp =
+      RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
+
+  final existsForApp = patternForApp.hasMatch(androidAppBuildGradle);
+
+  if (!existsForApp) {
+    fail('android/app/build.gradle file was not updated as expected');
+  }
+}
+
+Future<void> checkXcodeProjFiles(String projectPath) async {
+  // This needs crashlytics dependency to be installed to work
+  final iosProj =
+      p.join(projectPath, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+  final macosProj =
+      p.join(projectPath, 'macos', 'Runner.xcodeproj', 'project.pbxproj');
+
+  final iosContent = File(iosProj).readAsStringSync();
+  final macosContent = File(macosProj).readAsStringSync();
+
+  final pattern = RegExp(
+    r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
+  );
+
+  final iosHasScript = pattern.hasMatch(iosContent);
+
+  if (!iosHasScript) {
+    fail(
+      'ios/Runner.xcodeproj/project.pbxproj file was not updated as expected',
+    );
+  }
+
+  final macosHasScript = pattern.hasMatch(macosContent);
+
+  if (!macosHasScript) {
+    fail(
+      'macos/Runner.xcodeproj/project.pbxproj file was not updated as expected',
+    );
+  }
+}
+
 // Use this variable to debug the process run commands in the integration tests
 // const kDebugProcess = false;
 
