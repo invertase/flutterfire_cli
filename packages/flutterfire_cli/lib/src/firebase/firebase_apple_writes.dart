@@ -191,7 +191,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="${PATH}:$FLUTTER_ROOT/bin":"$HOME/.pub-cache/bin"
+PATH="${PATH}:$FLUTTER_ROOT/bin:$HOME/.pub-cache/bin"
 $command
 )
 
@@ -390,7 +390,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="${PATH}:$FLUTTER_ROOT/bin":"$HOME/.pub-cache/bin"
+PATH="${PATH}:$FLUTTER_ROOT/bin:$HOME/.pub-cache/bin"
 $command
 )
 
