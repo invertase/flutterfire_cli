@@ -179,7 +179,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
 
   String _bundleServiceFileScript() {
     final command =
-        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
+        'flutterfire bundle-service-file --plist-destination="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
 
     return '''
 require 'xcodeproj'
@@ -191,7 +191,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
+PATH="${PATH}:$FLUTTER_ROOT/bin":"$HOME/.pub-cache/bin"
 $command
 )
 
@@ -367,7 +367,7 @@ String _debugSymbolsScript(
   String platform,
 ) {
   var command =
-      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
+      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path="$PODS_ROOT/FirebaseCrashlytics/upload-symbols" --debug-symbols-path="${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}" --info-plist-path="${SRCROOT}/${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}" --platform=$platform --apple-project-path="${SRCROOT}" ';
 
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
@@ -390,7 +390,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
+PATH="${PATH}:$FLUTTER_ROOT/bin":"$HOME/.pub-cache/bin"
 $command
 )
 
