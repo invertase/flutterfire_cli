@@ -1463,7 +1463,7 @@ void main() {
           contains(secondAndroidAppId),
           contains(secondAppleAppId),
           contains(secondWebAppId),
-          contains(secondWindowsAppId)
+          contains(secondWindowsAppId),
         ]),
       );
     },
