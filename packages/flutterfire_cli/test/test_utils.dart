@@ -10,11 +10,13 @@ const firebaseProjectId = 'flutterfire-cli-test-f6f57';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:b4a12a4ae43da5e42f2799';
+const windowsAppId = '1:262904632156:web:347c768ec9213b812f2799';
 
 // Secondary App Ids
 const secondAppleAppId = '1:262904632156:ios:1de2ea53918d5e802f2799';
 const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
 const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
+const secondWindowsAppId = '1:262904632156:web:e2be97e1934a0ffe2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
 const secondAndroidApplicationId = 'com.example.second_app';
@@ -269,8 +271,9 @@ void testAndroidServiceFileValues(
 }
 
 Future<void> testFirebaseOptionsFileValues(
-  String firebaseOptionsPath,
-) async {
+  String firebaseOptionsPath, {
+  String? selectedPlatform,
+}) async {
   final baseRequiredProperties = [
     'apiKey',
     'appId',
@@ -288,13 +291,16 @@ Future<void> testFirebaseOptionsFileValues(
   final matches = propertyPattern.allMatches(content);
   for (final match in matches) {
     final platform = match.group(1);
+    // If a specific platform is selected, skip the others
+    if (selectedPlatform != null && platform != selectedPlatform) continue;
+
     final start = match.start;
     final end = content.indexOf(');', start);
 
     final propertyContent = content.substring(start, end);
 
     var requiredProperties = baseRequiredProperties;
-    if (platform == kWeb) {
+    if (platform == kWeb || platform == kWindows) {
       requiredProperties = [
         ...requiredProperties,
         'measurementId',
