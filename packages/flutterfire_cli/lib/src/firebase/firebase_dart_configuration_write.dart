@@ -223,7 +223,7 @@ class FirebaseDartConfigurationWrite {
       configurations[kWeb] = webOptions!.appId;
     }
 
-    if(windowsOptions != null) {
+    if (windowsOptions != null) {
       configurations[kWindows] = windowsOptions!.appId;
     }
 
