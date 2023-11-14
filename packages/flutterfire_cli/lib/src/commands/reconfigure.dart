@@ -44,6 +44,7 @@ class ConfigFileWrite {
     this.iosOptions,
     this.macosOptions,
     this.webOptions,
+    this.windowsOptions,
   });
   String pathToConfig;
   String projectId;
@@ -51,6 +52,7 @@ class ConfigFileWrite {
   FirebaseOptions? iosOptions;
   FirebaseOptions? macosOptions;
   FirebaseOptions? webOptions;
+  FirebaseOptions? windowsOptions;
 }
 
 class Reconfigure extends FlutterFireCommand {
@@ -274,9 +276,10 @@ class Reconfigure extends FlutterFireCommand {
         final appId = entry.value as String;
 
         return Future(() async {
+          final platformFirebase = platform == kWindows ? kWeb : platform;
           final appSdkConfig = await getAppSdkConfig(
             appId: appId,
-            platform: platform,
+            platform: platformFirebase,
           );
 
           switch (platform) {
@@ -311,6 +314,13 @@ class Reconfigure extends FlutterFireCommand {
                 projectId,
               );
               break;
+            case kWindows:
+              configWrite.windowsOptions =
+                  FirebaseDartOptions.convertConfigToOptions(
+                appSdkConfig,
+                projectId,
+              );
+              break;
             default:
               throw Exception(
                 'Platform: $platform is not supported for "flutterfire reconfigure".',
@@ -340,6 +350,7 @@ class Reconfigure extends FlutterFireCommand {
           iosOptions: configWrite.iosOptions,
           macosOptions: configWrite.macosOptions,
           webOptions: configWrite.webOptions,
+          windowsOptions: configWrite.windowsOptions,
         ).write();
       });
 

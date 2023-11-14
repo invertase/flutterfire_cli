@@ -223,6 +223,10 @@ class FirebaseDartConfigurationWrite {
       configurations[kWeb] = webOptions!.appId;
     }
 
+    if (windowsOptions != null) {
+      configurations[kWindows] = windowsOptions!.appId;
+    }
+
     return FirebaseJsonWrites(
       pathToMap: keysToMap,
       projectId: firebaseProjectId,

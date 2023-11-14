@@ -98,8 +98,20 @@ class ConfigCommand extends FlutterFireCommand {
       valueHelp: 'appId',
       abbr: 'w',
       help: 'The app id of your Web application, e.g. "1:XXX:web:YYY". '
-          'If no package name is provided then an attempt will be made to '
-          'automatically pick the first available web app id from remote.',
+          'If no app id is provided then an attempt will be made to '
+          'automatically pick the first available web app id from remote. '
+          'If no web app exists, we create a web app and suffix the name with "(web)"',
+    );
+
+    argParser.addOption(
+      kWindowsAppIdFlag,
+      valueHelp: 'windowsAppId',
+      abbr: 'x',
+      help: 'The app id of your Windows application, e.g. "1:XXX:web:YYY". '
+          'If no app id is provided then an attempt will be made to '
+          'automatically pick the first available windows app id from remote. '
+          'If no windows app exists, we create a web app for Windows platform. '
+          'We suffix the name with "(windows)"',
     );
 
     argParser.addOption(
@@ -315,6 +327,20 @@ class ConfigCommand extends FlutterFireCommand {
     return null;
   }
 
+  String? get windowsAppId {
+    final value = argResults![kWindowsAppIdFlag] as String?;
+
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for $kWindowsAppIdFlag.',
+      );
+    }
+    return null;
+  }
+
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
@@ -499,9 +525,8 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos:
           platforms.contains(kMacos) || platforms.isEmpty && flutterApp!.macos,
       kWeb: platforms.contains(kWeb) || platforms.isEmpty && flutterApp!.web,
-      if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
-        kWindows: platforms.contains(kWindows) ||
-            platforms.isEmpty && flutterApp!.windows,
+      kWindows: platforms.contains(kWindows) ||
+          platforms.isEmpty && flutterApp!.windows,
       if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
         kLinux: platforms.contains(kLinux) ||
             platforms.isEmpty && flutterApp!.linux,
@@ -624,12 +649,12 @@ class ConfigCommand extends FlutterFireCommand {
       token: token,
       serviceAccount: serviceAccount,
       webAppId: webAppId,
+      windowsAppId: windowsAppId,
       android: selectedPlatforms[kAndroid]!,
       ios: selectedPlatforms[kIos]!,
       macos: selectedPlatforms[kMacos]!,
       web: selectedPlatforms[kWeb]!,
-      windows:
-          selectedPlatforms[kWindows] != null && selectedPlatforms[kWindows]!,
+      windows: selectedPlatforms[kWindows]!,
       linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
     );
 
