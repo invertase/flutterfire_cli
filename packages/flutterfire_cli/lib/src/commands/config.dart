@@ -279,7 +279,6 @@ class ConfigCommand extends FlutterFireCommand {
     final deprecatedValue = argResults!['android-app-id'] as String?;
 
     // TODO validate packagename is valid if provided.
-
     if (value != null) {
       return value;
     }
@@ -289,70 +288,31 @@ class ConfigCommand extends FlutterFireCommand {
       );
       return deprecatedValue;
     }
-
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for android-package-name.',
-      );
-    }
     return null;
   }
 
   String? get iosBundleId {
     final value = argResults!['ios-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    if (value != null) return value;
-
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for ios-bundle-id.',
-      );
-    }
-    return null;
+    return value;
   }
 
   String? get webAppId {
     final value = argResults!['web-app-id'] as String?;
-
-    if (value != null) return value;
-
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for web-app-id.',
-      );
-    }
-    return null;
+    // TODO validate webAppId is valid if provided
+    return value;
   }
 
   String? get windowsAppId {
     final value = argResults![kWindowsAppIdFlag] as String?;
-
-    if (value != null) return value;
-
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for $kWindowsAppIdFlag.',
-      );
-    }
-    return null;
+    // TODO validate windowsAppId is valid if provided
+    return value;
   }
 
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
-    if (value != null) return value;
-
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for macos-bundle-id.',
-      );
-    }
-    return null;
+    return value;
   }
 
   String? get token {
