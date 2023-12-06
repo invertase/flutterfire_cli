@@ -92,8 +92,6 @@ xcodeFile='${getXcodeProjectPath(platform)}'
 targetName='$target'
 
 project = Xcodeproj::Project.open(xcodeFile)
-
-file = project.new_file(googleFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
