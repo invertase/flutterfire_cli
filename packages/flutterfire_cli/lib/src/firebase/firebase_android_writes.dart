@@ -7,9 +7,9 @@ import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
-// https://regex101.com/r/zIMgBI/1
+// https://regex101.com/r/Lj93lx/1
 final _androidBuildGradleRegex = RegExp(
-  r'''(?:(?<indentation>^[\s]*?)classpath\s?['"]{1}com\.android\.tools\.build:gradle:.*?['"]{1}\s*?$)''',
+  r'dependencies\s*\{',
   multiLine: true,
 );
 // https://regex101.com/r/OZnO1j/1
@@ -240,7 +240,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
   }
   androidBuildGradleFileContents = androidBuildGradleFileContents
       .replaceFirstMapped(_androidBuildGradleRegex, (match) {
-    final indentation = match.group(1);
+    const indentation = '        ';
     return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$_googleServicesPlugin\n$indentation$_flutterFireConfigCommentEnd';
   });
 
