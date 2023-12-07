@@ -69,6 +69,12 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
+If you wish to specific about which platforms you want to configure, use the `--platforms` flag:
+
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=android,ios,web
+```
+
 FlutterFire CLI now supports Windows applications. The Firebase console does not allow you to create an application for Windows, FlutterFire CLI will create a **web app** if you specify windows as a platform you want to include:
 
 ```bash
@@ -83,7 +89,7 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WE
 
 - `--yes`
   - auto-detect the platforms from the project directory.
-  - prevent a prompt for rewriting the Dart Firebase configuration file (default name - `firebase_options.dart`) should you already have one in your project. It will auto rewrite the specific parts of your Firebase app configuration that you have requested (e.g. choosing `--platforms=web,android` will update web and android configurations in the `firebase_options.dart` file and, leave the other app configurations intact).
+  - prevent a prompt for rewriting the Dart Firebase configuration file (default name - `firebase_options.dart`) should you already have one in your project. It will auto rewrite the specific parts of your Firebase app configuration that you have requested (e.g. choosing `--platforms=web,android` will update web and android configurations in the `firebase_options.dart` file and leave the other app configurations within the file intact).
 - `--project` 
   - flag will select the Firebase project and negate the command prompt to choose which Firebase project you wish to use.
 
