@@ -69,13 +69,13 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
-If you wish to specific about which platforms you want to configure, use the `--platforms` flag:
+If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
 ```bash
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=android,ios,web
 ```
 
-FlutterFire CLI now supports Windows applications. The Firebase console does not allow you to create an application for Windows, FlutterFire CLI will create a **web app** if you specify windows as a platform you want to include:
+FlutterFire CLI now supports Windows applications. The Firebase console does not allow you to create an application for Windows, FlutterFire CLI will create a **web app** if you specify windows as a platform you want to configure:
 
 ```bash
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=windows
@@ -87,18 +87,19 @@ You may also specify a specific web app to use for your windows project by using
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WEB_APP_ID>
 ```
 
-- `--yes`
-  - auto-detect the platforms from the project directory.
-  - prevent a prompt for rewriting the Dart Firebase configuration file (default name - `firebase_options.dart`) should you already have one in your project. It will auto rewrite the specific parts of your Firebase app configuration that you have requested (e.g. choosing `--platforms=web,android` will update web and android configurations in the `firebase_options.dart` file and leave the other app configurations within the file intact).
-- `--project` 
-  - flag will select the Firebase project and negate the command prompt to choose which Firebase project you wish to use.
+#### `--yes` flag
+- auto-detects the platforms from the project directory.
+- prevents a prompt for rewriting the Dart Firebase configuration file (default name - `firebase_options.dart`) should you already have one in your project. It will auto rewrite the specific parts of your Firebase app configuration that you have requested (e.g. choosing `--platforms=web,android` will update web and android configurations in the `firebase_options.dart` file and leave the other app configurations within the file intact).
+
+#### `--project` flag
+- selects the Firebase project and negates the command prompt to choose which Firebase project you wish to use.
 
 
 ### Multi build configuration setup
 
 #### Android
 
-[Android Firebase setup](https://firebase.google.com/docs/projects/multiprojects#support_multiple_environments_in_your_android_application) is fairly straight forward. It requires the application ID and the file path where you want to place your `google-services.json` file. Imagine you want to setup you Flutter project's android release build configuration with its own Firebase app. Here is how it would look like:
+[Android Firebase setup](https://firebase.google.com/docs/projects/multiprojects#support_multiple_environments_in_your_android_application) is fairly straight forward. It requires the application ID and the file path where you want to place your `google-services.json` file. Imagine you want to setup you Flutter project's android release build configuration with its own Firebase app. Here is how it would look:
 
 ```bash
 flutterfire configure --platforms=android --android-package-name=your.application.id --android-out=android/app/src/release/google-services.json
@@ -224,6 +225,7 @@ flutterfire configure \
 #### Android
 - The android gradle plugin will try to match the path `google-services.json` to the correct build type. For instance, debug build will find the service file in the following locations: `android/app/src/debug/google-services.json` or `android/app/google-services.json`.
 - Required to configure the application ID for release build in your android `build.gradle`. This might look like the following:
+
 ```gradle
 buildTypes {
     release {
