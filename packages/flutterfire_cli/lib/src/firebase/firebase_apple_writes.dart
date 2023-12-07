@@ -92,25 +92,24 @@ xcodeFile='${getXcodeProjectPath(platform)}'
 targetName='$target'
 
 project = Xcodeproj::Project.open(xcodeFile)
-
-file = project.new_file(googleFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
-  existingServiceFile = target.resources_build_phase.files.find do |file|
+  # Check if GoogleService-Info.plist is already in the target's resources
+  serviceFileInResources = target.resources_build_phase.files.find do |file|
     if defined? file && file.file_ref && file.file_ref.path
       if file.file_ref.path.is_a? String
         file.file_ref.path.include? 'GoogleService-Info.plist'
       end
     end
   end
-  
-  if existingServiceFile
-    existingServiceFile.remove_from_project
-  end 
 
-  target.add_resources([file])
-  project.save
+  # Add GoogleService-Info.plist file if it's not already in the target's resources
+  if(!serviceFileInResources)
+    new_file = project.new_file(googleFile)
+    target.add_resources([new_file])
+    project.save
+  end
   
 else
   abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
