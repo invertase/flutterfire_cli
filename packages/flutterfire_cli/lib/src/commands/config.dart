@@ -35,7 +35,6 @@ import '../flutter_app.dart';
 import './reconfigure.dart';
 import 'base.dart';
 
-
 class ConfigCommand extends FlutterFireCommand {
   ConfigCommand(FlutterApp? flutterApp) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
