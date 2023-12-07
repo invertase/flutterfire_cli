@@ -95,20 +95,17 @@ project = Xcodeproj::Project.open(xcodeFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
-  # Open the Xcode project
-  project = Xcodeproj::Project.open(xcodeFile)
-
   # Check if GoogleService-Info.plist is already in the target's resources
-  def google_service_info_exists?(project)
-    project.files.any? do |f|
-      if f.path
-        f.path.include?('GoogleService-Info.plist')
+  serviceFileInResources = target.resources_build_phase.files.find do |file|
+    if defined? file && file.file_ref && file.file_ref.path
+      if file.file_ref.path.is_a? String
+        file.file_ref.path.include? 'GoogleService-Info.plist'
       end
     end
   end
 
   # Add GoogleService-Info.plist file if it's not already in the target's resources
-  unless google_service_info_exists?(project)
+  if(!serviceFileInResources)
     new_file = project.new_file(googleFile)
     target.add_resources([new_file])
     project.save
