@@ -8,6 +8,11 @@ import 'package:yaml/yaml.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 
+const debugSymbolScriptName =
+    'FlutterFire: "flutterfire upload-crashlytics-symbols"';
+const bundleServiceScriptName =
+    'FlutterFire: "flutterfire bundle-service-file"';
+
 Future<FirebaseJsonWrites> appleWrites({
   required String platform,
   required String flutterAppPath,
@@ -87,25 +92,24 @@ xcodeFile='${getXcodeProjectPath(platform)}'
 targetName='$target'
 
 project = Xcodeproj::Project.open(xcodeFile)
-
-file = project.new_file(googleFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
-  existingServiceFile = target.resources_build_phase.files.find do |file|
+  # Check if GoogleService-Info.plist is already in the target's resources
+  serviceFileInResources = target.resources_build_phase.files.find do |file|
     if defined? file && file.file_ref && file.file_ref.path
       if file.file_ref.path.is_a? String
         file.file_ref.path.include? 'GoogleService-Info.plist'
       end
     end
   end
-  
-  if existingServiceFile
-    existingServiceFile.remove_from_project
-  end 
 
-  target.add_resources([file])
-  project.save
+  # Add GoogleService-Info.plist file if it's not already in the target's resources
+  if(!serviceFileInResources)
+    new_file = project.new_file(googleFile)
+    target.add_resources([new_file])
+    project.save
+  end
   
 else
   abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
@@ -117,8 +121,12 @@ end
     await _writeGoogleServiceFileToPath();
     await _writeGoogleServiceFileToTargetProject();
 
-    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript(
+    final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
       target: target,
+      flutterAppPath: flutterAppPath,
+      logger: logger,
+      platform: platform,
+      projectConfiguration: projectConfiguration,
     );
 
     return _firebaseJsonWrites(debugSymbolScriptAdded, target);
@@ -209,7 +217,12 @@ end
   Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
     await _writeGoogleServiceFileToPath();
     await _writeBundleServiceFileScriptToProject();
-    final debugSymbolScriptAdded = await _addFlutterFireDebugSymbolsScript();
+    final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
+      flutterAppPath: flutterAppPath,
+      logger: logger,
+      projectConfiguration: projectConfiguration,
+      platform: platform,
+    );
 
     return _firebaseJsonWrites(
       debugSymbolScriptAdded,
@@ -240,124 +253,6 @@ abstract class FirebaseAppleConfiguration {
   final String serviceFilePath;
   final Logger logger;
   ProjectConfiguration projectConfiguration;
-
-  Future<bool> _addFlutterFireDebugSymbolsScript({
-    String target = 'Runner',
-  }) async {
-    final packageConfigContents = File(
-      path.join(
-        flutterAppPath,
-        '.dart_tool',
-        'package_config.json',
-      ),
-    );
-
-    var crashlyticsDependencyExists = false;
-    const crashlyticsDependency = 'firebase_crashlytics';
-
-    if (packageConfigContents.existsSync()) {
-      final decodePackageConfig = await packageConfigContents.readAsString();
-
-      final packageConfig = jsonDecode(decodePackageConfig) as Map;
-
-      final packages = packageConfig['packages'] as List<dynamic>;
-      crashlyticsDependencyExists = packages.any(
-        (dynamic package) =>
-            package is Map && package['name'] == crashlyticsDependency,
-      );
-    } else {
-      final pubspecContents = await File(
-        path.join(
-          flutterAppPath,
-          'pubspec.yaml',
-        ),
-      ).readAsString();
-
-      final yamlContents = loadYaml(pubspecContents) as Map;
-
-      crashlyticsDependencyExists = yamlContents['dependencies'] != null &&
-          (yamlContents['dependencies'] as Map)
-              .containsKey(crashlyticsDependency);
-    }
-
-    if (crashlyticsDependencyExists) {
-      // Add the debug script
-
-      final debugSymbolScript = await Process.run('ruby', [
-        '-e',
-        _debugSymbolsScript(
-          target,
-        ),
-      ]);
-
-      if (debugSymbolScript.exitCode != 0) {
-        throw Exception(debugSymbolScript.stderr);
-      }
-
-      if (debugSymbolScript.stdout != null) {
-        logger.stdout(debugSymbolScript.stdout as String);
-      }
-      return true;
-    }
-    return false;
-  }
-
-  String _debugSymbolsScript(
-    // Always "Runner" for "build configuration" setup
-    String target,
-  ) {
-    var command =
-        'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
-
-    switch (projectConfiguration) {
-      case ProjectConfiguration.buildConfiguration:
-        command += r'--build-configuration=${CONFIGURATION}';
-        break;
-      case ProjectConfiguration.target:
-        command += '--target=$target';
-        break;
-      case ProjectConfiguration.defaultConfig:
-        command += '--default-config=default';
-    }
-
-    return '''
-require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
-runScriptName='$debugSymbolScriptName'
-project = Xcodeproj::Project.open(xcodeFile)
-
-
-# multi line argument for bash script
-bashScript = %q(
-#!/bin/bash
-PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
-$command
-)
-
-for target in project.targets 
-  if (target.name == '$target')
-    phase = target.shell_script_build_phases().find do |item|
-      if defined? item && item.name
-        item.name == runScriptName
-      end
-    end
-
-    if (!phase.nil?)
-      phase.remove_from_project()
-    end
-    
-    phase = target.new_shell_script_build_phase(runScriptName)
-    phase.shell_script = bashScript
-    project.save()   
-  end  
-end
-''';
-  }
-
-  final debugSymbolScriptName =
-      'FlutterFire: "flutterfire upload-crashlytics-symbols"';
-  final bundleServiceScriptName =
-      'FlutterFire: "flutterfire bundle-service-file"';
 
   FirebaseJsonWrites _firebaseJsonWrites(
     bool uploadDebugSymbols,
@@ -395,4 +290,125 @@ end
   }
 
   Future<FirebaseJsonWrites> apply();
+}
+
+Future<bool> addFlutterFireDebugSymbolsScript({
+  String target = 'Runner',
+  required String flutterAppPath,
+  required Logger logger,
+  required String platform,
+  required ProjectConfiguration projectConfiguration,
+}) async {
+  final packageConfigContents = File(
+    path.join(
+      flutterAppPath,
+      '.dart_tool',
+      'package_config.json',
+    ),
+  );
+
+  var crashlyticsDependencyExists = false;
+  const crashlyticsDependency = 'firebase_crashlytics';
+
+  if (packageConfigContents.existsSync()) {
+    final decodePackageConfig = await packageConfigContents.readAsString();
+
+    final packageConfig = jsonDecode(decodePackageConfig) as Map;
+
+    final packages = packageConfig['packages'] as List<dynamic>;
+    crashlyticsDependencyExists = packages.any(
+      (dynamic package) =>
+          package is Map && package['name'] == crashlyticsDependency,
+    );
+  } else {
+    final pubspecContents = await File(
+      path.join(
+        flutterAppPath,
+        'pubspec.yaml',
+      ),
+    ).readAsString();
+
+    final yamlContents = loadYaml(pubspecContents) as Map;
+
+    crashlyticsDependencyExists = yamlContents['dependencies'] != null &&
+        (yamlContents['dependencies'] as Map)
+            .containsKey(crashlyticsDependency);
+  }
+
+  if (crashlyticsDependencyExists) {
+    // Add the debug script
+
+    final debugSymbolScript = await Process.run('ruby', [
+      '-e',
+      _debugSymbolsScript(
+        target,
+        projectConfiguration,
+        platform,
+      ),
+    ]);
+
+    if (debugSymbolScript.exitCode != 0) {
+      throw Exception(debugSymbolScript.stderr);
+    }
+
+    if (debugSymbolScript.stdout != null) {
+      logger.stdout(debugSymbolScript.stdout as String);
+    }
+    return true;
+  }
+  return false;
+}
+
+String _debugSymbolsScript(
+  // Always "Runner" for "build configuration" setup
+  String target,
+  ProjectConfiguration projectConfiguration,
+  String platform,
+) {
+  var command =
+      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
+
+  switch (projectConfiguration) {
+    case ProjectConfiguration.buildConfiguration:
+      command += r'--build-configuration=${CONFIGURATION}';
+      break;
+    case ProjectConfiguration.target:
+      command += '--target=$target';
+      break;
+    case ProjectConfiguration.defaultConfig:
+      command += '--default-config=default';
+  }
+
+  return '''
+require 'xcodeproj'
+xcodeFile='${getXcodeProjectPath(platform)}'
+runScriptName='$debugSymbolScriptName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+
+# multi line argument for bash script
+bashScript = %q(
+#!/bin/bash
+PATH=\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin
+$command
+)
+
+for target in project.targets 
+  if (target.name == '$target')
+    phase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == runScriptName
+      end
+    end
+
+    if (!phase.nil?)
+      phase.remove_from_project()
+    end
+    
+    phase = target.new_shell_script_build_phase(runScriptName)
+    phase.shell_script = bashScript
+    project.save()   
+  end  
+end
+''';
 }

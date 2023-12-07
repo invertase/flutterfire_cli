@@ -51,11 +51,12 @@ void main() {
           'configure',
           '--yes',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -63,6 +64,21 @@ void main() {
 
       if (result.exitCode != 0) {
         fail(result.stderr);
+      }
+
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
       }
 
       String? iosPath;
@@ -81,6 +97,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
@@ -94,6 +112,9 @@ void main() {
       await File(androidServiceFilePath).delete();
 
       final accessToken = await generateAccessTokenCI();
+
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
 
       final result2 = Process.runSync(
         'flutterfire',
@@ -110,6 +131,11 @@ void main() {
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -117,6 +143,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(
@@ -134,11 +161,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$buildType',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -153,6 +181,21 @@ void main() {
 
       if (result.exitCode != 0) {
         fail(result.stderr);
+      }
+
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
       }
 
       String? iosPath;
@@ -175,6 +218,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
@@ -188,6 +233,8 @@ void main() {
 
       await File(firebaseOptionsPath).delete();
       await File(androidServiceFilePath).delete();
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
 
       final accessToken = await generateAccessTokenCI();
 
@@ -206,6 +253,11 @@ void main() {
 
       testAndroidServiceFileValues(androidServiceFilePath);
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -213,6 +265,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(
@@ -226,18 +279,19 @@ void main() {
       const targetType = 'Runner';
       const applePath = 'staging/target';
       const androidBuildConfiguration = 'development';
-      Process.runSync(
+      final result = Process.runSync(
         'flutterfire',
         [
           'configure',
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$androidBuildConfiguration',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -249,6 +303,25 @@ void main() {
         ],
         workingDirectory: projectPath,
       );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr);
+      }
+
+      final addDependencies = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          'firebase_crashlytics',
+          'firebase_performance',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (addDependencies.exitCode != 0) {
+        fail(addDependencies.stderr);
+      }
 
       String? iosPath;
       String? macosPath;
@@ -270,6 +343,8 @@ void main() {
 
         await File(iosPath).delete();
         await macFile.delete();
+        // Clean up the project files to ensure the reconfigure command works
+        await cleanXcodeProjFiles(projectPath!);
       }
       final firebaseOptionsFile = await findFileInDirectory(
         p.join(projectPath!, 'lib'),
@@ -289,7 +364,10 @@ void main() {
 
       final accessToken = await generateAccessTokenCI();
 
-      Process.runSync(
+      // Clean up the project files to ensure the reconfigure command works
+      await cleanBuildGradleFiles(projectPath!);
+
+      final result2 = Process.runSync(
         'flutterfire',
         [
           'reconfigure',
@@ -298,10 +376,20 @@ void main() {
         workingDirectory: projectPath,
       );
 
+      if (result2.exitCode != 0) {
+        fail(result.stderr);
+      }
+
       testAndroidServiceFileValues(androidServiceFilePath);
       final firebaseOptionsPath =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
       await testFirebaseOptionsFileValues(firebaseOptionsPath);
+
+      await checkBuildGradleFileUpdated(
+        projectPath!,
+        checkCrashlytics: true,
+        checkPerf: true,
+      );
 
       if (Platform.isMacOS) {
         await testAppleServiceFileValues(iosPath!);
@@ -309,6 +397,7 @@ void main() {
           macosPath!,
           platform: kMacos,
         );
+        await checkXcodeProjFiles(projectPath!);
       }
     },
     timeout: const Timeout(

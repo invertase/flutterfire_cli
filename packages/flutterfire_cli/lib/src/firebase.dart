@@ -253,6 +253,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   String? account,
   String? token,
   String? serviceAccount,
+  // used for web and windows.
   String? webAppId,
 }) async {
   var foundFirebaseApp = false;
@@ -292,15 +293,16 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
 
   Iterable<FirebaseApp> filteredFirebaseApps;
 
-  if (platform == kWeb) {
+  if (platform == kWeb || platform == kWindows) {
     if (webAppId != null) {
-      // If webAppId provided, find it, otherwise throw Exception that it doesn't exist
+      final flagOption = platform == kWeb ? kWebAppIdFlag : kWindowsAppIdFlag;
+      // Find provided web app id for web and windows, otherwise, throw Exception that it doesn't exist
       final webApp = unfilteredFirebaseApps.firstWhere(
         (firebaseApp) => firebaseApp.appId == webAppId,
         orElse: () {
           fetchingAppsSpinner.done();
           throw Exception(
-            'The web-app-id: $webAppId provided does not match the web app id of any existing Firebase app.',
+            'The $flagOption: $webAppId provided does not match the web app id of any existing Firebase app.',
           );
         },
       );
@@ -308,17 +310,23 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       fetchingAppsSpinner.done();
       return webApp;
     }
-    // Try find any web app for web only. For Windows and Linux we
-    // explicitly search via name only above so that named web app instances are
-    // created for these platforms.
+    // Find web app for web and windows using display name with this signature: "flutter_app_name (platform)
     filteredFirebaseApps = unfilteredFirebaseApps.where(
       (firebaseApp) {
         if (firebaseApp.displayName == displayNameWithPlatform) {
           return true;
         }
-        return firebaseApp.platform == kWeb;
+        return false;
       },
     );
+    // Find any for that platform if no web app found with display name
+    if (filteredFirebaseApps.isEmpty) {
+      filteredFirebaseApps = unfilteredFirebaseApps.where(
+        (firebaseApp) {
+          return firebaseApp.platform == platform;
+        },
+      );
+    }
   } else {
     filteredFirebaseApps = unfilteredFirebaseApps.where(
       (firebaseApp) {
@@ -362,6 +370,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       );
       break;
     case kWeb:
+      // This is used to also create windows app, Firebase has no concept of a windows app
       createFirebaseAppFuture = createWebApp(
         project: project,
         displayName: displayNameWithPlatform,

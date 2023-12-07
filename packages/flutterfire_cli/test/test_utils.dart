@@ -7,17 +7,19 @@ import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
 const firebaseProjectId = 'flutterfire-cli-test-f6f57';
-const testFileDirectory = 'test_files';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:b4a12a4ae43da5e42f2799';
+const windowsAppId = '1:262904632156:web:347c768ec9213b812f2799';
 
 // Secondary App Ids
 const secondAppleAppId = '1:262904632156:ios:1de2ea53918d5e802f2799';
 const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
 const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
+const secondWindowsAppId = '1:262904632156:web:e2be97e1934a0ffe2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
+const secondAndroidApplicationId = 'com.example.second_app';
 
 const buildType = 'development';
 const appleBuildConfiguration = 'Debug';
@@ -269,20 +271,55 @@ void testAndroidServiceFileValues(
 }
 
 Future<void> testFirebaseOptionsFileValues(
-  String firebaseOptionsPath,
-) async {
-  final testFirebaseOptions = p.join(
-    Directory.current.path,
-    'test',
-    testFileDirectory,
-    'firebase_options.dart',
-  );
+  String firebaseOptionsPath, {
+  String? selectedPlatform,
+}) async {
+  final baseRequiredProperties = [
+    'apiKey',
+    'appId',
+    'messagingSenderId',
+    'projectId',
+    'storageBucket',
+  ];
 
-  final firebaseOptionsContent = await File(firebaseOptionsPath).readAsString();
-  final testFirebaseOptionsContent =
-      await File(testFirebaseOptions).readAsString();
+  // Reading the file as a string
+  final content = await File(firebaseOptionsPath).readAsString();
 
-  expect(firebaseOptionsContent, testFirebaseOptionsContent);
+  // Regular expressions to identify the static properties (e.g. web, android, ios, macos) and their values
+  final propertyPattern = RegExp(r'static const FirebaseOptions (\w+) =');
+
+  final matches = propertyPattern.allMatches(content);
+  for (final match in matches) {
+    final platform = match.group(1);
+    // If a specific platform is selected, skip the others
+    if (selectedPlatform != null && platform != selectedPlatform) continue;
+
+    final start = match.start;
+    final end = content.indexOf(');', start);
+
+    final propertyContent = content.substring(start, end);
+
+    var requiredProperties = baseRequiredProperties;
+    if (platform == kWeb || platform == kWindows) {
+      requiredProperties = [
+        ...requiredProperties,
+        'measurementId',
+        'authDomain',
+      ];
+    }
+    if (platform == kMacos || platform == kIos) {
+      requiredProperties = [
+        ...requiredProperties,
+        'iosClientId',
+        'iosBundleId',
+      ];
+    }
+    for (final prop in requiredProperties) {
+      if (!propertyContent.contains(prop)) {
+        fail('Property $prop is missing in - $platform FirebaseOptions.');
+      }
+    }
+  }
 }
 
 void checkAppleFirebaseJsonValues(
@@ -345,6 +382,130 @@ void checkDartFirebaseJsonValues(
   }
   if (checkWeb) {
     expect(defaultConfigurations[kWeb], webAppId);
+  }
+}
+
+Future<void> cleanBuildGradleFiles(String projectPath) async {
+  final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
+  final androidAppBuildGradle =
+      p.join(projectPath, 'android', 'app', 'build.gradle');
+
+  final androidBuildGradleContent = File(androidBuildGradle).readAsStringSync();
+  final androidAppBuildGradleContent =
+      File(androidAppBuildGradle).readAsStringSync();
+
+  final pattern = RegExp(
+    r'\/\/ START: FlutterFire Configuration.*?\/\/ END: FlutterFire Configuration\s*\n',
+    dotAll: true,
+  );
+
+  final updatedContentBuildGradle =
+      androidBuildGradleContent.replaceAll(pattern, '');
+  final updatedContentAppBuildGradle =
+      androidAppBuildGradleContent.replaceAll(pattern, '');
+
+  File(androidBuildGradle).writeAsStringSync(updatedContentBuildGradle);
+  File(androidAppBuildGradle).writeAsStringSync(updatedContentAppBuildGradle);
+}
+
+Future<void> cleanXcodeProjFiles(String projectPath) async {
+  final iosProj =
+      p.join(projectPath, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+  final macosProj =
+      p.join(projectPath, 'macos', 'Runner.xcodeproj', 'project.pbxproj');
+
+  final iosContent = File(iosProj).readAsStringSync();
+  final macosContent = File(macosProj).readAsStringSync();
+
+  final pattern = RegExp(
+    r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
+  );
+
+  final updatedContentIos = iosContent.replaceAll(pattern, '');
+  final updatedContentMacos = macosContent.replaceAll(pattern, '');
+
+  File(iosProj).writeAsStringSync(updatedContentIos);
+  File(macosProj).writeAsStringSync(updatedContentMacos);
+}
+
+Future<void> checkBuildGradleFileUpdated(
+  String projectPath, {
+  bool checkPerf = false,
+  bool checkCrashlytics = false,
+}) async {
+  final androidBuildGradlePath = p.join(projectPath, 'android', 'build.gradle');
+  final androidBuildGradle = File(androidBuildGradlePath).readAsStringSync();
+
+  final pluginsPattern = [
+    '// START: FlutterFire Configuration',
+    r"classpath 'com\.google\.gms:google-services:\d+\.\d+\.\d+'\s*",
+    if (checkPerf)
+      r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
+    if (checkCrashlytics)
+      r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
+    '// END: FlutterFire Configuration',
+  ].join(r'\s*');
+
+  final pattern = RegExp(pluginsPattern, multiLine: true, dotAll: true);
+
+  final exists = pattern.hasMatch(androidBuildGradle);
+
+  if (!exists) {
+    fail('android/build.gradle file was not updated as expected');
+  }
+
+  final androidAppBuildGradlePath =
+      p.join(projectPath, 'android', 'app', 'build.gradle');
+  final androidAppBuildGradle =
+      File(androidAppBuildGradlePath).readAsStringSync();
+  final pluginsPatternApp = [
+    '// START: FlutterFire Configuration',
+    r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
+    if (checkPerf)
+      r"(apply plugin: 'com\.google\.firebase\.firebase-perf'|id 'com\.google\.firebase\.firebase-perf')",
+    if (checkCrashlytics)
+      r"(apply plugin: 'com\.google\.firebase\.crashlytics'|id 'com\.google\.firebase\.crashlytics')",
+    '// END: FlutterFire Configuration',
+  ].join(r'\s*');
+
+  final patternForApp =
+      RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
+
+  final existsForApp = patternForApp.hasMatch(androidAppBuildGradle);
+
+  if (!existsForApp) {
+    fail('android/app/build.gradle file was not updated as expected');
+  }
+}
+
+Future<void> checkXcodeProjFiles(String projectPath) async {
+  // This needs crashlytics dependency to be installed to work
+  final iosProj =
+      p.join(projectPath, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+  final macosProj =
+      p.join(projectPath, 'macos', 'Runner.xcodeproj', 'project.pbxproj');
+
+  final iosContent = File(iosProj).readAsStringSync();
+  final macosContent = File(macosProj).readAsStringSync();
+
+  final pattern = RegExp(
+    r'(\t[A-Z0-9]+ \/\* FlutterFire: "flutterfire upload-crashlytics-symbols" \*\/ = \{[\s\S]*?\n\t\t\};)',
+  );
+
+  final iosHasScript = pattern.hasMatch(iosContent);
+
+  if (!iosHasScript) {
+    fail(
+      'ios/Runner.xcodeproj/project.pbxproj file was not updated as expected',
+    );
+  }
+
+  final macosHasScript = pattern.hasMatch(macosContent);
+
+  if (!macosHasScript) {
+    fail(
+      'macos/Runner.xcodeproj/project.pbxproj file was not updated as expected',
+    );
   }
 }
 

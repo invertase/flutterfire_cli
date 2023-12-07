@@ -30,11 +30,12 @@ void main() {
           'configure',
           '--yes',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -206,11 +207,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$buildType',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -399,11 +401,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$androidBuildConfiguration',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -592,11 +595,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -676,6 +680,7 @@ void main() {
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -692,11 +697,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.secondApp',
           '--android-package-name=com.example.second_app',
           '--macos-bundle-id=com.example.secondApp',
           '--web-app-id=$secondWebAppId',
+          '--windows-app-id=$secondWindowsAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -847,10 +853,12 @@ void main() {
           contains(secondAppleBundleId),
           contains(secondAndroidAppId),
           contains(secondWebAppId),
+          contains(secondWindowsAppId),
           contains('static const FirebaseOptions web = FirebaseOptions'),
           contains('static const FirebaseOptions android = FirebaseOptions'),
           contains('static const FirebaseOptions ios = FirebaseOptions'),
           contains('static const FirebaseOptions macos = FirebaseOptions'),
+          contains('static const FirebaseOptions windows = FirebaseOptions'),
         ]),
       );
     },
@@ -875,6 +883,7 @@ void main() {
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
@@ -986,6 +995,11 @@ void main() {
             .contains('static const FirebaseOptions web = FirebaseOptions'),
         isFalse,
       );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions windows = FirebaseOptions'),
+        isFalse,
+      );
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -1009,6 +1023,7 @@ void main() {
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
       );
@@ -1037,9 +1052,6 @@ void main() {
 
       final firebaseOptions =
           p.join(projectPath!, 'lib', 'firebase_options.dart');
-
-      // Clean out file to test it was recreated
-      await File(firebaseOptions).writeAsString('');
 
       final accessToken = await generateAccessTokenCI();
       // Perform `flutterfire configure` without args to use `flutterfire reconfigure`.
@@ -1091,6 +1103,11 @@ void main() {
             .contains('static const FirebaseOptions web = FirebaseOptions'),
         isFalse,
       );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions windows = FirebaseOptions'),
+        isFalse,
+      );
     },
     timeout: const Timeout(
       Duration(minutes: 2),
@@ -1110,11 +1127,12 @@ void main() {
           '--project=$firebaseProjectId',
           '--platforms=android,ios',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Output to different file
           '--out=lib/$configurationFileName',
         ],
@@ -1138,9 +1156,12 @@ void main() {
           contains(appleAppId),
           contains(appleBundleId),
           contains(androidAppId),
+          contains(webAppId),
+          contains(windowsAppId),
           contains('static const FirebaseOptions android = FirebaseOptions'),
           contains('static const FirebaseOptions ios = FirebaseOptions'),
           contains('static const FirebaseOptions web = FirebaseOptions'),
+          contains('static const FirebaseOptions windows = FirebaseOptions'),
         ]),
       );
     },
@@ -1161,6 +1182,37 @@ void main() {
         '--web-app-id=a-non-existent-web-app-id',
         // The below args aren't needed unless running from CI. We need for Github actions to run command.
         '--ios-bundle-id=com.example.flutterTestCli',
+        '--windows-app-id=$windowsAppId',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode != 0, isTrue);
+    expect(
+      (result.stderr as String).contains(
+        'does not match the web app id of any existing Firebase app',
+      ),
+      isTrue,
+    );
+  });
+
+  test(
+      'flutterfire configure: incorrect `--windows-app-id` should throw exception',
+      () async {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--platforms=windows',
+        '--web-app-id=$webAppId',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--ios-bundle-id=com.example.flutterTestCli',
+        // Trigger the exception
+        '--windows-app-id=a-non-existent-windows-app-id',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
       ],
@@ -1191,6 +1243,7 @@ void main() {
         '--ios-bundle-id=com.example.flutterTestCli',
         '--android-package-name=com.example.flutter_test_cli',
         '--macos-bundle-id=com.example.flutterTestCli',
+        '--windows-app-id=$windowsAppId',
       ],
       workingDirectory: projectPath,
     );
@@ -1203,5 +1256,219 @@ void main() {
       ),
       isTrue,
     );
+
+    // check "firebase_options.dart" file is created in lib directory
+    final firebaseOptions =
+        p.join(projectPath!, 'lib', 'firebase_options.dart');
+
+    await testFirebaseOptionsFileValues(
+      firebaseOptions,
+      selectedPlatform: kWeb,
+    );
   });
+
+  test(
+      'flutterfire configure: get correct Firebase App with manually created Firebase web app via `--windows-app-id`',
+      () async {
+    final result = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--platforms=windows',
+        '--web-app-id=$webAppId',
+        // The below args aren't needed unless running from CI. We need for Github actions to run command.
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--windows-app-id=$secondWindowsAppId',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    expect(result.exitCode, 0);
+
+    // check "firebase_options.dart" file is created in lib directory
+    final firebaseOptions =
+        p.join(projectPath!, 'lib', 'firebase_options.dart');
+
+    await testFirebaseOptionsFileValues(
+      firebaseOptions,
+      selectedPlatform: kWindows,
+    );
+  });
+
+  test(
+    'flutterfire configure: check Dart file configuration is updated correctly',
+    () async {
+      // Set up  initial configuration
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // Only configuring android initially
+          '--platforms=android',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptions = p.join(
+        projectPath!,
+        'lib',
+        'firebase_options.dart',
+      );
+
+      // check "firebase_options.dart" file was created and updates android only
+      final firebaseOptionsContent = await File(firebaseOptions).readAsString();
+
+      // only configure android initially
+      final listOfStrings = firebaseOptionsContent.split('\n');
+      expect(
+        listOfStrings,
+        containsAll(<Matcher>[
+          contains(androidAppId),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+        ]),
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions web = FirebaseOptions'),
+        isFalse,
+      );
+      expect(
+        firebaseOptionsContent
+            .contains('static const FirebaseOptions ios = FirebaseOptions'),
+        isFalse,
+      );
+
+      // Now reconfigure with ios, macos & web platforms and check Dart file is updated correctly
+      final result2 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // Configure the rest of the platforms
+          '--platforms=ios,macos,web',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--ios-bundle-id=com.example.flutterTestCli',
+          '--android-package-name=com.example.flutter_test_cli',
+          '--macos-bundle-id=com.example.flutterTestCli',
+          '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptionsContent2 =
+          await File(firebaseOptions).readAsString();
+      final listOfStrings2 = firebaseOptionsContent2.split('\n');
+
+      expect(
+        listOfStrings2,
+        containsAll(<Matcher>[
+          contains(androidAppId),
+          contains('static const FirebaseOptions web = FirebaseOptions'),
+          contains('static const FirebaseOptions android = FirebaseOptions'),
+          contains('static const FirebaseOptions ios = FirebaseOptions'),
+        ]),
+      );
+
+      final startIndexWeb = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'if (kIsWeb)',
+        ),
+      );
+
+      listOfStrings2[startIndexWeb + 1].contains(
+        'return web;',
+      );
+
+      final startIndexAndroid = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.android:',
+        ),
+      );
+
+      listOfStrings2[startIndexAndroid + 1].contains(
+        'return android;',
+      );
+
+      final startIndexIos = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.iOS:',
+        ),
+      );
+
+      listOfStrings2[startIndexIos + 1].contains(
+        'return ios;',
+      );
+
+      final startIndexMacos = listOfStrings2.indexWhere(
+        (line) => line.contains(
+          'case TargetPlatform.macOS:',
+        ),
+      );
+
+      listOfStrings2[startIndexMacos + 1].contains(
+        'return macos;',
+      );
+
+      // Now reconfigure with different apps across platforms and check Dart file is updated correctly
+      final result3 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=ios,macos,web,android,windows',
+          '--ios-bundle-id=$secondAppleBundleId',
+          '--android-package-name=$secondAndroidApplicationId',
+          '--macos-bundle-id=$secondAppleBundleId',
+          '--web-app-id=$secondWebAppId',
+          '--windows-app-id=$secondWindowsAppId',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (result3.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final firebaseOptionsContent3 =
+          await File(firebaseOptions).readAsString();
+      final listOfStrings3 = firebaseOptionsContent3.split('\n');
+
+      expect(
+        listOfStrings3,
+        containsAll(<Matcher>[
+          contains(secondAndroidAppId),
+          contains(secondAppleAppId),
+          contains(secondWebAppId),
+          contains(secondWindowsAppId),
+        ]),
+      );
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }
