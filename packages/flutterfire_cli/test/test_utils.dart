@@ -48,11 +48,16 @@ Future<String> createFlutterProject() async {
     'flutter',
     ['create', flutterProject],
     workingDirectory: tempDir.path,
+    runInShell: true,
   );
 
   final flutterProjectPath = p.join(tempDir.path, flutterProject);
 
   return flutterProjectPath;
+}
+
+String normalizeLineEndings(String content) {
+  return content.replaceAll('\r\n', '\n');
 }
 
 bool containsInOrder(String content, List<String> lines) {
