@@ -260,7 +260,7 @@ flutterfire reconfigure
 
 It will rewrite all your service files in place and your Dart initialization file. It does this by using the `firebase.json` to track each of your configurations to update the service file at the correct location.
 
-This command will  add the debug symbol upload script for Apple projects if you have updated your project to use Firebase Crashlytics. It will also update your `build.gradle` files as appropriate depending on what Firebase products your project requires (e.g. The command will write the required Firebase Performance and Crashlytics dependencies if your Flutter project has `firebase_performance` & `firebase_crashlytics` as dependencies in your android `build.gradle` files).
+This command will  add the debug symbol upload script for Apple projects if you have updated your project to use Firebase Crashlytics. It will also update your `build.gradle` files as appropriate depending on what Firebase products your project requires (e.g. The command will write the required Firebase Performance and Crashlytics dependencies in your android `build.gradle` files if your Flutter project has `firebase_performance` & `firebase_crashlytics` dependencies).
 
 ### Caveats
 - Use the Firebase service files for android (`google-services.json`), iOS & macOS (`GoogleService-Info.plist`). [See this comment](https://github.com/invertase/flutterfire_cli/issues/14#issuecomment-1270781026) for further information why we don't recommend Dart initialization for these platforms.
