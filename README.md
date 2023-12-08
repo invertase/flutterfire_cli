@@ -37,6 +37,10 @@ flutterfire --help
 dart pub global activate flutterfire_cli
 ```
 
+- FlutterFire CLI requires the Firebase CLI (`firebase-tools`) to be installed on your local machine, [follow these instructions](https://firebase.google.com/docs/cli) for installation.
+- If you're running on a windows machine, we highly recommend you install via npm (i.e. `npm install -g firebase-tools`). The standalone
+`firebase-tools` version can cause problems which you can read about [here](https://github.com/invertase/flutterfire_cli/issues/55#issuecomment-1316201478).
+
 ## Documentation for `v0.3.0-dev.19`
 
 ### Default setup
