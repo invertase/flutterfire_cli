@@ -39,6 +39,7 @@ void main() {
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -116,6 +117,7 @@ void main() {
             '-e',
             scriptToCheckIosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (iosResult.exitCode != 0) {
@@ -141,6 +143,7 @@ void main() {
             '-e',
             scriptToCheckMacosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (macosResult.exitCode != 0) {
@@ -167,10 +170,11 @@ void main() {
           p.join(projectPath!, 'android', 'app', 'build.gradle');
 
       final androidBuildGradleContent =
-          await File(androidBuildGradle).readAsString();
+          normalizeLineEndings(await File(androidBuildGradle).readAsString());
 
-      final androidAppBuildGradleContent =
-          await File(androidAppBuildGradle).readAsString();
+      final androidAppBuildGradleContent = normalizeLineEndings(
+        await File(androidAppBuildGradle).readAsString(),
+      );
 
       final buildGradleLines = androidGradleUpdate.trim().split('\n');
 
@@ -223,6 +227,7 @@ void main() {
           '--macos-build-config=$appleBuildConfiguration',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -312,6 +317,7 @@ void main() {
             '-e',
             scriptToCheckIosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (iosResult.exitCode != 0) {
@@ -332,6 +338,7 @@ void main() {
             '-e',
             scriptToCheckMacosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (macosResult.exitCode != 0) {
@@ -358,10 +365,11 @@ void main() {
           p.join(projectPath!, 'android', 'app', 'build.gradle');
 
       final androidBuildGradleContent =
-          await File(androidBuildGradle).readAsString();
+          normalizeLineEndings(await File(androidBuildGradle).readAsString());
 
-      final androidAppBuildGradleContent =
-          await File(androidAppBuildGradle).readAsString();
+      final androidAppBuildGradleContent = normalizeLineEndings(
+        await File(androidAppBuildGradle).readAsString(),
+      );
 
       final buildGradleLines = androidGradleUpdate.trim().split('\n');
 
@@ -417,6 +425,7 @@ void main() {
           '--macos-target=$targetType',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -494,6 +503,7 @@ void main() {
             '-e',
             scriptToCheckIosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (iosResult.exitCode != 0) {
@@ -519,6 +529,7 @@ void main() {
             '-e',
             scriptToCheckMacosPbxprojFile,
           ],
+          runInShell: true,
         );
 
         if (macosResult.exitCode != 0) {
@@ -545,10 +556,11 @@ void main() {
           p.join(projectPath!, 'android', 'app', 'build.gradle');
 
       final androidBuildGradleContent =
-          await File(androidBuildGradle).readAsString();
+          normalizeLineEndings(await File(androidBuildGradle).readAsString());
 
-      final androidAppBuildGradleContent =
-          await File(androidAppBuildGradle).readAsString();
+      final androidAppBuildGradleContent = normalizeLineEndings(
+        await File(androidAppBuildGradle).readAsString(),
+      );
 
       final buildGradleLines = androidGradleUpdate.trim().split('\n');
 
@@ -603,6 +615,7 @@ void main() {
           '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -624,6 +637,7 @@ void main() {
           '-e',
           scriptToCheckIosPbxprojFile,
         ],
+        runInShell: true,
       );
 
       if (iosResult.exitCode != 0) {
@@ -649,6 +663,7 @@ void main() {
           '-e',
           scriptToCheckMacosPbxprojFile,
         ],
+        runInShell: true,
       );
 
       if (macosResult.exitCode != 0) {
@@ -683,6 +698,7 @@ void main() {
           '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -705,6 +721,7 @@ void main() {
           '--windows-app-id=$secondWindowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -887,6 +904,7 @@ void main() {
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -1026,6 +1044,7 @@ void main() {
           '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -1062,6 +1081,7 @@ void main() {
           if (accessToken != null) '--test-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
         environment: {'TEST_ENVIRONMENT': 'true'},
       );
 
@@ -1137,6 +1157,7 @@ void main() {
           '--out=lib/$configurationFileName',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -1187,13 +1208,19 @@ void main() {
         '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
+      runInShell: true,
     );
 
+    final output = result.stderr as String;
+    final expectedOutput = [
+      'does not match the web app id of any existing Firebase app',
+      'Exception',
+    ];
+
+    final expected = expectedOutput.every(output.contains);
     expect(result.exitCode != 0, isTrue);
     expect(
-      (result.stderr as String).contains(
-        'does not match the web app id of any existing Firebase app',
-      ),
+      expected,
       isTrue,
     );
   });
@@ -1217,13 +1244,20 @@ void main() {
         '--macos-bundle-id=com.example.flutterTestCli',
       ],
       workingDirectory: projectPath,
+      runInShell: true,
     );
+
+    final output = result.stderr as String;
+    final expectedOutput = [
+      'does not match the web app id of any existing Firebase app',
+      'Exception',
+    ];
+
+    final expected = expectedOutput.every(output.contains);
 
     expect(result.exitCode != 0, isTrue);
     expect(
-      (result.stderr as String).contains(
-        'does not match the web app id of any existing Firebase app',
-      ),
+      expected,
       isTrue,
     );
   });
@@ -1246,6 +1280,7 @@ void main() {
         '--windows-app-id=$windowsAppId',
       ],
       workingDirectory: projectPath,
+      runInShell: true,
     );
 
     expect(result.exitCode, 0);
@@ -1285,6 +1320,7 @@ void main() {
         '--windows-app-id=$secondWindowsAppId',
       ],
       workingDirectory: projectPath,
+      runInShell: true,
     );
 
     expect(result.exitCode, 0);
@@ -1319,6 +1355,7 @@ void main() {
           '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -1371,6 +1408,7 @@ void main() {
           '--windows-app-id=$windowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -1447,6 +1485,7 @@ void main() {
           '--windows-app-id=$secondWindowsAppId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result3.exitCode != 0) {

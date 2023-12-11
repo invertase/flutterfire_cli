@@ -144,7 +144,7 @@ class FirebaseAndroidWrites {
       pathToMap: keysToMap,
       projectId: firebaseOptions.projectId,
       appId: firebaseOptions.appId,
-      fileOutput: relativeServiceFile,
+      fileOutput: replaceBackslash(relativeServiceFile),
     );
   }
 

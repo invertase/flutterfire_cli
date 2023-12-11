@@ -256,6 +256,13 @@ String relativePath(String path, String from) {
   return normalize(relative(path, from: from));
 }
 
+String replaceBackslash(String path) {
+  if (currentPlatform.isWindows) {
+    return normalize(path).replaceAll(r'\', '/');
+  }
+  return path;
+}
+
 String removeForwardBackwardSlash(String input) {
   var output = input;
   if (input.startsWith('/')) {

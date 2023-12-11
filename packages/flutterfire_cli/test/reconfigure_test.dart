@@ -60,6 +60,7 @@ void main() {
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -75,6 +76,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -123,6 +125,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -177,6 +180,7 @@ void main() {
           '--macos-build-config=$appleBuildConfiguration',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -192,6 +196,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -245,6 +250,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -302,6 +308,7 @@ void main() {
           '--macos-target=$targetType',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -317,6 +324,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -374,6 +382,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
