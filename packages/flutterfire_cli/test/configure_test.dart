@@ -1216,7 +1216,7 @@ void main() {
     ];
 
     final expected = expectedOutput.every(output.contains);
-
+    expect(result.exitCode != 0, isTrue);
     expect(
       expected,
       isTrue,
@@ -1253,6 +1253,7 @@ void main() {
 
     final expected = expectedOutput.every(output.contains);
 
+    expect(result.exitCode != 0, isTrue);
     expect(
       expected,
       isTrue,
