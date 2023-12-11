@@ -104,7 +104,7 @@ jobs:
           node-version: "18"
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools
+          npm i -g firebase-tools
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite
