@@ -173,7 +173,8 @@ void main() {
           normalizeLineEndings(await File(androidBuildGradle).readAsString());
 
       final androidAppBuildGradleContent = normalizeLineEndings(
-          await File(androidAppBuildGradle).readAsString());
+        await File(androidAppBuildGradle).readAsString(),
+      );
 
       final buildGradleLines = androidGradleUpdate.trim().split('\n');
 
@@ -558,7 +559,8 @@ void main() {
           normalizeLineEndings(await File(androidBuildGradle).readAsString());
 
       final androidAppBuildGradleContent = normalizeLineEndings(
-          await File(androidAppBuildGradle).readAsString());
+        await File(androidAppBuildGradle).readAsString(),
+      );
 
       final buildGradleLines = androidGradleUpdate.trim().split('\n');
 
