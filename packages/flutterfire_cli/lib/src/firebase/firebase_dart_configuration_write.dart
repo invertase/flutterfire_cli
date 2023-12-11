@@ -195,10 +195,13 @@ class FirebaseDartConfigurationWrite {
   }
 
   FirebaseJsonWrites _firebaseJsonWrites() {
-    final relativePathConfigurationFile = relative(
-      configurationFilePath,
-      from: flutterAppPath,
+    final relativePathConfigurationFile = replaceBackslash(
+      relative(
+        configurationFilePath,
+        from: flutterAppPath,
+      ),
     );
+
     final keysToMap = [
       kFlutter,
       kPlatforms,
