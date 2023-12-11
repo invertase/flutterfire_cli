@@ -108,7 +108,6 @@ jobs:
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite
-      - uses: actions/checkout@v2
       - name: "Run Tests"
         run: cmd /K melos run test --no-select
         env:
