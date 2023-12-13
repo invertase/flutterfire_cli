@@ -177,8 +177,16 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   }
 
   String _bundleServiceFileScript() {
-    final command =
-        'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
+    String? command;
+    if (platform == kMacos) {
+      // macOS is bundled in Contents/Resources directory
+      command =
+          '# Define the Resources directory path\nRESOURCES_DIR=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app/Contents/Resources\n\n# Create the Resources directory if it does not exist\n mkdir -p "\$RESOURCES_DIR"\n\n flutterfire bundle-service-file --plist-destination="\$RESOURCES_DIR" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
+    } else {
+      // iOS is bundled in the root of the app bundle
+      command =
+          'flutterfire bundle-service-file --plist-destination=\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path=\${SRCROOT}';
+    }
 
     return '''
 require 'xcodeproj'
