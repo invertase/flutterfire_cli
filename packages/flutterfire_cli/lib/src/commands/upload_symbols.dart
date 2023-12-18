@@ -90,6 +90,55 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       help:
           'Value is always ""default". This is for backwards compatibility of default configuration',
     );
+
+    argParser.addOption(
+      'env-platform-name',
+      valueHelp: 'envPlatformName',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-configuration',
+      valueHelp: 'envConfiguration',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-project-dir',
+      valueHelp: 'envProjectDir',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-built-products-dir',
+      valueHelp: 'envBuildProductsDir',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-dwarf-dsym-folder-path',
+      valueHelp: 'envDwarfDsymFolderPath',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-dwarf-dsym-file-name',
+      valueHelp: 'envDwarfDsymFileName',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
+    
+    argParser.addOption(
+      'env-infoplist-path',
+      valueHelp: 'envInfoPlistPath',
+      help:
+          'Required environment variable for running `upload-symbols` script.',
+    );
   }
 
   @override
@@ -106,12 +155,32 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     return argResults!['upload-symbols-script-path'] as String;
   }
 
-  String get debugSymbolsPath {
-    return argResults!['debug-symbols-path'] as String;
+  String get envPlatformName {
+    return argResults!['env-platform-name'] as String;
   }
 
-  String get infoPlistPath {
-    return argResults!['info-plist-path'] as String;
+  String get envConfiguration {
+    return argResults!['env-configuration'] as String;
+  }
+
+  String get envProjectDir {
+    return argResults!['env-project-dir'] as String;
+  }
+
+  String get envBuildProductsDir {
+    return argResults!['env-built-products-dir'] as String;
+  }
+  
+  String get envDwarfDsymFolderPath {
+    return argResults!['env-dwarf-dsym-folder-path'] as String;
+  }
+  
+  String get envDwarfDsymFileName {
+    return argResults!['env-dwarf-dsym-file-name'] as String;
+  }
+  
+  String get envInfoPlistPath {
+    return argResults!['env-infoplist-path'] as String;
   }
 
   String? get buildConfiguration {
@@ -284,14 +353,19 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     final validationScript = await Process.run(
       uploadSymbolsScriptPath,
       [
-        '--build-phase',
         '--validate',
-        '-ai',
-        appId,
         '--flutter-project',
         appIdFilePath,
-        debugSymbolsPath,
       ],
+      environment: {
+        'PLATFORM_NAME': envPlatformName,
+        'CONFIGURATION': envConfiguration,
+        'PROJECT_DIR': envProjectDir,
+        'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
+        'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
+        'INFOPLIST_PATH': envInfoPlistPath,
+        'BUILT_PRODUCTS_DIR': envBuildProductsDir,
+      },
     );
 
     if (validationScript.exitCode != 0) {
@@ -299,16 +373,21 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
 
     // Upload script
-    final uploadScript = await Process.run(
+     final uploadScript = await Process.run(
       uploadSymbolsScriptPath,
       [
-        '--build-phase',
-        '-ai',
-        appId,
         '--flutter-project',
-        appIdFilePath,
-        debugSymbolsPath,
+        appIdFilePath, 
       ],
+      environment: {
+        'PLATFORM_NAME': envPlatformName,
+        'CONFIGURATION': envConfiguration,
+        'PROJECT_DIR': envProjectDir,
+        'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
+        'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
+        'INFOPLIST_PATH': envInfoPlistPath,
+        'BUILT_PRODUCTS_DIR': envBuildProductsDir,
+      },
     );
 
     if (uploadScript.exitCode != 0) {
@@ -316,6 +395,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
 
     if (uploadScript.stdout != null) {
+      stdout.write(uploadScript.stdout as String);
       logger.stdout(uploadScript.stdout as String);
     }
   }
