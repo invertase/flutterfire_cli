@@ -97,42 +97,42 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-configuration',
       valueHelp: 'envConfiguration',
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-project-dir',
       valueHelp: 'envProjectDir',
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-built-products-dir',
       valueHelp: 'envBuildProductsDir',
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-dwarf-dsym-folder-path',
       valueHelp: 'envDwarfDsymFolderPath',
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-dwarf-dsym-file-name',
       valueHelp: 'envDwarfDsymFileName',
       help:
           'Required environment variable for running `upload-symbols` script.',
     );
-    
+
     argParser.addOption(
       'env-infoplist-path',
       valueHelp: 'envInfoPlistPath',
@@ -170,15 +170,15 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
   String get envBuildProductsDir {
     return argResults!['env-built-products-dir'] as String;
   }
-  
+
   String get envDwarfDsymFolderPath {
     return argResults!['env-dwarf-dsym-folder-path'] as String;
   }
-  
+
   String get envDwarfDsymFileName {
     return argResults!['env-dwarf-dsym-file-name'] as String;
   }
-  
+
   String get envInfoPlistPath {
     return argResults!['env-infoplist-path'] as String;
   }
@@ -373,11 +373,11 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
 
     // Upload script
-     final uploadScript = await Process.run(
+    final uploadScript = await Process.run(
       uploadSymbolsScriptPath,
       [
         '--flutter-project',
-        appIdFilePath, 
+        appIdFilePath,
       ],
       environment: {
         'PLATFORM_NAME': envPlatformName,
