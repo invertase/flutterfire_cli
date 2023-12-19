@@ -374,7 +374,7 @@ String _debugSymbolsScript(
   String platform,
 ) {
   var command =
-      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --debug-symbols-path=\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME} --info-plist-path=\${SRCROOT}/\${BUILT_PRODUCTS_DIR}/\${INFOPLIST_PATH} --platform=$platform --apple-project-path=\${SRCROOT} ';
+      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path=\$PODS_ROOT/FirebaseCrashlytics/upload-symbols --platform=$platform --apple-project-path=\${SRCROOT} --env-platform-name=\${PLATFORM_NAME} --env-configuration=\${CONFIGURATION} --env-project-dir=\${PROJECT_DIR} --env-built-products-dir=\${BUILT_PRODUCTS_DIR} --env-dwarf-dsym-folder-path=\${DWARF_DSYM_FOLDER_PATH} --env-dwarf-dsym-file-name=\${DWARF_DSYM_FILE_NAME} --env-infoplist-path=\${INFOPLIST_PATH} ';
 
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
