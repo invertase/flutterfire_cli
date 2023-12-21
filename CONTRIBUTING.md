@@ -49,10 +49,10 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 - Create a new local branch from `main` (e.g. `git checkout -b my-new-feature`)
 - Make your changes (try to split them up with one PR per feature/fix).
 - When committing your changes, make sure that each commit message is clear
- (e.g. `git commit -m 'doc: Added CONTRIBUTING.md'`).
+  (e.g. `git commit -m 'doc: Added CONTRIBUTING.md'`).
 - Push your new branch to your own fork into the same remote branch
- (e.g. `git push origin my-username.my-new-feature`, replace `origin` if you use another remote.)
- 
+  (e.g. `git push origin my-username.my-new-feature`, replace `origin` if you use another remote.)
+
 ### Open a pull request
 
 To send us a pull request:
@@ -63,7 +63,7 @@ To send us a pull request:
 Please make sure all your check-ins have detailed commit messages explaining the patch.
 
 When naming the title of your pull request, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0-beta.4/)
-guide. 
+guide.
 
 Please also enable **“Allow edits by maintainers”**, this will help to speed up the review
 process as well.

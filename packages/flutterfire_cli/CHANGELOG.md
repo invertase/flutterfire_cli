@@ -1,79 +1,79 @@
 ## 0.3.0-dev.19
 
- - **FIX**(apple): upload debug symbols for de-obfuscating Dart stack traces ([#247](https://github.com/invertase/flutterfire_cli/issues/247)). ([93d02a56](https://github.com/invertase/flutterfire_cli/commit/93d02a5659183cb4e8edeac88965e7a6a99e6c63))
- - **FIX**: bundle service file into Contents/Resources for macOS and app root for iOS ([#245](https://github.com/invertase/flutterfire_cli/issues/245)). ([83ed0648](https://github.com/invertase/flutterfire_cli/commit/83ed0648ffbfde2ece56fa14da149732531d9d83))
- - **FIX**(apple): ensure service file is not duplicated in `project.pbxproj` file ([#239](https://github.com/invertase/flutterfire_cli/issues/239)). ([32f2962f](https://github.com/invertase/flutterfire_cli/commit/32f2962feb34cf93a360f5d19f3b7222fe5c092c))
- - **FIX**(android): update regex as `android/build.gradle` in latest flutter create doesn't match previous regex ([#240](https://github.com/invertase/flutterfire_cli/issues/240)). ([2d8b3118](https://github.com/invertase/flutterfire_cli/commit/2d8b3118e8058c19191a2103e155edf41b3271cf))
- - **FIX**: update `firebase_options.dart` or specified `--out=firebase_release.dart` rather than rewrite file entirely. ([#226](https://github.com/invertase/flutterfire_cli/issues/226)). ([204ba306](https://github.com/invertase/flutterfire_cli/commit/204ba30694383943f71988d649fe69b1f8cf9e75))
- - **FIX**: ensure `--web-app-id` flag is respected when present in `flutterfire configure` ([#225](https://github.com/invertase/flutterfire_cli/issues/225)). ([8de25758](https://github.com/invertase/flutterfire_cli/commit/8de25758b15552c730ca1f7352c70e1f1dac5f8d))
- - **FIX**: macOS bundleId was incorrectly selecting `some.app.RunnerTests` ([#222](https://github.com/invertase/flutterfire_cli/issues/222)). ([65d5d589](https://github.com/invertase/flutterfire_cli/commit/65d5d589e153bb7e714689e4a5122b3d64282b10))
- - **FIX**: removing mandatory flag on bundle ids for macOS and iOS ([#179](https://github.com/invertase/flutterfire_cli/issues/179)). ([02f18e3d](https://github.com/invertase/flutterfire_cli/commit/02f18e3d62717008c2e002c293a9744a645e2ebd))
- - **FEAT**: windows support for `flutterfire configure` & `flutterfire reconfigure` ([#229](https://github.com/invertase/flutterfire_cli/issues/229)). ([9e7b6591](https://github.com/invertase/flutterfire_cli/commit/9e7b659102146f97cee396a1365ecc5c8b848197))
- - **FEAT**: `flutterfire reconfigure` now updates android `build.gradle` files & Apple `project.pbxproj` for debug symbol script like `flutterfire configure` ([#227](https://github.com/invertase/flutterfire_cli/issues/227)). ([4ab9f65a](https://github.com/invertase/flutterfire_cli/commit/4ab9f65a171c032b48d038ecaa402082cc9a3d9b))
+- **FIX**(apple): upload debug symbols for de-obfuscating Dart stack traces ([#247](https://github.com/invertase/flutterfire_cli/issues/247)). ([93d02a56](https://github.com/invertase/flutterfire_cli/commit/93d02a5659183cb4e8edeac88965e7a6a99e6c63))
+- **FIX**: bundle service file into Contents/Resources for macOS and app root for iOS ([#245](https://github.com/invertase/flutterfire_cli/issues/245)). ([83ed0648](https://github.com/invertase/flutterfire_cli/commit/83ed0648ffbfde2ece56fa14da149732531d9d83))
+- **FIX**(apple): ensure service file is not duplicated in `project.pbxproj` file ([#239](https://github.com/invertase/flutterfire_cli/issues/239)). ([32f2962f](https://github.com/invertase/flutterfire_cli/commit/32f2962feb34cf93a360f5d19f3b7222fe5c092c))
+- **FIX**(android): update regex as `android/build.gradle` in latest flutter create doesn't match previous regex ([#240](https://github.com/invertase/flutterfire_cli/issues/240)). ([2d8b3118](https://github.com/invertase/flutterfire_cli/commit/2d8b3118e8058c19191a2103e155edf41b3271cf))
+- **FIX**: update `firebase_options.dart` or specified `--out=firebase_release.dart` rather than rewrite file entirely. ([#226](https://github.com/invertase/flutterfire_cli/issues/226)). ([204ba306](https://github.com/invertase/flutterfire_cli/commit/204ba30694383943f71988d649fe69b1f8cf9e75))
+- **FIX**: ensure `--web-app-id` flag is respected when present in `flutterfire configure` ([#225](https://github.com/invertase/flutterfire_cli/issues/225)). ([8de25758](https://github.com/invertase/flutterfire_cli/commit/8de25758b15552c730ca1f7352c70e1f1dac5f8d))
+- **FIX**: macOS bundleId was incorrectly selecting `some.app.RunnerTests` ([#222](https://github.com/invertase/flutterfire_cli/issues/222)). ([65d5d589](https://github.com/invertase/flutterfire_cli/commit/65d5d589e153bb7e714689e4a5122b3d64282b10))
+- **FIX**: removing mandatory flag on bundle ids for macOS and iOS ([#179](https://github.com/invertase/flutterfire_cli/issues/179)). ([02f18e3d](https://github.com/invertase/flutterfire_cli/commit/02f18e3d62717008c2e002c293a9744a645e2ebd))
+- **FEAT**: windows support for `flutterfire configure` & `flutterfire reconfigure` ([#229](https://github.com/invertase/flutterfire_cli/issues/229)). ([9e7b6591](https://github.com/invertase/flutterfire_cli/commit/9e7b659102146f97cee396a1365ecc5c8b848197))
+- **FEAT**: `flutterfire reconfigure` now updates android `build.gradle` files & Apple `project.pbxproj` for debug symbol script like `flutterfire configure` ([#227](https://github.com/invertase/flutterfire_cli/issues/227)). ([4ab9f65a](https://github.com/invertase/flutterfire_cli/commit/4ab9f65a171c032b48d038ecaa402082cc9a3d9b))
 
 ## 0.3.0-dev.18
 
- - **FIX**: ensure build.gradle content is written on new lines. ([b6ba072f](https://github.com/invertase/flutterfire_cli/commit/b6ba072fc8f361dbd7cdcc31a270d71cafd8489e))
+- **FIX**: ensure build.gradle content is written on new lines. ([b6ba072f](https://github.com/invertase/flutterfire_cli/commit/b6ba072fc8f361dbd7cdcc31a270d71cafd8489e))
 
 ## 0.3.0-dev.17
 
- - **REFACTOR**: internal update to names to be clear about their function. ([fb02d510](https://github.com/invertase/flutterfire_cli/commit/fb02d510a1181b0f7e325cea10a6f2057d2a1811))
- - **FEAT**: check if user requires flutterfire reconfigure. ([c0bc462e](https://github.com/invertase/flutterfire_cli/commit/c0bc462ed96df9487874a4602f021990e1c0c698))
- - **FEAT**: `flutterfire reconfigure` command. Pulls latest values for Firebase apps and rewrites service files. ([90f07261](https://github.com/invertase/flutterfire_cli/commit/90f072612edff32637f4cb664da791dd035eb996))
- - **FEAT**: update implementation to make it more modular and easier to understand. ([6a61ccf5](https://github.com/invertase/flutterfire_cli/commit/6a61ccf55504d2da2b119954b3aaf3e5d63d751e))
- - **FEAT**: automatically add debug symbols script by detecting crashlytics dependency. ([55c0cee9](https://github.com/invertase/flutterfire_cli/commit/55c0cee9262284adb3eb4e4a78d369df1c1076c8))
- - **FEAT**: update "firebase.json" values for web, android and apple. Updated validation for service files for android & apple. ([dff23710](https://github.com/invertase/flutterfire_cli/commit/dff2371010959b9c713dd18d77e66c94a4fafb45))
- - **FIX**: improve regex for finding gradle dependency. ([24d33f83](https://github.com/invertase/flutterfire_cli/commit/24d33f835cee02eed438df677966b91ce48dbe00))
- - **FIX**: update google services version dependency for android. ([17680734](https://github.com/invertase/flutterfire_cli/commit/17680734582388e962fce32c5d8335faeb6600fe))
- - **FIX**: Dart configuration output is respected if selected as argument. ([097b4109](https://github.com/invertase/flutterfire_cli/commit/097b4109374aeaf59799152277cbd2b99fb445a9))
- - **FIX**: android app build.gradle has two ways to apply plugin. ([0bf6541c](https://github.com/invertase/flutterfire_cli/commit/0bf6541c210102e11d1ab04ec7363c894a422f5e))
- - **FIX**: catch when project list command does not work. ([073ec67f](https://github.com/invertase/flutterfire_cli/commit/073ec67f58aefca5b7d682d35aaeb116f6c3eb8a))
- - **FIX**: if web not selected as platform, breaking flutterfire configure command. ([117868d5](https://github.com/invertase/flutterfire_cli/commit/117868d50758ee02ba2b8fcac19624310ffc1f6c))
- - **FIX**: remove absolute paths from run phase build script. ([4ba1e4e7](https://github.com/invertase/flutterfire_cli/commit/4ba1e4e78faa3866f3f491af63b891e3e52cf302))
- - **FIX**: overwrite Apple service files if they exist already. ([da029d3a](https://github.com/invertase/flutterfire_cli/commit/da029d3a0a0a41cf2329027d090ccc5d1037a27e))
+- **REFACTOR**: internal update to names to be clear about their function. ([fb02d510](https://github.com/invertase/flutterfire_cli/commit/fb02d510a1181b0f7e325cea10a6f2057d2a1811))
+- **FEAT**: check if user requires flutterfire reconfigure. ([c0bc462e](https://github.com/invertase/flutterfire_cli/commit/c0bc462ed96df9487874a4602f021990e1c0c698))
+- **FEAT**: `flutterfire reconfigure` command. Pulls latest values for Firebase apps and rewrites service files. ([90f07261](https://github.com/invertase/flutterfire_cli/commit/90f072612edff32637f4cb664da791dd035eb996))
+- **FEAT**: update implementation to make it more modular and easier to understand. ([6a61ccf5](https://github.com/invertase/flutterfire_cli/commit/6a61ccf55504d2da2b119954b3aaf3e5d63d751e))
+- **FEAT**: automatically add debug symbols script by detecting crashlytics dependency. ([55c0cee9](https://github.com/invertase/flutterfire_cli/commit/55c0cee9262284adb3eb4e4a78d369df1c1076c8))
+- **FEAT**: update "firebase.json" values for web, android and apple. Updated validation for service files for android & apple. ([dff23710](https://github.com/invertase/flutterfire_cli/commit/dff2371010959b9c713dd18d77e66c94a4fafb45))
+- **FIX**: improve regex for finding gradle dependency. ([24d33f83](https://github.com/invertase/flutterfire_cli/commit/24d33f835cee02eed438df677966b91ce48dbe00))
+- **FIX**: update google services version dependency for android. ([17680734](https://github.com/invertase/flutterfire_cli/commit/17680734582388e962fce32c5d8335faeb6600fe))
+- **FIX**: Dart configuration output is respected if selected as argument. ([097b4109](https://github.com/invertase/flutterfire_cli/commit/097b4109374aeaf59799152277cbd2b99fb445a9))
+- **FIX**: android app build.gradle has two ways to apply plugin. ([0bf6541c](https://github.com/invertase/flutterfire_cli/commit/0bf6541c210102e11d1ab04ec7363c894a422f5e))
+- **FIX**: catch when project list command does not work. ([073ec67f](https://github.com/invertase/flutterfire_cli/commit/073ec67f58aefca5b7d682d35aaeb116f6c3eb8a))
+- **FIX**: if web not selected as platform, breaking flutterfire configure command. ([117868d5](https://github.com/invertase/flutterfire_cli/commit/117868d50758ee02ba2b8fcac19624310ffc1f6c))
+- **FIX**: remove absolute paths from run phase build script. ([4ba1e4e7](https://github.com/invertase/flutterfire_cli/commit/4ba1e4e78faa3866f3f491af63b891e3e52cf302))
+- **FIX**: overwrite Apple service files if they exist already. ([da029d3a](https://github.com/invertase/flutterfire_cli/commit/da029d3a0a0a41cf2329027d090ccc5d1037a27e))
 
 ## 0.3.0-dev.16
 
- - **FIX**: update json after 2nd run of `flutterfire configure`. ([bb285236](https://github.com/invertase/flutterfire_cli/commit/bb285236e4e3622fddfa5cbccdebd17e7af82c51))
+- **FIX**: update json after 2nd run of `flutterfire configure`. ([bb285236](https://github.com/invertase/flutterfire_cli/commit/bb285236e4e3622fddfa5cbccdebd17e7af82c51))
 
 ## 0.3.0-dev.15
 
- - **REFACTOR**: allow macOS configuration for scripts. ([7384bd9f](https://github.com/invertase/flutterfire_cli/commit/7384bd9f89c00326a1aedf71c02151fd856416f3))
- - **REFACTOR**: remove dead code and move other to apple file. ([781fad2d](https://github.com/invertase/flutterfire_cli/commit/781fad2d4da4a49bdb408026eb696447df3729c5))
- - **REFACTOR**: use build configuration & call FF bundle-service-file. ([4836124a](https://github.com/invertase/flutterfire_cli/commit/4836124ae180d57be0f47d38fcbbfaf1ad440524))
- - **REFACTOR**: make functions out of reusable code. ([86e82d72](https://github.com/invertase/flutterfire_cli/commit/86e82d72d96cdb05734aabacaefd51c5731e5e68))
- - **REFACTOR**: remove unnecessary code. ([38c62ee9](https://github.com/invertase/flutterfire_cli/commit/38c62ee96529f39e7fea30057544e7e95b14e4f2))
- - **REFACTOR**: big refactor to clean up code. ([f8c42643](https://github.com/invertase/flutterfire_cli/commit/f8c426434f1b5f618d093c1a8bdd5e40edb2b833))
- - **REFACTOR**: cleaned up code. ([99a92de1](https://github.com/invertase/flutterfire_cli/commit/99a92de1ce96e8a780234eadfaa2d4a707baaced))
- - **FIX**: stop `default/default` path to default app_id_file in .dart_tools. ([24730e15](https://github.com/invertase/flutterfire_cli/commit/24730e154dd4beda9850ce27ecb7ba1a9cc57efe))
- - **FIX**: default config so it writes to default map & default/ app id file. ([9542cc69](https://github.com/invertase/flutterfire_cli/commit/9542cc694dd4a83ea9c27a4df234885f67cd5ee2))
- - **FIX**: conditions for writing service file. ([4113cdb8](https://github.com/invertase/flutterfire_cli/commit/4113cdb850f943ea1e5810d075318366f6f20bb8))
- - **FIX**: output should be relative to project. ([5f9f824c](https://github.com/invertase/flutterfire_cli/commit/5f9f824c487a273240505b4455587b0b2a74e116))
- - **FIX**: bug writing firebase.json. ([2f4f3dc4](https://github.com/invertase/flutterfire_cli/commit/2f4f3dc4af9e5d45849c7edf48473aec4d9c3676))
- - **FIX**: update scheme. ([25a8cb23](https://github.com/invertase/flutterfire_cli/commit/25a8cb23e36ed617ed4a6c1be5a3cdb150af32f4))
- - **FIX**: add filename to path. ([962eb2af](https://github.com/invertase/flutterfire_cli/commit/962eb2af5904db4c7d1d6edae5975fe767ea79a8))
- - **FIX**: add paths to debug script to find executables. ([6e7495b6](https://github.com/invertase/flutterfire_cli/commit/6e7495b6b32f398559294aa0b39fe51af7c63513))
- - **FIX**: use iOS path as FlutterApp is not available when running from xcode. ([8074f966](https://github.com/invertase/flutterfire_cli/commit/8074f96670dd83553c9f51fb217b6ed8984b66d7))
- - **FEAT**: create serviceFileOutput property on firebase.json. ([6f16b972](https://github.com/invertase/flutterfire_cli/commit/6f16b9722948bf8fee5dee7525306c207990c472))
- - **FEAT**: upload debug symbols script. ([b7512b46](https://github.com/invertase/flutterfire_cli/commit/b7512b465a6563dd86ef5e5fc9dd869f002485c1))
+- **REFACTOR**: allow macOS configuration for scripts. ([7384bd9f](https://github.com/invertase/flutterfire_cli/commit/7384bd9f89c00326a1aedf71c02151fd856416f3))
+- **REFACTOR**: remove dead code and move other to apple file. ([781fad2d](https://github.com/invertase/flutterfire_cli/commit/781fad2d4da4a49bdb408026eb696447df3729c5))
+- **REFACTOR**: use build configuration & call FF bundle-service-file. ([4836124a](https://github.com/invertase/flutterfire_cli/commit/4836124ae180d57be0f47d38fcbbfaf1ad440524))
+- **REFACTOR**: make functions out of reusable code. ([86e82d72](https://github.com/invertase/flutterfire_cli/commit/86e82d72d96cdb05734aabacaefd51c5731e5e68))
+- **REFACTOR**: remove unnecessary code. ([38c62ee9](https://github.com/invertase/flutterfire_cli/commit/38c62ee96529f39e7fea30057544e7e95b14e4f2))
+- **REFACTOR**: big refactor to clean up code. ([f8c42643](https://github.com/invertase/flutterfire_cli/commit/f8c426434f1b5f618d093c1a8bdd5e40edb2b833))
+- **REFACTOR**: cleaned up code. ([99a92de1](https://github.com/invertase/flutterfire_cli/commit/99a92de1ce96e8a780234eadfaa2d4a707baaced))
+- **FIX**: stop `default/default` path to default app_id_file in .dart_tools. ([24730e15](https://github.com/invertase/flutterfire_cli/commit/24730e154dd4beda9850ce27ecb7ba1a9cc57efe))
+- **FIX**: default config so it writes to default map & default/ app id file. ([9542cc69](https://github.com/invertase/flutterfire_cli/commit/9542cc694dd4a83ea9c27a4df234885f67cd5ee2))
+- **FIX**: conditions for writing service file. ([4113cdb8](https://github.com/invertase/flutterfire_cli/commit/4113cdb850f943ea1e5810d075318366f6f20bb8))
+- **FIX**: output should be relative to project. ([5f9f824c](https://github.com/invertase/flutterfire_cli/commit/5f9f824c487a273240505b4455587b0b2a74e116))
+- **FIX**: bug writing firebase.json. ([2f4f3dc4](https://github.com/invertase/flutterfire_cli/commit/2f4f3dc4af9e5d45849c7edf48473aec4d9c3676))
+- **FIX**: update scheme. ([25a8cb23](https://github.com/invertase/flutterfire_cli/commit/25a8cb23e36ed617ed4a6c1be5a3cdb150af32f4))
+- **FIX**: add filename to path. ([962eb2af](https://github.com/invertase/flutterfire_cli/commit/962eb2af5904db4c7d1d6edae5975fe767ea79a8))
+- **FIX**: add paths to debug script to find executables. ([6e7495b6](https://github.com/invertase/flutterfire_cli/commit/6e7495b6b32f398559294aa0b39fe51af7c63513))
+- **FIX**: use iOS path as FlutterApp is not available when running from xcode. ([8074f966](https://github.com/invertase/flutterfire_cli/commit/8074f96670dd83553c9f51fb217b6ed8984b66d7))
+- **FEAT**: create serviceFileOutput property on firebase.json. ([6f16b972](https://github.com/invertase/flutterfire_cli/commit/6f16b9722948bf8fee5dee7525306c207990c472))
+- **FEAT**: upload debug symbols script. ([b7512b46](https://github.com/invertase/flutterfire_cli/commit/b7512b465a6563dd86ef5e5fc9dd869f002485c1))
 
 ## 0.3.0-dev.14
 
- - **FEAT**: command line arguments for different environments. ([02cf8501](https://github.com/invertase/flutterfire_cli/commit/02cf8501f1c6303ed99aa888e1b2698c43481a0e))
+- **FEAT**: command line arguments for different environments. ([02cf8501](https://github.com/invertase/flutterfire_cli/commit/02cf8501f1c6303ed99aa888e1b2698c43481a0e))
 
 ## 0.3.0-dev.13
 
- - **FEAT**: new command line args for service file output. ([c335a26b](https://github.com/invertase/flutterfire_cli/commit/c335a26bf7748ab218ecd846b8f22ea96433cbdb))
+- **FEAT**: new command line args for service file output. ([c335a26b](https://github.com/invertase/flutterfire_cli/commit/c335a26bf7748ab218ecd846b8f22ea96433cbdb))
 
 ## 0.2.7
 
- - **FEAT**: remove package the user should not depend on. ([9faa9e13](https://github.com/invertase/flutterfire_cli/commit/9faa9e13ed73673f9c46262fb2a5b2622ce684fd))
- - **FEAT**: add a flutterfire update command. ([0257d4d9](https://github.com/invertase/flutterfire_cli/commit/0257d4d96401cf3dee21c1da4a5a7c5831bdcd4e))
- - **FEAT**: Allow selecting web app id. ([413e61b7](https://github.com/invertase/flutterfire_cli/commit/413e61b7aa5fa93f6c12d202e26390f8f2fa67f5))
+- **FEAT**: remove package the user should not depend on. ([9faa9e13](https://github.com/invertase/flutterfire_cli/commit/9faa9e13ed73673f9c46262fb2a5b2622ce684fd))
+- **FEAT**: add a flutterfire update command. ([0257d4d9](https://github.com/invertase/flutterfire_cli/commit/0257d4d96401cf3dee21c1da4a5a7c5831bdcd4e))
+- **FEAT**: Allow selecting web app id. ([413e61b7](https://github.com/invertase/flutterfire_cli/commit/413e61b7aa5fa93f6c12d202e26390f8f2fa67f5))
 
 ## 0.2.6+1
 
- - **FIX**: add GoogleService-Info.plist as bundle resource not compile source. ([e5561e04](https://github.com/invertase/flutterfire_cli/commit/e5561e04374f4c6d0a2076bed5a3f91378382b16))
+- **FIX**: add GoogleService-Info.plist as bundle resource not compile source. ([e5561e04](https://github.com/invertase/flutterfire_cli/commit/e5561e04374f4c6d0a2076bed5a3f91378382b16))
 
 ## 0.2.6
 

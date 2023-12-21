@@ -9,9 +9,7 @@
   <a href="https://github.com/invertase/flutterfire_cli/blob/main/LICENSE">License</a>
 </p>
 
-
 A CLI to help with using [FlutterFire](https://firebase.flutter.dev) in your Flutter applications.
-
 
 ## Install
 
