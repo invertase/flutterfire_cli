@@ -26,5 +26,5 @@ doc/api/
 test_generation/
 test_generation_dev/
 
-# melos 
+# melos
 pubspec_overrides.yaml

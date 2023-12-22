@@ -47,19 +47,20 @@ dart pub global activate flutterfire_cli 0.3.0-dev.19 --overwrite
 
 - FlutterFire CLI requires the Firebase CLI (`firebase-tools`) to be installed on your local machine, [follow these instructions](https://firebase.google.com/docs/cli) for installation.
 - If you're running on a windows machine, we highly recommend you install via npm (i.e. `npm install -g firebase-tools`). The standalone
-`firebase-tools` version can cause problems which you can read about [here](https://github.com/invertase/flutterfire_cli/issues/55#issuecomment-1316201478).
+  `firebase-tools` version can cause problems which you can read about [here](https://github.com/invertase/flutterfire_cli/issues/55#issuecomment-1316201478).
 
 ## Documentation for `v0.3.0-dev.19`
 
 ### Default setup
 
-You may run the following command to configure your Flutter application with Firebase. 
+You may run the following command to configure your Flutter application with Firebase.
 
 ```bash
 flutterfire configure
 ```
+
 This method, at a minimum, will invoke two prompts of the user. A request to specify your Firebase project and
-the platforms you wish to configure (i.e. android, iOS, macOS, web & windows). 
+the platforms you wish to configure (i.e. android, iOS, macOS, web & windows).
 
 If you don't want any prompts, you can use the following command:
 
@@ -100,12 +101,13 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WE
 ```
 
 #### `--yes` flag
+
 - auto-detects the platforms from the project directory.
 - prevents a prompt for rewriting the Dart Firebase configuration file (default name - `firebase_options.dart`) should you already have one in your project. It will auto rewrite the specific parts of your Firebase app configuration that you have requested (e.g. choosing `--platforms=web,android` will update web and android configurations in the `firebase_options.dart` file and leave the other app configurations within the file intact).
 
 #### `--project` flag
-- selects the Firebase project and negates the command prompt to choose which Firebase project you wish to use.
 
+- selects the Firebase project and negates the command prompt to choose which Firebase project you wish to use.
 
 ### Multi build configuration setup
 
@@ -121,10 +123,10 @@ flutterfire configure --platforms=android --android-package-name=your.applicatio
 
 As we are using the `google-services` gradle plugin to package the `google-services.json` file with your app, you can create as many build types & build flavors you require by following this documentation on [adding the JSON file](https://developers.google.com/android/guides/google-services-plugin#adding_the_json_file). It is simply a case of matching the correct application ID you've associated with a Firebase app in your Firebase console with the correct file path.
 
- **important**: Use the '--android-package-name' flag otherwise the FlutterFire CLI will auto-detect from your `build.gradle` file.
+**important**: Use the '--android-package-name' flag otherwise the FlutterFire CLI will auto-detect from your `build.gradle` file.
 
 #### Apple (iOS & macOS)
- 
+
 Apple has a couple of different options depending on your project setup. You can configure your Firebase app with Apple platform using either a target or build configuration.
 
 **important**: Use the `--ios-bundle-id` and/or `--macos-bundle-id` flag otherwise the FlutterFire CLI will auto-detect from your `project.pbxproj` file.
@@ -134,25 +136,29 @@ Apple has a couple of different options depending on your project setup. You can
 Most developers will likely configure with build configuration. As default, a Flutter app comes with three different build configurations: `Debug`, `Profile` & `Release` (**important**: FlutterFire CLI does not yet support renaming the target from `Runner` for **build configuration** which was a feature [released in Flutter 3.13.0](https://docs.flutter.dev/release/release-notes/release-notes-3.13.0)). Unlike android, it does not matter where you write the `GoogleService-Info.plist` file. Here is how to setup your Flutter Apple platform with build configuration:
 
 for iOS:
+
 ```bash
 flutterfire configure --platforms=ios --ios-bundle-id=your.bundle.id --ios-build-config=Release --ios-out=ios/release/GoogleService-Info.plist
 ```
 
 for macOS:
+
 ```bash
 flutterfire configure --platforms=macos --macos-bundle-id=your.bundle.id --macos-build-config=Release --macos-out=macos/release/GoogleService-Info.plist
 ```
 
 ##### target configuration
 
-A more advanced configuration for developers more experienced with Xcode development would be to utilize multiple targets for their Flutter Apple platform setup. By default, a Flutter app comes with only one target - `Runner`. You would have to set up multiple targets yourself for your different build variations. Once again, it does not matter where you write the `GoogleService-Info.plist` for target configuration. Let's imagine you have created a target for release and called it `ReleaseRunner`. Here is how to setup your Flutter Apple platform with target configuration: 
+A more advanced configuration for developers more experienced with Xcode development would be to utilize multiple targets for their Flutter Apple platform setup. By default, a Flutter app comes with only one target - `Runner`. You would have to set up multiple targets yourself for your different build variations. Once again, it does not matter where you write the `GoogleService-Info.plist` for target configuration. Let's imagine you have created a target for release and called it `ReleaseRunner`. Here is how to setup your Flutter Apple platform with target configuration:
 
 for iOS:
+
 ```bash
 flutterfire configure --platforms=ios --ios-target=ReleaseRunner ios-out=ios/release/GoogleService-Info.plist
 ```
 
 for macOS:
+
 ```bash
 flutterfire configure --platforms=macos --macos-target=ReleaseRunner macos-out=macos/release/GoogleService-Info.plist
 ```
@@ -171,7 +177,7 @@ In your application code, you might set it up as the following:
 
 ```dart
 import 'package:flutter/foundation.dart' show kDebugMode;
-// Assuming you've previously generated another `firebase_options.dart` file 
+// Assuming you've previously generated another `firebase_options.dart` file
 import 'firebase_options.dart';
 import 'firebase_release.dart' as firebase_release;
 
@@ -192,14 +198,14 @@ Future<void> main() async {
 }
 ```
 
-### Default Flutter app 
+### Default Flutter app
 
-A default Flutter app out of the box has three different build modes; debug, profile and release. If you wish, you can create a Firebase app for each one. 
+A default Flutter app out of the box has three different build modes; debug, profile and release. If you wish, you can create a Firebase app for each one.
 
 Imagine you want a debug Firebase app configured for iOS, macOS, android & web, you could run the following:
 
 ```bash
-flutterfire configure \ 
+flutterfire configure \
 --yes \
 --project=your-project-id \
 --platforms=ios,macos,android,web \
@@ -218,7 +224,7 @@ flutterfire configure \
 Let's create a release build type for your Flutter app, here's how it might look:
 
 ```bash
-flutterfire configure \ 
+flutterfire configure \
 --yes \
 --project=your-project-id \
 --platforms=ios,macos,android,web \
@@ -234,9 +240,10 @@ flutterfire configure \
 --out=lib/release/firebase_options.dart
 ```
 
-**Important things to note with multi-environment set up** 
+**Important things to note with multi-environment set up**
 
 #### Android
+
 - The android gradle plugin will try to match the path `google-services.json` to the correct build type. For instance, debug build will find the service file in the following locations: `android/app/src/debug/google-services.json` or `android/app/google-services.json`.
 - Required to configure the application ID for release build in your android `build.gradle`. This might look like the following:
 
@@ -251,14 +258,16 @@ buildTypes {
 ```
 
 #### Apple
+
 - Required to configure the bundle ID for release build configuration in Xcode for macOS & iOS under "Signings and Capabilities" tab. Below is an image of where you can update the release build configuration bundle ID:
-![Xcode release build configuration bundle ID](images/xcode-build-configuration.png)
+  ![Xcode release build configuration bundle ID](images/xcode-build-configuration.png)
 
 #### Web
+
 - Required to manually create a Firebase web app for release and use the Firebase web App ID as an argument for `--web-app-id`.
 - Required to implement your own logic for configuring build types for your Flutter web app as mentioned above.
 
-If you require further granular builds i.e. build flavors, you can refer to [this article](https://codewithandrea.com/articles/flutter-flavors-for-firebase-apps/) which demonstrates how to configure different build flavors using [VGV CLI](https://github.com/VeryGoodOpenSource/very_good_cli) to create a Flutter app that has build flavors out of the box. 
+If you require further granular builds i.e. build flavors, you can refer to [this article](https://codewithandrea.com/articles/flutter-flavors-for-firebase-apps/) which demonstrates how to configure different build flavors using [VGV CLI](https://github.com/VeryGoodOpenSource/very_good_cli) to create a Flutter app that has build flavors out of the box.
 
 ### Flutterfire reconfigure
 
@@ -273,6 +282,7 @@ It will rewrite all your service files in place and your Dart initialization fil
 **important**: This command will also add the debug symbol upload script for Apple projects if you have updated your project to use Firebase Crashlytics. It will also update your `build.gradle` files as appropriate depending on what Firebase products your project requires (e.g. The command will write the required Firebase Performance and Crashlytics dependencies in your android `build.gradle` files if your Flutter project has `firebase_performance` & `firebase_crashlytics` dependencies).
 
 ### Caveats
+
 - Use the Firebase service files for android (`google-services.json`), iOS & macOS (`GoogleService-Info.plist`). [See this comment](https://github.com/invertase/flutterfire_cli/issues/14#issuecomment-1270781026) for further information why we don't recommend Dart initialization for these platforms.
 - Do not update your `Runner` target name for Apple platform when using `build configuration` set up. We do not currently support it.
 - Apple configuration will only apply if you're configuring from a macOS environment. For example, configuring an iOS app on a Windows machine will not work.
