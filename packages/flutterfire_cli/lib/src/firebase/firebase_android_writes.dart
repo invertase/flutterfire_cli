@@ -484,7 +484,7 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
         );
       }
     } else {
-      // TODO already contains plugin, should we upgrade version?
+      // Already applied.
       return AndroidGradleContents(
         buildGradleContent: androidBuildGradleFileContents,
         appBuildGradleContent: androidAppBuildGradleFileContents,
