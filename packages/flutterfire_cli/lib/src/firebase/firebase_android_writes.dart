@@ -381,7 +381,6 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     if (match.group(0) != null) {
       if (buildGradleConfiguration == BuildGradleConfiguration.legacy2 ||
           buildGradleConfiguration == BuildGradleConfiguration.latest) {
-        print('YYYYYYY');
         // This is legacy2 & latest
         // If matched pattern is 'id "com.android.application"'
         return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginName'\n    $_flutterFireConfigCommentEnd";
@@ -409,7 +408,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         // Find the index where to insert the new line
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependency(
-          _googleServicesPluginClass,
+          _googleServicesPluginName,
           _googleServicesPluginVersion,
           flutterfireComments: true,
         );
@@ -547,7 +546,8 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
 
     if (!pluginExists) {
       final pattern = RegExp(
-          r'id "com\.google\.gms:google-services" version "\d+\.\d+\.\d+" apply false');
+        r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
+      );
 
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
@@ -555,7 +555,10 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
         // Find the index where to insert the new line
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependency(
-          pluginClassPath,
+          // Need to use plugin class rather than plugin class path in settings.gradle
+          pluginClassPath.contains('crashlytics')
+              ? _crashlyticsPluginClass
+              : _performancePluginClass,
           pluginClassPathVersion,
         );
 
