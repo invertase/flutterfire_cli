@@ -52,8 +52,15 @@ const _performancePluginClass = 'com.google.firebase.firebase-perf';
 const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
 
-String _applyGradleSettingsDependency(String dependency, String version) {
-  return '    id "$dependency" version "$version" apply false\n';
+String _applyGradleSettingsDependency(
+  String dependency,
+  String version, {
+  bool flutterfireComments = false,
+}) {
+  if (flutterfireComments) {
+    return '\n    $_flutterFireConfigCommentStart\n    id "$dependency" version "$version" apply false\n    $_flutterFireConfigCommentEnd';
+  }
+  return '\n    id "$dependency" version "$version" apply false';
 }
 
 enum BuildGradleConfiguration {
@@ -390,11 +397,13 @@ AndroidGradleContents _applyGoogleServicesPlugin(
   });
 
   if (buildGradleConfiguration == BuildGradleConfiguration.latest) {
-    final pluginExists =
-        androidGradleSettingsFileContents.contains(_androidAppBuildGradleGoogleServicesRegex);
+    final pluginExists = androidGradleSettingsFileContents
+        .contains(_androidAppBuildGradleGoogleServicesRegex);
 
     if (!pluginExists) {
-      final match = _androidAppBuildGradleRegex.firstMatch(androidGradleSettingsFileContents);
+      final pattern =
+          RegExp(r'id "com\.android\.application" version "[^"]*" apply false');
+      final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
       if (match != null) {
         // Find the index where to insert the new line
@@ -402,6 +411,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         final toInsert = _applyGradleSettingsDependency(
           _googleServicesPluginClass,
           _googleServicesPluginVersion,
+          flutterfireComments: true,
         );
 
         // Insert the new line
@@ -532,14 +542,13 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
 
   if (BuildGradleConfiguration.latest == buildGradleConfiguration) {
     // We need to update the android/settings.gradle file
-    
     final pluginExists =
         androidGradleSettingsFileContents.contains(RegExp(pluginClassPath));
 
-    // If Google Services plugin line doesn't exist, add it after the Android plugin line
     if (!pluginExists) {
-      // Use a RegExp to find the Android plugin line without relying on the version number
-      final pattern = RegExp(_googleServicesPluginClass);
+      final pattern = RegExp(
+          r'id "com\.google\.gms:google-services" version "\d+\.\d+\.\d+" apply false');
+
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
       if (match != null) {
