@@ -438,16 +438,17 @@ Future<void> checkBuildGradleFileUpdated(
   bool checkPerf = false,
   bool checkCrashlytics = false,
 }) async {
-  final androidBuildGradlePath = p.join(projectPath, 'android', 'build.gradle');
-  final androidBuildGradle = File(androidBuildGradlePath).readAsStringSync();
+  final androidSettingsGradlePath =
+      p.join(projectPath, 'android', 'settings.gradle');
+  final androidBuildGradle = File(androidSettingsGradlePath).readAsStringSync();
 
   final pluginsPattern = [
     '// START: FlutterFire Configuration',
-    r"classpath 'com\.google\.gms:google-services:\d+\.\d+\.\d+'\s*",
+    r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
     if (checkPerf)
-      r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
+      r'id "com\.google\.firebase\.firebase-perf" version "\d+\.\d+\.\d+" apply false',
     if (checkCrashlytics)
-      r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
+      r'id "com\.google\.firebase\.crashlytics" version "\d+\.\d+\.\d+" apply false',
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
@@ -456,7 +457,7 @@ Future<void> checkBuildGradleFileUpdated(
   final exists = pattern.hasMatch(androidBuildGradle);
 
   if (!exists) {
-    fail('android/build.gradle file was not updated as expected');
+    fail('android/settings.gradle file was not updated as expected');
   }
 
   final androidAppBuildGradlePath =

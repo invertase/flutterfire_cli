@@ -162,33 +162,8 @@ void main() {
       );
       testAndroidServiceFileValues(androidServiceFilePath);
 
-      // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-
-      final androidBuildGradle =
-          p.join(projectPath!, 'android', 'build.gradle');
-      final androidAppBuildGradle =
-          p.join(projectPath!, 'android', 'app', 'build.gradle');
-
-      final androidBuildGradleContent =
-          normalizeLineEndings(await File(androidBuildGradle).readAsString());
-
-      final androidAppBuildGradleContent = normalizeLineEndings(
-        await File(androidAppBuildGradle).readAsString(),
-      );
-
-      final buildGradleLines = androidGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidBuildGradleContent, buildGradleLines),
-        isTrue,
-      );
-
-      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
-        isTrue,
-      );
+      // Check android "android/settings.gradle" & "android/app/build.gradle" were updated
+      await checkBuildGradleFileUpdated(projectPath!);
 
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
@@ -358,32 +333,8 @@ void main() {
       );
       testAndroidServiceFileValues(androidServiceFilePath);
 
-      // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-      final androidBuildGradle =
-          p.join(projectPath!, 'android', 'build.gradle');
-      final androidAppBuildGradle =
-          p.join(projectPath!, 'android', 'app', 'build.gradle');
-
-      final androidBuildGradleContent =
-          normalizeLineEndings(await File(androidBuildGradle).readAsString());
-
-      final androidAppBuildGradleContent = normalizeLineEndings(
-        await File(androidAppBuildGradle).readAsString(),
-      );
-
-      final buildGradleLines = androidGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidBuildGradleContent, buildGradleLines),
-        isTrue,
-      );
-
-      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
-        isTrue,
-      );
+      // Check android "android/settings.gradle" & "android/app/build.gradle" were updated
+      await checkBuildGradleFileUpdated(projectPath!);
 
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
@@ -549,32 +500,8 @@ void main() {
       );
       testAndroidServiceFileValues(androidServiceFilePath);
 
-      // Check android "android/build.gradle" & "android/app/build.gradle" were updated
-      final androidBuildGradle =
-          p.join(projectPath!, 'android', 'build.gradle');
-      final androidAppBuildGradle =
-          p.join(projectPath!, 'android', 'app', 'build.gradle');
-
-      final androidBuildGradleContent =
-          normalizeLineEndings(await File(androidBuildGradle).readAsString());
-
-      final androidAppBuildGradleContent = normalizeLineEndings(
-        await File(androidAppBuildGradle).readAsString(),
-      );
-
-      final buildGradleLines = androidGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidBuildGradleContent, buildGradleLines),
-        isTrue,
-      );
-
-      final appBuildGradleLines = androidAppGradleUpdate.trim().split('\n');
-
-      expect(
-        containsInOrder(androidAppBuildGradleContent, appBuildGradleLines),
-        isTrue,
-      );
+      // Check android "android/settings.gradle" & "android/app/build.gradle" were updated
+      await checkBuildGradleFileUpdated(projectPath!);
 
       // check "firebase_options.dart" file is created in lib directory
       final firebaseOptions =
