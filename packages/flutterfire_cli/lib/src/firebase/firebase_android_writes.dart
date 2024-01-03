@@ -220,7 +220,6 @@ Future<void> gradleContentUpdates(
   // We check if "apply plugin: 'com.android.application'" is present in the android/app/build.gradle file
   if (androidAppBuildGradleFileContents
       .contains("apply plugin: 'com.android.application'")) {
-    print('legacy1');
     content = _applyGoogleServicesPlugin(
       flutterApp,
       content,
@@ -247,7 +246,6 @@ Future<void> gradleContentUpdates(
           .contains('id "com.android.application"') &&
       !androidAppBuildGradleFileContents
           .contains("apply plugin: 'com.android.application'")) {
-    print('legacy2');
     content = _applyGoogleServicesPlugin(
       flutterApp,
       content,
@@ -272,7 +270,6 @@ Future<void> gradleContentUpdates(
   // We check if plugins block containing "id "com.android.application"" is present in the android/settings.gradle file
   if (androidGradleSettingsFileContents
       .contains('id "com.android.application"')) {
-    print('latest');
     content = _applyGoogleServicesPlugin(
       flutterApp,
       content,
