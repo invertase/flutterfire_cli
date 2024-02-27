@@ -371,7 +371,15 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     if (validationScript.exitCode != 0) {
       throw Exception(validationScript.stderr);
     }
-
+    print('uploadSymbolsScriptPath: $uploadSymbolsScriptPath');
+    print('appIdFilePath: $appIdFilePath');
+    print('envPlatformName: $envPlatformName');
+    print('envConfiguration: $envConfiguration');
+    print('envProjectDir: $envProjectDir');
+    print('envDwarfDsymFolderPath: $envDwarfDsymFolderPath');
+    print('envDwarfDsymFileName: $envDwarfDsymFileName');
+    print('envInfoPlistPath: $envInfoPlistPath');
+    print('envBuildProductsDir: $envBuildProductsDir');
     // Upload script
     final uploadScript = await Process.run(
       uploadSymbolsScriptPath,
