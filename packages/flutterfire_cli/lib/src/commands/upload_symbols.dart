@@ -359,7 +359,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       ],
       environment: {
         'PLATFORM_NAME': envPlatformName,
-        'CONFIGURATION': envConfiguration,
+        // Hard code "Release" to ensure "App.framework.dsym" is uploaded and complies with upload-symbol script
+        'CONFIGURATION': 'Release',
         'PROJECT_DIR': envProjectDir,
         'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
         'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
@@ -371,15 +372,6 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     if (validationScript.exitCode != 0) {
       throw Exception(validationScript.stderr);
     }
-    print('uploadSymbolsScriptPath: $uploadSymbolsScriptPath');
-    print('appIdFilePath: $appIdFilePath');
-    print('envPlatformName: $envPlatformName');
-    print('envConfiguration: $envConfiguration');
-    print('envProjectDir: $envProjectDir');
-    print('envDwarfDsymFolderPath: $envDwarfDsymFolderPath');
-    print('envDwarfDsymFileName: $envDwarfDsymFileName');
-    print('envInfoPlistPath: $envInfoPlistPath');
-    print('envBuildProductsDir: $envBuildProductsDir');
     // Upload script
     final uploadScript = await Process.run(
       uploadSymbolsScriptPath,
@@ -389,7 +381,8 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       ],
       environment: {
         'PLATFORM_NAME': envPlatformName,
-        'CONFIGURATION': envConfiguration,
+        // Hard code "Release" to ensure "App.framework.dsym" is uploaded and complies with upload-symbol script
+        'CONFIGURATION': 'Release',
         'PROJECT_DIR': envProjectDir,
         'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
         'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
