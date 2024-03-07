@@ -53,6 +53,15 @@ const logSkippingDebugSymbolScript =
     'Skipping upload "Crashlytic\'s debug symbols script" build phase. Note: this is not '
     'recommended if you use Crashlytics in your app.';
 
+/// Text appended to firebase tools output which cause format exception.
+///
+/// see https://github.com/invertase/flutterfire_cli/issues/262 for more info
+const phantomErrorText = '''
+}{
+  "status": "error",
+  "error": "Timed out."
+}''';
+
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
     'Firebase configuration file ${outputFilePath.cyan} generated '
