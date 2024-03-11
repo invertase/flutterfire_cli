@@ -352,7 +352,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     androidBuildGradleFileContents = updatedContent.buildGradleContent;
   }
 
-  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginClass)) {
+  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginName)) {
     final hasMatch =
         _androidAppBuildGradleRegex.hasMatch(androidAppBuildGradleFileContents);
     if (!hasMatch) {
