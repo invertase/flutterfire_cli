@@ -1,3 +1,8 @@
+## 0.3.0-dev.20
+
+ - **FIX**: ensure Crashlytics Apple upload-symbol script works for every build type/flavor ([#260](https://github.com/invertase/flutterfire_cli/issues/260)). ([e8ec471d](https://github.com/invertase/flutterfire_cli/commit/e8ec471dfe4ff0f7202d542fae4b04d8c84c97b7))
+ - **FIX**(android): another `build.gradle` change in latest flutter (>=3.16.5) when running `flutter create <project>` ([#254](https://github.com/invertase/flutterfire_cli/issues/254)). ([32fde770](https://github.com/invertase/flutterfire_cli/commit/32fde77008b5a28d6ba856dae9f7a678dc0fbe0d))
+
 ## 0.3.0-dev.19
 
  - **FIX**(apple): upload debug symbols for de-obfuscating Dart stack traces ([#247](https://github.com/invertase/flutterfire_cli/issues/247)). ([93d02a56](https://github.com/invertase/flutterfire_cli/commit/93d02a5659183cb4e8edeac88965e7a6a99e6c63))
