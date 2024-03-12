@@ -349,6 +349,18 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     );
     final appIdFilePath =
         await _findOrCreateAppIdFile(appIdFileDirectory, appId, projectId);
+
+    final appFrameworkDsymPath = path.join(
+      envBuildProductsDir,
+      'App.framework.dSYM',
+    );
+
+    final buildDirectory = Directory(appFrameworkDsymPath);
+
+    // Set configuration to "Release" if "App.framework.dSYM" exists. Otherwise, "Debug". This is to ensure successful upload of symbols
+    final buildConfiguration =
+        buildDirectory.existsSync() ? 'Release' : 'Debug';
+
     // Validation script
     final validationScript = await Process.run(
       uploadSymbolsScriptPath,
@@ -359,7 +371,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       ],
       environment: {
         'PLATFORM_NAME': envPlatformName,
-        'CONFIGURATION': envConfiguration,
+        'CONFIGURATION': buildConfiguration,
         'PROJECT_DIR': envProjectDir,
         'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
         'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
@@ -381,7 +393,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       ],
       environment: {
         'PLATFORM_NAME': envPlatformName,
-        'CONFIGURATION': envConfiguration,
+        'CONFIGURATION': buildConfiguration,
         'PROJECT_DIR': envProjectDir,
         'DWARF_DSYM_FOLDER_PATH': envDwarfDsymFolderPath,
         'DWARF_DSYM_FILE_NAME': envDwarfDsymFileName,
