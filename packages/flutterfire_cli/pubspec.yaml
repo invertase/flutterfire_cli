@@ -1,6 +1,6 @@
 name: flutterfire_cli
 description: FlutterFire CLI for configuring Firebase on your application.
-version: 0.3.0-dev.19
+version: 0.3.0-dev.20
 homepage: "https://github.com/invertase/flutterfire_cli"
 
 environment:

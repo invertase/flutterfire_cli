@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-03-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.20`](#flutterfire_cli---v030-dev20)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.20`
+
+ - **FIX**: ensure Crashlytics Apple upload-symbol script works for every build type/flavor ([#260](https://github.com/invertase/flutterfire_cli/issues/260)). ([e8ec471d](https://github.com/invertase/flutterfire_cli/commit/e8ec471dfe4ff0f7202d542fae4b04d8c84c97b7))
+ - **FIX**(android): another `build.gradle` change in latest flutter (>=3.16.5) when running `flutter create <project>` ([#254](https://github.com/invertase/flutterfire_cli/issues/254)). ([32fde770](https://github.com/invertase/flutterfire_cli/commit/32fde77008b5a28d6ba856dae9f7a678dc0fbe0d))
+
+
 ## 2023-12-19
 
 ### Changes
