@@ -453,7 +453,7 @@ class ConfigCommand extends FlutterFireCommand {
             token: token,
             serviceAccount: serviceAccount,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(minutes:1));
 
       fetchingProjectsSpinner.done();
 
