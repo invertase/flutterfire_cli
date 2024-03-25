@@ -1437,4 +1437,65 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+      'flutterfire configure: ensure android build.gradle files are only updated once',
+      () async {
+    // Add crashlytics and performance to check they are only created once
+    final result = Process.runSync(
+      'flutter',
+      ['pub', 'add', 'firebase_crashlytics', 'firebase_performance'],
+      workingDirectory: projectPath,
+    );
+
+    if (result.exitCode != 0) {
+      fail(result.stderr as String);
+    }
+    // Run first time to update
+    Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        // Only android
+        '--platforms=android',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=$webAppId',
+        '--windows-app-id=$windowsAppId',
+        '--project=$firebaseProjectId',
+      ],
+      workingDirectory: projectPath,
+      runInShell: true,
+    );
+    // Run second time and check it was only updated once
+    final result2 = Process.runSync(
+      'flutterfire',
+      [
+        'configure',
+        '--yes',
+        // Only android
+        '--platforms=android',
+        '--ios-bundle-id=com.example.flutterTestCli',
+        '--android-package-name=com.example.flutter_test_cli',
+        '--macos-bundle-id=com.example.flutterTestCli',
+        '--web-app-id=$webAppId',
+        '--windows-app-id=$windowsAppId',
+        '--project=$firebaseProjectId',
+      ],
+      workingDirectory: projectPath,
+      runInShell: true,
+    );
+
+    if (result2.exitCode != 0) {
+      fail(result2.stderr as String);
+    }
+
+    await checkBuildGradleFileUpdated(
+      projectPath!,
+      checkCrashlytics: true,
+      checkPerf: true,
+    );
+  });
 }

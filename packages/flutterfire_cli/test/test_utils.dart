@@ -438,11 +438,12 @@ Future<void> checkBuildGradleFileUpdated(
   bool checkPerf = false,
   bool checkCrashlytics = false,
 }) async {
+  // Check android/settings.gradle
   final androidSettingsGradlePath =
       p.join(projectPath, 'android', 'settings.gradle');
   final androidBuildGradle = File(androidSettingsGradlePath).readAsStringSync();
 
-  final pluginsPattern = [
+  final pluginsPatternSettings = [
     '// START: FlutterFire Configuration',
     r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
     if (checkPerf)
@@ -452,18 +453,25 @@ Future<void> checkBuildGradleFileUpdated(
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
-  final pattern = RegExp(pluginsPattern, multiLine: true, dotAll: true);
+  final patternSettings =
+      RegExp(pluginsPatternSettings, multiLine: true, dotAll: true);
 
-  final exists = pattern.hasMatch(androidBuildGradle);
+  final matchesSettings = patternSettings.allMatches(androidBuildGradle);
 
-  if (!exists) {
+  if (matchesSettings.isEmpty) {
     fail('android/settings.gradle file was not updated as expected');
+  } else if (matchesSettings.length > 1) {
+    fail(
+      'android/settings.gradle file contains duplicate FlutterFire configurations',
+    );
   }
 
+  // Check android/app/build.gradle
   final androidAppBuildGradlePath =
       p.join(projectPath, 'android', 'app', 'build.gradle');
   final androidAppBuildGradle =
       File(androidAppBuildGradlePath).readAsStringSync();
+
   final pluginsPatternApp = [
     '// START: FlutterFire Configuration',
     r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
@@ -477,10 +485,14 @@ Future<void> checkBuildGradleFileUpdated(
   final patternForApp =
       RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
 
-  final existsForApp = patternForApp.hasMatch(androidAppBuildGradle);
+  final matchesForApp = patternForApp.allMatches(androidAppBuildGradle);
 
-  if (!existsForApp) {
+  if (matchesForApp.isEmpty) {
     fail('android/app/build.gradle file was not updated as expected');
+  } else if (matchesForApp.length > 1) {
+    fail(
+      'android/app/build.gradle file contains duplicate FlutterFire configurations',
+    );
   }
 }
 

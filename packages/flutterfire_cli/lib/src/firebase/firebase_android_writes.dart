@@ -372,25 +372,27 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     );
   }
 
-  androidAppBuildGradleFileContents = androidAppBuildGradleFileContents
-      .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
-    // Check which pattern was matched and insert the appropriate content
-    if (match.group(0) != null) {
-      if (buildGradleConfiguration == BuildGradleConfiguration.legacy2 ||
-          buildGradleConfiguration == BuildGradleConfiguration.latest) {
-        // This is legacy2 & latest
-        // If matched pattern is 'id "com.android.application"'
-        return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginName'\n    $_flutterFireConfigCommentEnd";
-      } else {
-        // This is legacy1
-        // If matched pattern is 'apply plugin:...'
-        return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginName'\n$_flutterFireConfigCommentEnd";
+  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginName)) {
+    androidAppBuildGradleFileContents = androidAppBuildGradleFileContents
+        .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
+      // Check which pattern was matched and insert the appropriate content
+      if (match.group(0) != null) {
+        if (buildGradleConfiguration == BuildGradleConfiguration.legacy2 ||
+            buildGradleConfiguration == BuildGradleConfiguration.latest) {
+          // This is legacy2 & latest
+          // If matched pattern is 'id "com.android.application"'
+          return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginName'\n    $_flutterFireConfigCommentEnd";
+        } else {
+          // This is legacy1
+          // If matched pattern is 'apply plugin:...'
+          return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginName'\n$_flutterFireConfigCommentEnd";
+        }
       }
-    }
-    throw Exception(
-      'Could not match pattern in android/app `build.gradle` file for plugin $_googleServicesPluginName',
-    );
-  });
+      throw Exception(
+        'Could not match pattern in android/app `build.gradle` file for plugin $_googleServicesPluginName',
+      );
+    });
+  }
 
   if (buildGradleConfiguration == BuildGradleConfiguration.latest) {
     final pluginExists = androidGradleSettingsFileContents
