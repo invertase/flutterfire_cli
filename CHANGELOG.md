@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-03-26
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v0.3.0-dev.21`](#flutterfire_cli---v030-dev21)
+
+---
+
+#### `flutterfire_cli` - `v0.3.0-dev.21`
+
+ - **FIX**(android): ensure app/build.gradle only writes google services dependency once ([#269](https://github.com/invertase/flutterfire_cli/issues/269)). ([f195b16f](https://github.com/invertase/flutterfire_cli/commit/f195b16f0a3131288d4fccf3e1140093a2d68708))
+
+
 ## 2024-03-12
 
 ### Changes
