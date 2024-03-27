@@ -49,7 +49,7 @@ Future<String?> getDefaultFirebaseProjectId() async {
   final fileContents = firebaseRcFile.readAsStringSync();
   try {
     final jsonMap =
-        const JsonDecoder().convert(fileContents) as Map<String, dynamic>;
+    const JsonDecoder().convert(fileContents) as Map<String, dynamic>;
     if (jsonMap['projects'] != null &&
         (jsonMap['projects'] as Map)['default'] != null) {
       return (jsonMap['projects'] as Map)['default'] as String;
@@ -66,11 +66,11 @@ Future<String?> getDefaultFirebaseProjectId() async {
 ///   final result = await runFirebaseCommand(['projects:list']);
 ///   print(result);
 Future<Map<String, dynamic>> runFirebaseCommand(
-  List<String> commandAndArgs, {
-  String? project,
-  String? account,
-  String? serviceAccount,
-}) async {
+    List<String> commandAndArgs, {
+      String? project,
+      String? account,
+      String? serviceAccount,
+    }) async {
   final cliExists = await exists();
   if (!cliExists) {
     throw FirebaseCommandException(
@@ -97,8 +97,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     runInShell: true,
   );
 
-  final jsonString = process.stdout.toString();
-
+  final jsonString = process.stdout.toString().replaceFirst(phantomErrorText, '}',);
   Map<String, dynamic> commandResult;
 
   try {
@@ -114,10 +113,25 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   }
 
   if (process.exitCode > 0 || commandResult['status'] == 'error') {
-    throw FirebaseCommandException(
-      execArgs.join(' '),
-      commandResult['error'] as String,
+    // ignore: avoid_print
+    print(
+      'Seems like an error occurred when executing firebase command. '
+        'Process exitCode: ${process.exitCode}',
     );
+    if (commandResult['error'] != null) {
+      throw FirebaseCommandException(
+        execArgs.join(' '),
+        commandResult['error'] as String,
+      );
+    }
+    // ignore: avoid_print
+    print(
+      'Unable to point out error. It may be related to '
+        'https://github.com/invertase/flutterfire_cli/issues/262',
+    );
+
+    // ignore: avoid_print
+    print('Keep going...');
   }
 
   return commandResult;
@@ -142,8 +156,8 @@ Future<List<FirebaseProject>> getProjects({
   return result
       .map<FirebaseProject>(
         (Map<String, dynamic> e) =>
-            FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
-      )
+        FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
+  )
       .where((project) => project.state == 'ACTIVE')
       .toList();
 }
@@ -196,8 +210,8 @@ Future<List<FirebaseApp>> getApps({
   return result
       .map<FirebaseApp>(
         (Map<String, dynamic> e) =>
-            FirebaseApp.fromJson(Map<String, dynamic>.from(e)),
-      )
+        FirebaseApp.fromJson(Map<String, dynamic>.from(e)),
+  )
       .toList();
 }
 
@@ -265,7 +279,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
 
   _assertFirebaseSupportedPlatform(platformFirebase);
   final fetchingAppsSpinner = spinner(
-    (done) {
+        (done) {
       final loggingAppName =
           packageNameOrBundleIdentifier ?? webAppId ?? displayNameWithPlatform;
       if (!done) {
@@ -298,7 +312,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       final flagOption = platform == kWeb ? kWebAppIdFlag : kWindowsAppIdFlag;
       // Find provided web app id for web and windows, otherwise, throw Exception that it doesn't exist
       final webApp = unfilteredFirebaseApps.firstWhere(
-        (firebaseApp) => firebaseApp.appId == webAppId,
+            (firebaseApp) => firebaseApp.appId == webAppId,
         orElse: () {
           fetchingAppsSpinner.done();
           throw Exception(
@@ -312,7 +326,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     }
     // Find web app for web and windows using display name with this signature: "flutter_app_name (platform)
     filteredFirebaseApps = unfilteredFirebaseApps.where(
-      (firebaseApp) {
+          (firebaseApp) {
         if (firebaseApp.displayName == displayNameWithPlatform) {
           return true;
         }
@@ -322,17 +336,17 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
     // Find any for that platform if no web app found with display name
     if (filteredFirebaseApps.isEmpty) {
       filteredFirebaseApps = unfilteredFirebaseApps.where(
-        (firebaseApp) {
+            (firebaseApp) {
           return firebaseApp.platform == platform;
         },
       );
     }
   } else {
     filteredFirebaseApps = unfilteredFirebaseApps.where(
-      (firebaseApp) {
+          (firebaseApp) {
         if (packageNameOrBundleIdentifier != null) {
           return firebaseApp.packageNameOrBundleIdentifier ==
-                  packageNameOrBundleIdentifier &&
+              packageNameOrBundleIdentifier &&
               firebaseApp.platform == platformFirebase;
         }
         return false;
@@ -370,7 +384,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
       );
       break;
     case kWeb:
-      // This is used to also create windows app, Firebase has no concept of a windows app
+    // This is used to also create windows app, Firebase has no concept of a windows app
       createFirebaseAppFuture = createWebApp(
         project: project,
         displayName: displayNameWithPlatform,
@@ -384,7 +398,7 @@ Future<FirebaseApp> findOrCreateFirebaseApp({
   }
 
   final creatingAppSpinner = spinner(
-    (done) {
+        (done) {
       if (!done) {
         return AnsiStyles.bold(
           'Registering new Firebase ${AnsiStyles.cyan(platform)} app on Firebase project ${AnsiStyles.cyan(project)}.',
@@ -484,7 +498,7 @@ Future<String> getAccessToken() async {
       : Platform.environment['HOME']!;
   // Path to 'firebase-tools.json'
   final configPath =
-      path.join(homeDir, '.config', 'configstore', 'firebase-tools.json');
+  path.join(homeDir, '.config', 'configstore', 'firebase-tools.json');
   final configFile = File(configPath);
   if (!configFile.existsSync()) {
     throw Exception(
@@ -501,7 +515,7 @@ Future<String> getAccessToken() async {
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     // Values for obtaining the access token are taken from the Firebase CLI source code: https://github.com/firebase/firebase-tools/blob/b14b5f38fe23da6543778a588811b0e2391427c0/src/api.ts#L18
     body:
-        'grant_type=refresh_token&client_id=563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com&client_secret=j9iVZfS8kkCEFUPaAeJV0sAi&refresh_token=$refreshToken',
+    'grant_type=refresh_token&client_id=563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com&client_secret=j9iVZfS8kkCEFUPaAeJV0sAi&refresh_token=$refreshToken',
   );
 
   if (response.statusCode == 200) {
@@ -516,19 +530,19 @@ Future<String> getAccessToken() async {
 
 // Return string value of "GoogleService-Info.plist" or "google-services.json" file for relevant platform
 Future<String> getServiceFileContent(
-  String projectId,
-  String appId,
-  String accessToken,
-  String platform,
-) async {
+    String projectId,
+    String appId,
+    String accessToken,
+    String platform,
+    ) async {
   String? uri;
 
   if (platform == kIos || platform == kMacos) {
     uri =
-        'https://firebase.googleapis.com/v1beta1/projects/$projectId/iosApps/$appId/config';
+    'https://firebase.googleapis.com/v1beta1/projects/$projectId/iosApps/$appId/config';
   } else if (platform == kAndroid) {
     uri =
-        'https://firebase.googleapis.com/v1beta1/projects/$projectId/androidApps/$appId/config';
+    'https://firebase.googleapis.com/v1beta1/projects/$projectId/androidApps/$appId/config';
   } else {
     throw ServiceFileException(
       platform,
