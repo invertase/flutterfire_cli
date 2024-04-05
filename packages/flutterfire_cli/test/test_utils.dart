@@ -10,11 +10,13 @@ const firebaseProjectId = 'flutterfire-cli-test-f6f57';
 const appleAppId = '1:262904632156:ios:58c61e319713c6142f2799';
 const androidAppId = '1:262904632156:android:eef79d5fec9aab142f2799';
 const webAppId = '1:262904632156:web:b4a12a4ae43da5e42f2799';
+const windowsAppId = '1:262904632156:web:347c768ec9213b812f2799';
 
 // Secondary App Ids
 const secondAppleAppId = '1:262904632156:ios:1de2ea53918d5e802f2799';
 const secondAndroidAppId = '1:262904632156:android:efaa8538e6d346502f2799';
 const secondWebAppId = '1:262904632156:web:cb3a00412ed430ca2f2799';
+const secondWindowsAppId = '1:262904632156:web:e2be97e1934a0ffe2f2799';
 
 const secondAppleBundleId = 'com.example.secondApp';
 const secondAndroidApplicationId = 'com.example.second_app';
@@ -46,11 +48,16 @@ Future<String> createFlutterProject() async {
     'flutter',
     ['create', flutterProject],
     workingDirectory: tempDir.path,
+    runInShell: true,
   );
 
   final flutterProjectPath = p.join(tempDir.path, flutterProject);
 
   return flutterProjectPath;
+}
+
+String normalizeLineEndings(String content) {
+  return content.replaceAll('\r\n', '\n');
 }
 
 bool containsInOrder(String content, List<String> lines) {
@@ -269,8 +276,9 @@ void testAndroidServiceFileValues(
 }
 
 Future<void> testFirebaseOptionsFileValues(
-  String firebaseOptionsPath,
-) async {
+  String firebaseOptionsPath, {
+  String? selectedPlatform,
+}) async {
   final baseRequiredProperties = [
     'apiKey',
     'appId',
@@ -288,13 +296,16 @@ Future<void> testFirebaseOptionsFileValues(
   final matches = propertyPattern.allMatches(content);
   for (final match in matches) {
     final platform = match.group(1);
+    // If a specific platform is selected, skip the others
+    if (selectedPlatform != null && platform != selectedPlatform) continue;
+
     final start = match.start;
     final end = content.indexOf(');', start);
 
     final propertyContent = content.substring(start, end);
 
     var requiredProperties = baseRequiredProperties;
-    if (platform == kWeb) {
+    if (platform == kWeb || platform == kWindows) {
       requiredProperties = [
         ...requiredProperties,
         'measurementId',
@@ -427,31 +438,40 @@ Future<void> checkBuildGradleFileUpdated(
   bool checkPerf = false,
   bool checkCrashlytics = false,
 }) async {
-  final androidBuildGradlePath = p.join(projectPath, 'android', 'build.gradle');
-  final androidBuildGradle = File(androidBuildGradlePath).readAsStringSync();
+  // Check android/settings.gradle
+  final androidSettingsGradlePath =
+      p.join(projectPath, 'android', 'settings.gradle');
+  final androidBuildGradle = File(androidSettingsGradlePath).readAsStringSync();
 
-  final pluginsPattern = [
+  final pluginsPatternSettings = [
     '// START: FlutterFire Configuration',
-    r"classpath 'com\.google\.gms:google-services:\d+\.\d+\.\d+'\s*",
+    r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
     if (checkPerf)
-      r"classpath 'com\.google\.firebase:perf-plugin:\d+\.\d+\.\d+'\s*",
+      r'id "com\.google\.firebase\.firebase-perf" version "\d+\.\d+\.\d+" apply false',
     if (checkCrashlytics)
-      r"classpath 'com\.google\.firebase:firebase-crashlytics-gradle:\d+\.\d+\.\d+'\s*",
+      r'id "com\.google\.firebase\.crashlytics" version "\d+\.\d+\.\d+" apply false',
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
-  final pattern = RegExp(pluginsPattern, multiLine: true, dotAll: true);
+  final patternSettings =
+      RegExp(pluginsPatternSettings, multiLine: true, dotAll: true);
 
-  final exists = pattern.hasMatch(androidBuildGradle);
+  final matchesSettings = patternSettings.allMatches(androidBuildGradle);
 
-  if (!exists) {
-    fail('android/build.gradle file was not updated as expected');
+  if (matchesSettings.isEmpty) {
+    fail('android/settings.gradle file was not updated as expected');
+  } else if (matchesSettings.length > 1) {
+    fail(
+      'android/settings.gradle file contains duplicate FlutterFire configurations',
+    );
   }
 
+  // Check android/app/build.gradle
   final androidAppBuildGradlePath =
       p.join(projectPath, 'android', 'app', 'build.gradle');
   final androidAppBuildGradle =
       File(androidAppBuildGradlePath).readAsStringSync();
+
   final pluginsPatternApp = [
     '// START: FlutterFire Configuration',
     r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
@@ -465,10 +485,14 @@ Future<void> checkBuildGradleFileUpdated(
   final patternForApp =
       RegExp(pluginsPatternApp, multiLine: true, dotAll: true);
 
-  final existsForApp = patternForApp.hasMatch(androidAppBuildGradle);
+  final matchesForApp = patternForApp.allMatches(androidAppBuildGradle);
 
-  if (!existsForApp) {
+  if (matchesForApp.isEmpty) {
     fail('android/app/build.gradle file was not updated as expected');
+  } else if (matchesForApp.length > 1) {
+    fail(
+      'android/app/build.gradle file contains duplicate FlutterFire configurations',
+    );
   }
 }
 

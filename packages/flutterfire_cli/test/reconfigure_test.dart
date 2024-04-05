@@ -51,14 +51,16 @@ void main() {
           'configure',
           '--yes',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           '--project=$firebaseProjectId',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -74,6 +76,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -122,6 +125,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -160,11 +164,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$buildType',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -175,6 +180,7 @@ void main() {
           '--macos-build-config=$appleBuildConfiguration',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -190,6 +196,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -243,6 +250,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {
@@ -284,11 +292,12 @@ void main() {
           '--yes',
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
-          '--platforms=android,ios,macos,web',
+          '--platforms=android,ios,macos,web,windows',
           '--ios-bundle-id=com.example.flutterTestCli',
           '--android-package-name=com.example.flutter_test_cli',
           '--macos-bundle-id=com.example.flutterTestCli',
           '--web-app-id=$webAppId',
+          '--windows-app-id=$windowsAppId',
           // Android just requires the `--android-out` flag to be set
           '--android-out=android/app/$androidBuildConfiguration',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
@@ -299,6 +308,7 @@ void main() {
           '--macos-target=$targetType',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result.exitCode != 0) {
@@ -314,6 +324,7 @@ void main() {
           'firebase_performance',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (addDependencies.exitCode != 0) {
@@ -371,6 +382,7 @@ void main() {
           if (accessToken != null) '--ci-access-token=$accessToken',
         ],
         workingDirectory: projectPath,
+        runInShell: true,
       );
 
       if (result2.exitCode != 0) {

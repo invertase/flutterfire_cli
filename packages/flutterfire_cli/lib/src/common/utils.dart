@@ -67,6 +67,7 @@ const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
+const String kWindowsAppIdFlag = 'windows-app-id';
 const String kTokenFlag = 'token';
 const String kServiceAccountFlag = 'service-account';
 const String kAppleGradlePluginFlag = 'apply-gradle-plugins';
@@ -253,6 +254,13 @@ String relativePath(String path, String from) {
         .replaceAll(r'\', r'\\');
   }
   return normalize(relative(path, from: from));
+}
+
+String replaceBackslash(String path) {
+  if (currentPlatform.isWindows) {
+    return normalize(path).replaceAll(r'\', '/');
+  }
+  return path;
 }
 
 String removeForwardBackwardSlash(String input) {

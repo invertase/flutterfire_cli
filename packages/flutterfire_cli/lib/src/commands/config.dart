@@ -20,7 +20,6 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
-import './reconfigure.dart';
 import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -33,6 +32,7 @@ import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
 import '../flutter_app.dart';
+import './reconfigure.dart';
 import 'base.dart';
 
 class ConfigCommand extends FlutterFireCommand {
@@ -98,8 +98,20 @@ class ConfigCommand extends FlutterFireCommand {
       valueHelp: 'appId',
       abbr: 'w',
       help: 'The app id of your Web application, e.g. "1:XXX:web:YYY". '
-          'If no package name is provided then an attempt will be made to '
-          'automatically pick the first available web app id from remote.',
+          'If no app id is provided then an attempt will be made to '
+          'automatically pick the first available web app id from remote. '
+          'If no web app exists, we create a web app and suffix the name with "(web)"',
+    );
+
+    argParser.addOption(
+      kWindowsAppIdFlag,
+      valueHelp: 'windowsAppId',
+      abbr: 'x',
+      help: 'The app id of your Windows application, e.g. "1:XXX:web:YYY". '
+          'If no app id is provided then an attempt will be made to '
+          'automatically pick the first available windows app id from remote. '
+          'If no windows app exists, we create a web app for Windows platform. '
+          'We suffix the name with "(windows)"',
     );
 
     argParser.addOption(
@@ -315,6 +327,20 @@ class ConfigCommand extends FlutterFireCommand {
     return null;
   }
 
+  String? get windowsAppId {
+    final value = argResults![kWindowsAppIdFlag] as String?;
+
+    if (value != null) return value;
+
+    if (isCI) {
+      throw FirebaseCommandException(
+        'configure',
+        'Please provide value for $kWindowsAppIdFlag.',
+      );
+    }
+    return null;
+  }
+
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
     // TODO validate bundleId is valid if provided
@@ -499,9 +525,8 @@ class ConfigCommand extends FlutterFireCommand {
       kMacos:
           platforms.contains(kMacos) || platforms.isEmpty && flutterApp!.macos,
       kWeb: platforms.contains(kWeb) || platforms.isEmpty && flutterApp!.web,
-      if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
-        kWindows: platforms.contains(kWindows) ||
-            platforms.isEmpty && flutterApp!.windows,
+      kWindows: platforms.contains(kWindows) ||
+          platforms.isEmpty && flutterApp!.windows,
       if (flutterApp!.dependsOnPackage('firebase_core_desktop'))
         kLinux: platforms.contains(kLinux) ||
             platforms.isEmpty && flutterApp!.linux,
@@ -564,180 +589,189 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    commandRequiresFlutterApp();
-    final reconfigured = await checkIfUserRequiresReconfigure();
+    try {
+      commandRequiresFlutterApp();
+      final reconfigured = await checkIfUserRequiresReconfigure();
 
-    if (reconfigured) {
-      return;
-    }
+      if (reconfigured) {
+        return;
+      }
 
-    // 1. Validate and prompt first
-    if (Platform.isMacOS) {
-      if (flutterApp!.ios) {
-        iosInputs = await appleValidation(
-          platform: kIos,
+      // 1. Validate and prompt first
+      if (Platform.isMacOS) {
+        if (flutterApp!.ios) {
+          iosInputs = await appleValidation(
+            platform: kIos,
+            flutterAppPath: flutterApp!.package.path,
+            serviceFilePath: iOSServiceFilePath,
+            target: iosTarget,
+            buildConfiguration: iosBuildConfiguration,
+          );
+        }
+        if (flutterApp!.macos) {
+          macosInputs = await appleValidation(
+            platform: kMacos,
+            flutterAppPath: flutterApp!.package.path,
+            serviceFilePath: macOSServiceFilePath,
+            target: macosTarget,
+            buildConfiguration: macosBuildConfiguration,
+          );
+        }
+      }
+
+      if (flutterApp!.android) {
+        androidInputs = androidValidation(
           flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: iOSServiceFilePath,
-          target: iosTarget,
-          buildConfiguration: iosBuildConfiguration,
+          serviceFilePath: androidServiceFilePath,
         );
       }
-      if (flutterApp!.macos) {
-        macosInputs = await appleValidation(
-          platform: kMacos,
-          flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: macOSServiceFilePath,
-          target: macosTarget,
-          buildConfiguration: macosBuildConfiguration,
-        );
-      }
-    }
 
-    if (flutterApp!.android) {
-      androidInputs = androidValidation(
+      final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
+        configurationFilePath: outputFilePath,
         flutterAppPath: flutterApp!.package.path,
-        serviceFilePath: androidServiceFilePath,
+        overwrite: yes,
       );
-    }
 
-    final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
-      configurationFilePath: outputFilePath,
-      flutterAppPath: flutterApp!.package.path,
-      overwrite: yes,
-    );
+      final selectedFirebaseProject = await _selectFirebaseProject();
+      final selectedPlatforms = _selectPlatforms();
 
-    final selectedFirebaseProject = await _selectFirebaseProject();
-    final selectedPlatforms = _selectPlatforms();
+      if (!selectedPlatforms.containsValue(true)) {
+        throw NoFlutterPlatformsSelectedException();
+      }
 
-    if (!selectedPlatforms.containsValue(true)) {
-      throw NoFlutterPlatformsSelectedException();
-    }
-
-    // 2. Get values for all selected platforms
-    final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
-      flutterApp: flutterApp!,
-      firebaseProjectId: selectedFirebaseProject.projectId,
-      firebaseAccount: accountEmail,
-      androidApplicationId: androidApplicationId,
-      iosBundleId: iosBundleId,
-      macosBundleId: macosBundleId,
-      token: token,
-      serviceAccount: serviceAccount,
-      webAppId: webAppId,
-      android: selectedPlatforms[kAndroid]!,
-      ios: selectedPlatforms[kIos]!,
-      macos: selectedPlatforms[kMacos]!,
-      web: selectedPlatforms[kWeb]!,
-      windows:
-          selectedPlatforms[kWindows] != null && selectedPlatforms[kWindows]!,
-      linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
-    );
-
-    // 3. Writes for all selected platforms
-    final firebaseJsonWrites = <FirebaseJsonWrites>[];
-
-    if (fetchedFirebaseOptions.androidOptions != null &&
-        applyGradlePlugins &&
-        flutterApp!.android &&
-        androidInputs != null) {
-      final firebaseJsonWrite = await FirebaseAndroidWrites(
+      // 2. Get values for all selected platforms
+      final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
-        firebaseOptions: fetchedFirebaseOptions.androidOptions!,
-        logger: logger,
-        androidServiceFilePath: androidInputs!.serviceFilePath,
-        projectConfiguration: androidInputs!.projectConfiguration,
-      ).apply();
-
-      firebaseJsonWrites.add(firebaseJsonWrite);
-    }
-    if (Platform.isMacOS) {
-      if (fetchedFirebaseOptions.iosOptions != null &&
-          flutterApp!.ios &&
-          iosInputs != null) {
-        final firebaseJsonWrite = await appleWrites(
-          platformOptions: fetchedFirebaseOptions.iosOptions!,
-          flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: iosInputs!.serviceFilePath,
-          logger: logger,
-          buildConfiguration: iosInputs?.buildConfiguration,
-          target: iosInputs?.target,
-          platform: kIos,
-          projectConfiguration: iosInputs!.projectConfiguration,
-        );
-
-        firebaseJsonWrites.add(firebaseJsonWrite);
-      }
-
-      if (fetchedFirebaseOptions.macosOptions != null &&
-          flutterApp!.macos &&
-          macosInputs != null) {
-        final firebaseJsonWrite = await appleWrites(
-          platformOptions: fetchedFirebaseOptions.macosOptions!,
-          flutterAppPath: flutterApp!.package.path,
-          serviceFilePath: macosInputs!.serviceFilePath,
-          logger: logger,
-          buildConfiguration: macosInputs?.buildConfiguration,
-          target: macosInputs?.target,
-          platform: kMacos,
-          projectConfiguration: macosInputs!.projectConfiguration,
-        );
-
-        firebaseJsonWrites.add(firebaseJsonWrite);
-      }
-    }
-    if (firebaseConfigurationFileInputs.writeConfigurationFile) {
-      final firebaseJsonWrite = FirebaseDartConfigurationWrite(
-        configurationFilePath:
-            firebaseConfigurationFileInputs.configurationFilePath,
         firebaseProjectId: selectedFirebaseProject.projectId,
-        flutterAppPath: flutterApp!.package.path,
-        androidOptions: fetchedFirebaseOptions.androidOptions,
-        iosOptions: fetchedFirebaseOptions.iosOptions,
-        macosOptions: fetchedFirebaseOptions.macosOptions,
-        webOptions: fetchedFirebaseOptions.webOptions,
-        windowsOptions: fetchedFirebaseOptions.windowsOptions,
-        linuxOptions: fetchedFirebaseOptions.linuxOptions,
-      ).write();
-
-      firebaseJsonWrites.add(firebaseJsonWrite);
-    }
-
-    // 4. Writes for "firebase.json" file in root of project
-    if (firebaseJsonWrites.isNotEmpty) {
-      await writeToFirebaseJson(
-        listOfWrites: firebaseJsonWrites,
-        firebaseJsonPath: path.join(flutterApp!.package.path, 'firebase.json'),
+        firebaseAccount: accountEmail,
+        androidApplicationId: androidApplicationId,
+        iosBundleId: iosBundleId,
+        macosBundleId: macosBundleId,
+        token: token,
+        serviceAccount: serviceAccount,
+        webAppId: webAppId,
+        windowsAppId: windowsAppId,
+        android: selectedPlatforms[kAndroid]!,
+        ios: selectedPlatforms[kIos]!,
+        macos: selectedPlatforms[kMacos]!,
+        web: selectedPlatforms[kWeb]!,
+        windows: selectedPlatforms[kWindows]!,
+        linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
       );
-    }
 
-    logger.stdout('');
-    logger.stdout(
-      logFirebaseConfigGenerated(outputFilePath),
-    );
-    logger.stdout('');
-    logger.stdout(
-      listAsPaddedTable(
-        [
-          [AnsiStyles.bold('Platform'), AnsiStyles.bold('Firebase App Id')],
-          if (fetchedFirebaseOptions.webOptions != null)
-            [kWeb, fetchedFirebaseOptions.webOptions!.appId],
-          if (fetchedFirebaseOptions.androidOptions != null)
-            [kAndroid, fetchedFirebaseOptions.androidOptions!.appId],
-          if (fetchedFirebaseOptions.iosOptions != null)
-            [kIos, fetchedFirebaseOptions.iosOptions!.appId],
-          if (fetchedFirebaseOptions.macosOptions != null)
-            [kMacos, fetchedFirebaseOptions.macosOptions!.appId],
-          if (fetchedFirebaseOptions.linuxOptions != null)
-            [kLinux, fetchedFirebaseOptions.linuxOptions!.appId],
-          if (fetchedFirebaseOptions.windowsOptions != null)
-            [kWindows, fetchedFirebaseOptions.windowsOptions!.appId],
-        ],
-        paddingSize: 2,
-      ),
-    );
-    logger.stdout('');
-    logger.stdout(
-      logLearnMoreAboutCli,
-    );
+      // 3. Writes for all selected platforms
+      final firebaseJsonWrites = <FirebaseJsonWrites>[];
+
+      if (fetchedFirebaseOptions.androidOptions != null &&
+          applyGradlePlugins &&
+          flutterApp!.android &&
+          androidInputs != null) {
+        final firebaseJsonWrite = await FirebaseAndroidWrites(
+          flutterApp: flutterApp!,
+          firebaseOptions: fetchedFirebaseOptions.androidOptions!,
+          logger: logger,
+          androidServiceFilePath: androidInputs!.serviceFilePath,
+          projectConfiguration: androidInputs!.projectConfiguration,
+        ).apply();
+
+        firebaseJsonWrites.add(firebaseJsonWrite);
+      }
+      if (Platform.isMacOS) {
+        if (fetchedFirebaseOptions.iosOptions != null &&
+            flutterApp!.ios &&
+            iosInputs != null) {
+          final firebaseJsonWrite = await appleWrites(
+            platformOptions: fetchedFirebaseOptions.iosOptions!,
+            flutterAppPath: flutterApp!.package.path,
+            serviceFilePath: iosInputs!.serviceFilePath,
+            logger: logger,
+            buildConfiguration: iosInputs?.buildConfiguration,
+            target: iosInputs?.target,
+            platform: kIos,
+            projectConfiguration: iosInputs!.projectConfiguration,
+          );
+
+          firebaseJsonWrites.add(firebaseJsonWrite);
+        }
+
+        if (fetchedFirebaseOptions.macosOptions != null &&
+            flutterApp!.macos &&
+            macosInputs != null) {
+          final firebaseJsonWrite = await appleWrites(
+            platformOptions: fetchedFirebaseOptions.macosOptions!,
+            flutterAppPath: flutterApp!.package.path,
+            serviceFilePath: macosInputs!.serviceFilePath,
+            logger: logger,
+            buildConfiguration: macosInputs?.buildConfiguration,
+            target: macosInputs?.target,
+            platform: kMacos,
+            projectConfiguration: macosInputs!.projectConfiguration,
+          );
+
+          firebaseJsonWrites.add(firebaseJsonWrite);
+        }
+      }
+      if (firebaseConfigurationFileInputs.writeConfigurationFile) {
+        final firebaseJsonWrite = FirebaseDartConfigurationWrite(
+          configurationFilePath:
+              firebaseConfigurationFileInputs.configurationFilePath,
+          firebaseProjectId: selectedFirebaseProject.projectId,
+          flutterAppPath: flutterApp!.package.path,
+          androidOptions: fetchedFirebaseOptions.androidOptions,
+          iosOptions: fetchedFirebaseOptions.iosOptions,
+          macosOptions: fetchedFirebaseOptions.macosOptions,
+          webOptions: fetchedFirebaseOptions.webOptions,
+          windowsOptions: fetchedFirebaseOptions.windowsOptions,
+          linuxOptions: fetchedFirebaseOptions.linuxOptions,
+        ).write();
+
+        firebaseJsonWrites.add(firebaseJsonWrite);
+      }
+
+      // 4. Writes for "firebase.json" file in root of project
+      if (firebaseJsonWrites.isNotEmpty) {
+        await writeToFirebaseJson(
+          listOfWrites: firebaseJsonWrites,
+          firebaseJsonPath:
+              path.join(flutterApp!.package.path, 'firebase.json'),
+        );
+      }
+
+      logger.stdout('');
+      logger.stdout(
+        logFirebaseConfigGenerated(outputFilePath),
+      );
+      logger.stdout('');
+      logger.stdout(
+        listAsPaddedTable(
+          [
+            [AnsiStyles.bold('Platform'), AnsiStyles.bold('Firebase App Id')],
+            if (fetchedFirebaseOptions.webOptions != null)
+              [kWeb, fetchedFirebaseOptions.webOptions!.appId],
+            if (fetchedFirebaseOptions.androidOptions != null)
+              [kAndroid, fetchedFirebaseOptions.androidOptions!.appId],
+            if (fetchedFirebaseOptions.iosOptions != null)
+              [kIos, fetchedFirebaseOptions.iosOptions!.appId],
+            if (fetchedFirebaseOptions.macosOptions != null)
+              [kMacos, fetchedFirebaseOptions.macosOptions!.appId],
+            if (fetchedFirebaseOptions.linuxOptions != null)
+              [kLinux, fetchedFirebaseOptions.linuxOptions!.appId],
+            if (fetchedFirebaseOptions.windowsOptions != null)
+              [kWindows, fetchedFirebaseOptions.windowsOptions!.appId],
+          ],
+          paddingSize: 2,
+        ),
+      );
+      logger.stdout('');
+      logger.stdout(
+        logLearnMoreAboutCli,
+      );
+    } catch (e) {
+      // need to set the exit code to 1 for running windows scripts via integration tests
+      exitCode = 1;
+      stderr.writeln(e);
+    } finally {
+      exit(exitCode);
+    }
   }
 }

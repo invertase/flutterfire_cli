@@ -44,6 +44,7 @@ class ConfigFileWrite {
     this.iosOptions,
     this.macosOptions,
     this.webOptions,
+    this.windowsOptions,
   });
   String pathToConfig;
   String projectId;
@@ -51,6 +52,7 @@ class ConfigFileWrite {
   FirebaseOptions? iosOptions;
   FirebaseOptions? macosOptions;
   FirebaseOptions? webOptions;
+  FirebaseOptions? windowsOptions;
 }
 
 class Reconfigure extends FlutterFireCommand {
@@ -274,9 +276,10 @@ class Reconfigure extends FlutterFireCommand {
         final appId = entry.value as String;
 
         return Future(() async {
+          final platformFirebase = platform == kWindows ? kWeb : platform;
           final appSdkConfig = await getAppSdkConfig(
             appId: appId,
-            platform: platform,
+            platform: platformFirebase,
           );
 
           switch (platform) {
@@ -311,6 +314,13 @@ class Reconfigure extends FlutterFireCommand {
                 projectId,
               );
               break;
+            case kWindows:
+              configWrite.windowsOptions =
+                  FirebaseDartOptions.convertConfigToOptions(
+                appSdkConfig,
+                projectId,
+              );
+              break;
             default:
               throw Exception(
                 'Platform: $platform is not supported for "flutterfire reconfigure".',
@@ -340,6 +350,7 @@ class Reconfigure extends FlutterFireCommand {
           iosOptions: configWrite.iosOptions,
           macosOptions: configWrite.macosOptions,
           webOptions: configWrite.webOptions,
+          windowsOptions: configWrite.windowsOptions,
         ).write();
       });
 
@@ -362,108 +373,117 @@ class Reconfigure extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    final firebaseJson = File(
-      path.join(
-        flutterApp!.package.path,
-        'firebase.json',
-      ),
-    );
-
-    if (!firebaseJson.existsSync()) {
-      throw Exception(
-        '"firebase.json" does not exist. Please run `flutterfire configure` first.',
+    try {
+      final firebaseJson = File(
+        path.join(
+          flutterApp!.package.path,
+          'firebase.json',
+        ),
       );
-    }
 
-    final readFirebaseJson = firebaseJson.readAsStringSync();
-
-    final firebaseJsonMap =
-        jsonDecode(readFirebaseJson) as Map<String, dynamic>;
-    final androidKeys = [
-      kFlutter,
-      kPlatforms,
-      kAndroid,
-    ];
-
-    final androidExists = doesNestedMapExist(firebaseJsonMap, androidKeys);
-    if (androidExists) {
-      final buildConfigurationKeys = [...androidKeys, kBuildConfiguration];
-      final androidBuildConfigurationsExist =
-          doesNestedMapExist(firebaseJsonMap, buildConfigurationKeys);
-
-      await gradleContentUpdates(flutterApp!);
-
-      if (androidBuildConfigurationsExist) {
-        final buildConfigurations =
-            getNestedMap(firebaseJsonMap, buildConfigurationKeys);
-        final futures = <Future<void>>[];
-        buildConfigurations.forEach((key, dynamic value) async {
-          // ignore: cast_nullable_to_non_nullable
-          final configuration =
-              buildConfigurations[key] as Map<String, dynamic>;
-
-          futures.add(
-            _writeFile(
-              _updateServiceFile(configuration, kAndroid),
-              '$kAndroid $androidServiceFileName file write for build configuration: "$key"',
-            ),
-          );
-        });
-        await Future.wait(futures);
-      }
-      final defaultConfigKeys = [
-        ...androidKeys,
-        kDefaultConfig,
-      ];
-
-      final defaultAndroidExists =
-          doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
-
-      if (defaultAndroidExists) {
-        final defaultAndroid = getNestedMap(firebaseJsonMap, defaultConfigKeys);
-
-        await _writeFile(
-          _updateServiceFile(defaultAndroid, kAndroid),
-          '$kAndroid $androidServiceFileName file write for default service file',
+      if (!firebaseJson.existsSync()) {
+        throw Exception(
+          '"firebase.json" does not exist. Please run `flutterfire configure` first.',
         );
       }
-    }
 
-    final iosExists = doesNestedMapExist(
-      firebaseJsonMap,
-      [
+      final readFirebaseJson = firebaseJson.readAsStringSync();
+
+      final firebaseJsonMap =
+          jsonDecode(readFirebaseJson) as Map<String, dynamic>;
+      final androidKeys = [
         kFlutter,
         kPlatforms,
-        kIos,
-      ],
-    );
-    if (iosExists) {
-      await _updateAppleServiceFiles(firebaseJsonMap, kIos);
-    }
+        kAndroid,
+      ];
 
-    final macosExists = doesNestedMapExist(
-      firebaseJsonMap,
-      [
-        kFlutter,
-        kPlatforms,
-        kMacos,
-      ],
-    );
-    if (macosExists) {
-      await _updateAppleServiceFiles(firebaseJsonMap, kMacos);
-    }
+      final androidExists = doesNestedMapExist(firebaseJsonMap, androidKeys);
+      if (androidExists) {
+        final buildConfigurationKeys = [...androidKeys, kBuildConfiguration];
+        final androidBuildConfigurationsExist =
+            doesNestedMapExist(firebaseJsonMap, buildConfigurationKeys);
 
-    final dartExists = doesNestedMapExist(
-      firebaseJsonMap,
-      [
-        kFlutter,
-        kPlatforms,
-        kDart,
-      ],
-    );
+        await gradleContentUpdates(flutterApp!);
 
-    if (dartExists) {
-      await _writeDartConfigurationFile(firebaseJsonMap);
+        if (androidBuildConfigurationsExist) {
+          final buildConfigurations =
+              getNestedMap(firebaseJsonMap, buildConfigurationKeys);
+          final futures = <Future<void>>[];
+          buildConfigurations.forEach((key, dynamic value) async {
+            // ignore: cast_nullable_to_non_nullable
+            final configuration =
+                buildConfigurations[key] as Map<String, dynamic>;
+
+            futures.add(
+              _writeFile(
+                _updateServiceFile(configuration, kAndroid),
+                '$kAndroid $androidServiceFileName file write for build configuration: "$key"',
+              ),
+            );
+          });
+          await Future.wait(futures);
+        }
+        final defaultConfigKeys = [
+          ...androidKeys,
+          kDefaultConfig,
+        ];
+
+        final defaultAndroidExists =
+            doesNestedMapExist(firebaseJsonMap, defaultConfigKeys);
+
+        if (defaultAndroidExists) {
+          final defaultAndroid =
+              getNestedMap(firebaseJsonMap, defaultConfigKeys);
+
+          await _writeFile(
+            _updateServiceFile(defaultAndroid, kAndroid),
+            '$kAndroid $androidServiceFileName file write for default service file',
+          );
+        }
+      }
+
+      final iosExists = doesNestedMapExist(
+        firebaseJsonMap,
+        [
+          kFlutter,
+          kPlatforms,
+          kIos,
+        ],
+      );
+      if (iosExists) {
+        await _updateAppleServiceFiles(firebaseJsonMap, kIos);
+      }
+
+      final macosExists = doesNestedMapExist(
+        firebaseJsonMap,
+        [
+          kFlutter,
+          kPlatforms,
+          kMacos,
+        ],
+      );
+      if (macosExists) {
+        await _updateAppleServiceFiles(firebaseJsonMap, kMacos);
+      }
+
+      final dartExists = doesNestedMapExist(
+        firebaseJsonMap,
+        [
+          kFlutter,
+          kPlatforms,
+          kDart,
+        ],
+      );
+
+      if (dartExists) {
+        await _writeDartConfigurationFile(firebaseJsonMap);
+      }
+    } catch (e) {
+      // need to set the exit code to 1 for running windows scripts via integration tests
+      exitCode = 1;
+      stderr.writeln(e);
+    } finally {
+      exit(exitCode);
     }
   }
 }

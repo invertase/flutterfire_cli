@@ -195,10 +195,13 @@ class FirebaseDartConfigurationWrite {
   }
 
   FirebaseJsonWrites _firebaseJsonWrites() {
-    final relativePathConfigurationFile = relative(
-      configurationFilePath,
-      from: flutterAppPath,
+    final relativePathConfigurationFile = replaceBackslash(
+      relative(
+        configurationFilePath,
+        from: flutterAppPath,
+      ),
     );
+
     final keysToMap = [
       kFlutter,
       kPlatforms,
@@ -221,6 +224,10 @@ class FirebaseDartConfigurationWrite {
 
     if (webOptions != null) {
       configurations[kWeb] = webOptions!.appId;
+    }
+
+    if (windowsOptions != null) {
+      configurations[kWindows] = windowsOptions!.appId;
     }
 
     return FirebaseJsonWrites(

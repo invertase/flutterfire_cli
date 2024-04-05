@@ -92,25 +92,24 @@ xcodeFile='${getXcodeProjectPath(platform)}'
 targetName='$target'
 
 project = Xcodeproj::Project.open(xcodeFile)
-
-file = project.new_file(googleFile)
 target = project.targets.find { |target| target.name == targetName }
 
 if(target)
-  existingServiceFile = target.resources_build_phase.files.find do |file|
+  # Check if GoogleService-Info.plist is already in the target's resources
+  serviceFileInResources = target.resources_build_phase.files.find do |file|
     if defined? file && file.file_ref && file.file_ref.path
       if file.file_ref.path.is_a? String
         file.file_ref.path.include? 'GoogleService-Info.plist'
       end
     end
   end
-  
-  if existingServiceFile
-    existingServiceFile.remove_from_project
-  end 
 
-  target.add_resources([file])
-  project.save
+  # Add GoogleService-Info.plist file if it's not already in the target's resources
+  if(!serviceFileInResources)
+    new_file = project.new_file(googleFile)
+    target.add_resources([new_file])
+    project.save
+  end
   
 else
   abort("Could not find target: \$targetName in your Xcode workspace. Please create a target named \$targetName and try again.")
@@ -178,8 +177,16 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   }
 
   String _bundleServiceFileScript() {
-    final command =
-        'flutterfire bundle-service-file --plist-destination="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
+    String? command;
+    if (platform == kMacos) {
+      // macOS is bundled in Contents/Resources directory
+      command =
+          '# Define the Resources directory path\nRESOURCES_DIR="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources"\n\n# Create the Resources directory if it does not exist\n mkdir -p "\$RESOURCES_DIR"\n\n flutterfire bundle-service-file --plist-destination="\$RESOURCES_DIR" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
+    } else {
+      // iOS is bundled in the root of the app bundle
+      command =
+          'flutterfire bundle-service-file --plist-destination="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
+    }
 
     return '''
 require 'xcodeproj'
@@ -367,7 +374,7 @@ String _debugSymbolsScript(
   String platform,
 ) {
   var command =
-      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path="$PODS_ROOT/FirebaseCrashlytics/upload-symbols" --debug-symbols-path="${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}" --info-plist-path="${SRCROOT}/${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}" --platform=$platform --apple-project-path="${SRCROOT}" ';
+      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path="$PODS_ROOT/FirebaseCrashlytics/upload-symbols" --platform=$platform --apple-project-path="${SRCROOT}" --env-platform-name="${PLATFORM_NAME}" --env-configuration="${CONFIGURATION}" --env-project-dir="${PROJECT_DIR}" --env-built-products-dir="${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="${INFOPLIST_PATH}" ';
 
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:

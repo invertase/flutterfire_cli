@@ -37,6 +37,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? androidApplicationId,
   String? iosBundleId,
   String? macosBundleId,
+  String? windowsAppId,
   String? token,
   String? serviceAccount,
 }) async {
@@ -98,6 +99,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       platform: kWindows,
       token: token,
+      webAppId: windowsAppId,
       serviceAccount: serviceAccount,
     );
   }
