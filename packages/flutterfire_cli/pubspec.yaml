@@ -13,7 +13,7 @@ dependencies:
   cli_util: ^0.4.0
   deep_pick: ^1.0.0
   file: ^6.1.2
-  http: ^0.13.5
+  http: ">=0.13.5 <2.0.0"
   interact: ^2.1.1
   meta: ^1.7.0
   path: ^1.8.0
