@@ -600,9 +600,17 @@ class ConfigCommand extends FlutterFireCommand {
         return;
       }
 
-      // 1. Validate and prompt first
+      // 1. Select Firebase project and platforms
+      final selectedFirebaseProject = await _selectFirebaseProject();
+      final selectedPlatforms = _selectPlatforms();
+
+      if (!selectedPlatforms.containsValue(true)) {
+        throw NoFlutterPlatformsSelectedException();
+      }
+
+      // 2. Validate and prompt for platform specific inputs
       if (Platform.isMacOS) {
-        if (flutterApp!.ios) {
+        if (flutterApp!.ios && selectedPlatforms[kIos]!) {
           iosInputs = await appleValidation(
             platform: kIos,
             flutterAppPath: flutterApp!.package.path,
@@ -611,7 +619,7 @@ class ConfigCommand extends FlutterFireCommand {
             buildConfiguration: iosBuildConfiguration,
           );
         }
-        if (flutterApp!.macos) {
+        if (flutterApp!.macos && selectedPlatforms[kMacos]!) {
           macosInputs = await appleValidation(
             platform: kMacos,
             flutterAppPath: flutterApp!.package.path,
@@ -622,7 +630,7 @@ class ConfigCommand extends FlutterFireCommand {
         }
       }
 
-      if (flutterApp!.android) {
+      if (flutterApp!.android && selectedPlatforms[kAndroid]!) {
         androidInputs = androidValidation(
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: androidServiceFilePath,
@@ -635,14 +643,8 @@ class ConfigCommand extends FlutterFireCommand {
         overwrite: yes || overwriteFirebaseOptions == true,
       );
 
-      final selectedFirebaseProject = await _selectFirebaseProject();
-      final selectedPlatforms = _selectPlatforms();
 
-      if (!selectedPlatforms.containsValue(true)) {
-        throw NoFlutterPlatformsSelectedException();
-      }
-
-      // 2. Get values for all selected platforms
+      // 3. Get values for all selected platforms
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
@@ -662,7 +664,7 @@ class ConfigCommand extends FlutterFireCommand {
         linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
       );
 
-      // 3. Writes for all selected platforms
+      // 4. Writes for all selected platforms
       final firebaseJsonWrites = <FirebaseJsonWrites>[];
 
       if (fetchedFirebaseOptions.androidOptions != null &&
@@ -731,7 +733,7 @@ class ConfigCommand extends FlutterFireCommand {
         firebaseJsonWrites.add(firebaseJsonWrite);
       }
 
-      // 4. Writes for "firebase.json" file in root of project
+      // 5. Writes for "firebase.json" file in root of project
       if (firebaseJsonWrites.isNotEmpty) {
         await writeToFirebaseJson(
           listOfWrites: firebaseJsonWrites,
