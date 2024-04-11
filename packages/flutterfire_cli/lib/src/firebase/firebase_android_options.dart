@@ -45,7 +45,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
         androidApplicationId ?? flutterApp.androidApplicationId;
 
     if (isCI && selectedAndroidApplicationId == null) {
-      throw ValidationCIException(
+      throw ValidationException(
         kAndroid,
         'A valid application package name is required when configuring on CI. Please use the `--android-package-name` flag',
       );

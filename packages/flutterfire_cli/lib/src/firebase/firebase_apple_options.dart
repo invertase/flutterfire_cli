@@ -42,7 +42,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
       final flag = platformIdentifier == kMacos
           ? '--macos-bundle-id'
           : '--ios-bundle-id';
-      throw ValidationCIException(
+      throw ValidationException(
         platformIdentifier,
         'A valid bundle Id is required when configuring on CI. Please use the $flag flag.',
       );

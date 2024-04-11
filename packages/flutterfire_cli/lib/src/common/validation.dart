@@ -36,7 +36,7 @@ Future<AppleInputs> appleValidation({
 
   if (buildConfiguration != null && target != null) {
     if (isCI) {
-      throw ValidationCIException(
+      throw ValidationException(
         platform,
         'Cannot set both target and build configuration in CI.',
       );
@@ -57,7 +57,7 @@ Future<AppleInputs> appleValidation({
 
   if (serviceFilePath != null && target == null && buildConfiguration == null) {
     if (isCI) {
-      throw ValidationCIException(
+      throw ValidationException(
         platform,
         'Cannot set service file path without a target or build configuration in CI.',
       );
@@ -144,7 +144,7 @@ DartConfigurationFileInputs dartConfigurationFileValidation({
     flutterAppPath: flutterAppPath,
   );
   if (isCI && !overwrite) {
-    throw ValidationCIException(
+    throw ValidationException(
       kDart,
       'Required to overwrite Dart Firebase options configuration file in CI. Use `--overwrite-firebase-options` or `--yes` flag.',
     );

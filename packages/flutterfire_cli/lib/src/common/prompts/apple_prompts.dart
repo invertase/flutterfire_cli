@@ -51,7 +51,7 @@ Future<String> promptCheckBuildConfiguration(
 
   if (!buildConfigurations.contains(buildConfiguration)) {
     if (isCI) {
-      throw ValidationCIException(
+      throw ValidationException(
         platform,
         'The build configuration: $buildConfiguration does not exist. Please re-run the command with a valid build configuration.',
       );
@@ -98,7 +98,7 @@ Future<String> promptCheckTarget(String target, String platform) async {
 
   if (!targets.contains(target)) {
     if (isCI) {
-      throw ValidationCIException(
+      throw ValidationException(
         platform,
         'The target $target does not exist. Please re-run the command with a valid target.',
       );
