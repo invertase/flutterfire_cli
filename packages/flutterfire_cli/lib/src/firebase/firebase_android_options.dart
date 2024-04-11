@@ -18,6 +18,7 @@
 import 'dart:convert';
 import 'package:deep_pick/deep_pick.dart';
 
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase.dart';
@@ -42,6 +43,13 @@ extension FirebaseAndroidOptions on FirebaseOptions {
   }) async {
     var selectedAndroidApplicationId =
         androidApplicationId ?? flutterApp.androidApplicationId;
+
+    if (isCI && selectedAndroidApplicationId == null) {
+      throw ValidationCIException(
+        kAndroid,
+        'A valid application package name is required when configuring on CI. Please use the `--android-package-name` flag',
+      );
+    }
     selectedAndroidApplicationId ??= promptInput(
       "Which Android application id (or package name) do you want to use for this configuration, e.g. 'com.example.app'?",
       defaultValue: selectedAndroidApplicationId,

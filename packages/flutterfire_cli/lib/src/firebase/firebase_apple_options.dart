@@ -17,6 +17,7 @@
 
 import 'package:deep_pick/deep_pick.dart';
 import '../common/plist.dart';
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase.dart';
@@ -36,6 +37,16 @@ extension FirebaseAppleOptions on FirebaseOptions {
     final platformIdentifier = macos ? kMacos : kIos;
     var selectedAppleBundleId = appleBundleIdentifier ??
         (macos ? flutterApp.macosBundleId : flutterApp.iosBundleId);
+
+    if (isCI && selectedAppleBundleId == null) {
+      final flag = platformIdentifier == kMacos
+          ? '--macos-bundle-id'
+          : '--ios-bundle-id';
+      throw ValidationCIException(
+        platformIdentifier,
+        'A valid bundle Id is required when configuring on CI. Please use the $flag flag.',
+      );
+    }
     selectedAppleBundleId ??= promptInput(
       "Which $platformIdentifier bundle id do you want to use for this configuration, e.g. 'com.example.app'?",
       defaultValue: selectedAppleBundleId,
