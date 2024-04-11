@@ -245,3 +245,15 @@ class ServiceFileException implements FlutterFireException {
     return 'ServiceFileRequirementException: $platform - $message';
   }
 }
+
+class ValidationCIException implements FlutterFireException {
+  ValidationCIException(this.platform, this.message) : super();
+
+  final String platform;
+  final String message;
+
+  @override
+  String toString() {
+    return 'ValidationCIException: $platform - $message';
+  }
+}
