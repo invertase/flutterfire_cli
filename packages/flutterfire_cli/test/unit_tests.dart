@@ -21,7 +21,7 @@ void main() {
       );
       expect(
         () => validateAppBundleId(
-          'org.dartlang.sample',
+          'org.dartlang.camelCase',
           kIos,
         ),
         returnsNormally,
@@ -84,7 +84,7 @@ void main() {
   group('Android Package Name Validator', () {
     test('Valid Package names', () {
       expect(
-        () => validateAndroidPackageName('com.example.app'),
+        () => validateAndroidPackageName('com.example.some_valid_name'),
         returnsNormally,
       );
       expect(
