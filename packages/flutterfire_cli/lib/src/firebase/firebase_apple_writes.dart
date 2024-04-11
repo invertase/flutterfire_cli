@@ -181,11 +181,11 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     if (platform == kMacos) {
       // macOS is bundled in Contents/Resources directory
       command =
-          '# Define the Resources directory path\nRESOURCES_DIR="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Contents/Resources"\n\n# Create the Resources directory if it does not exist\n mkdir -p "\$RESOURCES_DIR"\n\n flutterfire bundle-service-file --plist-destination="\$RESOURCES_DIR" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
+          '# Define the Resources directory path\nRESOURCES_DIR="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app/Contents/Resources"\n\n# Create the Resources directory if it does not exist\n mkdir -p "\$RESOURCES_DIR"\n\n flutterfire bundle-service-file --plist-destination="\$RESOURCES_DIR" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
     } else {
       // iOS is bundled in the root of the app bundle
       command =
-          'flutterfire bundle-service-file --plist-destination="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="${SRCROOT}"';
+          'flutterfire bundle-service-file --plist-destination="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
     }
 
     return '''
@@ -198,7 +198,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="${PATH}:$FLUTTER_ROOT/bin:$HOME/.pub-cache/bin"
+PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
 $command
 )
 
@@ -374,7 +374,7 @@ String _debugSymbolsScript(
   String platform,
 ) {
   var command =
-      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path="$PODS_ROOT/FirebaseCrashlytics/upload-symbols" --platform=$platform --apple-project-path="${SRCROOT}" --env-platform-name="${PLATFORM_NAME}" --env-configuration="${CONFIGURATION}" --env-project-dir="${PROJECT_DIR}" --env-built-products-dir="${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="${INFOPLIST_PATH}" ';
+      'flutterfire upload-crashlytics-symbols --upload-symbols-script-path="\$PODS_ROOT/FirebaseCrashlytics/upload-symbols" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" ';
 
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
@@ -397,7 +397,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="${PATH}:$FLUTTER_ROOT/bin:$HOME/.pub-cache/bin"
+PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
 $command
 )
 
