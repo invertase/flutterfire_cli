@@ -278,9 +278,8 @@ class ConfigCommand extends FlutterFireCommand {
     final value = argResults!['android-package-name'] as String?;
     final deprecatedValue = argResults!['android-app-id'] as String?;
 
-    // TODO validate packagename is valid if provided.
-
     if (value != null) {
+      validateAndroidPackageName(value);
       return value;
     }
     if (deprecatedValue != null) {
@@ -290,26 +289,17 @@ class ConfigCommand extends FlutterFireCommand {
       return deprecatedValue;
     }
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for android-package-name.',
-      );
-    }
     return null;
   }
 
   String? get iosBundleId {
     final value = argResults!['ios-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for ios-bundle-id.',
-      );
+    if (value != null) {
+      validateAppBundleId(value, kIos);
+      return value;
     }
+
     return null;
   }
 
@@ -318,12 +308,6 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for web-app-id.',
-      );
-    }
     return null;
   }
 
@@ -332,26 +316,17 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for $kWindowsAppIdFlag.',
-      );
-    }
     return null;
   }
 
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for macos-bundle-id.',
-      );
+    if (value != null) {
+      validateAppBundleId(value, kMacos);
+      return value;
     }
+
     return null;
   }
 
@@ -642,7 +617,6 @@ class ConfigCommand extends FlutterFireCommand {
         flutterAppPath: flutterApp!.package.path,
         overwrite: yes || overwriteFirebaseOptions == true,
       );
-
 
       // 3. Get values for all selected platforms
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
