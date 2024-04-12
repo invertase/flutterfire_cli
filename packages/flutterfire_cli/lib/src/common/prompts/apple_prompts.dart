@@ -50,6 +50,12 @@ Future<String> promptCheckBuildConfiguration(
   );
 
   if (!buildConfigurations.contains(buildConfiguration)) {
+    if (isCI) {
+      throw ValidationException(
+        platform,
+        'The build configuration: $buildConfiguration does not exist. Please re-run the command with a valid build configuration.',
+      );
+    }
     final response = promptSelect(
       'You have chosen a buildConfiguration that does not exist: $buildConfiguration. Please choose one of the following build configurations',
       buildConfigurations,
@@ -91,6 +97,12 @@ Future<String> promptCheckTarget(String target, String platform) async {
       await findTargetsAvailable(platform, getXcodeProjectPath(platform));
 
   if (!targets.contains(target)) {
+    if (isCI) {
+      throw ValidationException(
+        platform,
+        'The target $target does not exist. Please re-run the command with a valid target.',
+      );
+    }
     final response = promptSelect(
       'You have chosen a target that does not exist: $target. Please choose one of the following targets',
       targets,

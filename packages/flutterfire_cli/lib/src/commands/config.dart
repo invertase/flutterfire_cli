@@ -278,9 +278,8 @@ class ConfigCommand extends FlutterFireCommand {
     final value = argResults!['android-package-name'] as String?;
     final deprecatedValue = argResults!['android-app-id'] as String?;
 
-    // TODO validate packagename is valid if provided.
-
     if (value != null) {
+      validateAndroidPackageName(value);
       return value;
     }
     if (deprecatedValue != null) {
@@ -290,26 +289,17 @@ class ConfigCommand extends FlutterFireCommand {
       return deprecatedValue;
     }
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for android-package-name.',
-      );
-    }
     return null;
   }
 
   String? get iosBundleId {
     final value = argResults!['ios-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for ios-bundle-id.',
-      );
+    if (value != null) {
+      validateAppBundleId(value, kIos);
+      return value;
     }
+
     return null;
   }
 
@@ -318,12 +308,6 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for web-app-id.',
-      );
-    }
     return null;
   }
 
@@ -332,26 +316,17 @@ class ConfigCommand extends FlutterFireCommand {
 
     if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for $kWindowsAppIdFlag.',
-      );
-    }
     return null;
   }
 
   String? get macosBundleId {
     final value = argResults!['macos-bundle-id'] as String?;
-    // TODO validate bundleId is valid if provided
-    if (value != null) return value;
 
-    if (isCI) {
-      throw FirebaseCommandException(
-        'configure',
-        'Please provide value for macos-bundle-id.',
-      );
+    if (value != null) {
+      validateAppBundleId(value, kMacos);
+      return value;
     }
+
     return null;
   }
 
@@ -369,8 +344,11 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['out'] as String;
   }
 
-  bool? get overwriteFirebaseOptions {
-    return argResults!['overwrite-firebase-options'] as bool?;
+  bool get overwriteFirebaseOptions {
+    if (argResults!['overwrite-firebase-options'] == null) {
+      return false;
+    }
+    return argResults!['overwrite-firebase-options'] as bool;
   }
 
   // Still needed for local CI testing
@@ -597,9 +575,17 @@ class ConfigCommand extends FlutterFireCommand {
         return;
       }
 
-      // 1. Validate and prompt first
+      // 1. Select Firebase project and platforms
+      final selectedFirebaseProject = await _selectFirebaseProject();
+      final selectedPlatforms = _selectPlatforms();
+
+      if (!selectedPlatforms.containsValue(true)) {
+        throw NoFlutterPlatformsSelectedException();
+      }
+
+      // 2. Validate and prompt for platform specific inputs
       if (Platform.isMacOS) {
-        if (flutterApp!.ios) {
+        if (flutterApp!.ios && selectedPlatforms[kIos]!) {
           iosInputs = await appleValidation(
             platform: kIos,
             flutterAppPath: flutterApp!.package.path,
@@ -608,7 +594,7 @@ class ConfigCommand extends FlutterFireCommand {
             buildConfiguration: iosBuildConfiguration,
           );
         }
-        if (flutterApp!.macos) {
+        if (flutterApp!.macos && selectedPlatforms[kMacos]!) {
           macosInputs = await appleValidation(
             platform: kMacos,
             flutterAppPath: flutterApp!.package.path,
@@ -619,7 +605,7 @@ class ConfigCommand extends FlutterFireCommand {
         }
       }
 
-      if (flutterApp!.android) {
+      if (flutterApp!.android && selectedPlatforms[kAndroid]!) {
         androidInputs = androidValidation(
           flutterAppPath: flutterApp!.package.path,
           serviceFilePath: androidServiceFilePath,
@@ -629,17 +615,10 @@ class ConfigCommand extends FlutterFireCommand {
       final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
         configurationFilePath: outputFilePath,
         flutterAppPath: flutterApp!.package.path,
-        overwrite: yes,
+        overwrite: yes || overwriteFirebaseOptions == true,
       );
 
-      final selectedFirebaseProject = await _selectFirebaseProject();
-      final selectedPlatforms = _selectPlatforms();
-
-      if (!selectedPlatforms.containsValue(true)) {
-        throw NoFlutterPlatformsSelectedException();
-      }
-
-      // 2. Get values for all selected platforms
+      // 3. Get values for all selected platforms
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
@@ -659,7 +638,7 @@ class ConfigCommand extends FlutterFireCommand {
         linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
       );
 
-      // 3. Writes for all selected platforms
+      // 4. Writes for all selected platforms
       final firebaseJsonWrites = <FirebaseJsonWrites>[];
 
       if (fetchedFirebaseOptions.androidOptions != null &&
@@ -728,7 +707,7 @@ class ConfigCommand extends FlutterFireCommand {
         firebaseJsonWrites.add(firebaseJsonWrite);
       }
 
-      // 4. Writes for "firebase.json" file in root of project
+      // 5. Writes for "firebase.json" file in root of project
       if (firebaseJsonWrites.isNotEmpty) {
         await writeToFirebaseJson(
           listOfWrites: firebaseJsonWrites,

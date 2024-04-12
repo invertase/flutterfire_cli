@@ -35,6 +35,12 @@ Future<AppleInputs> appleValidation({
   }
 
   if (buildConfiguration != null && target != null) {
+    if (isCI) {
+      throw ValidationException(
+        platform,
+        'Cannot set both target and build configuration in CI.',
+      );
+    }
     // If user has set both, we need to find out which one they want to use
     final response = promptSelect(
       'You have both a build configuration (most likely choice) and a target set up. Which would you like to use?',
@@ -50,6 +56,12 @@ Future<AppleInputs> appleValidation({
   }
 
   if (serviceFilePath != null && target == null && buildConfiguration == null) {
+    if (isCI) {
+      throw ValidationException(
+        platform,
+        'Cannot set service file path without a target or build configuration in CI.',
+      );
+    }
     // If user has set serviceFilePath, but not a config type, we need to find out which one they want to use
     final response = promptSelect(
       'You have to choose a configuration type. Either build configuration (most likely choice) or a target set up.',
@@ -131,6 +143,12 @@ DartConfigurationFileInputs dartConfigurationFileValidation({
     configurationFilePath: configurationFilePath,
     flutterAppPath: flutterAppPath,
   );
+  if (isCI && !overwrite) {
+    throw ValidationException(
+      kDart,
+      'Required to overwrite Dart Firebase options configuration file in CI. Use `--overwrite-firebase-options` or `--yes` flag.',
+    );
+  }
   final writeConfigurationFile = overwrite ||
       promptWriteConfigurationFile(
         configurationFilePath: validatedConfigurationFilePath,
