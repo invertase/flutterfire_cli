@@ -1514,8 +1514,6 @@ void main() {
           '--project=$firebaseProjectId',
           // The below args aren't needed unless running from CI. We need for Github actions to run command.
           '--platforms=ios,macos',
-          '--ios-bundle-id=com.example.flutterTestCli',
-          '--macos-bundle-id=com.example.flutterTestCli',
           // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
           // We're using `Runner` target for both which is the standard target for an apple Flutter app
           '--ios-out=ios/$iOSPath',
@@ -1544,6 +1542,7 @@ void main() {
         );
       }
     },
+    skip: !Platform.isMacOS,
     timeout: const Timeout(
       Duration(minutes: 2),
     ),
