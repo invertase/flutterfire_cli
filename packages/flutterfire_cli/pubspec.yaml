@@ -12,13 +12,13 @@ dependencies:
   ci: ^0.1.0
   cli_util: ^0.4.0
   deep_pick: ^1.0.0
-  file: ^6.1.2
+  file: ^7.0.0
   http: ">=0.13.5 <2.0.0"
   interact: ^2.1.1
   meta: ^1.7.0
   path: ^1.8.0
   platform: ^3.0.2
-  pub_updater: ^0.2.2
+  pub_updater: ^0.4.0
   pubspec: ^2.1.0
   xml: ^6.1.0
   yaml: ^3.1.2
