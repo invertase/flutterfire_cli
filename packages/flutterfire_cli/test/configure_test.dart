@@ -1420,4 +1420,53 @@ void main() {
       checkPerf: true,
     );
   });
+
+  test(
+    'flutterfire configure: path with spaces should not break the configuration for iOS/macOS',
+    () async {
+      // Regression test for https://github.com/invertase/flutterfire_cli/pull/228
+      const targetType = 'Runner';
+      const iOSPath = 'ios path with spaces/target';
+      const macOSPath = 'macos path with spaces/target';
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          // The below args aren't needed unless running from CI. We need for Github actions to run command.
+          '--platforms=ios,macos',
+          // Apple required the `--ios-out` and `--macos-out` flags to be set & the build type,
+          // We're using `Runner` target for both which is the standard target for an apple Flutter app
+          '--ios-out=ios/$iOSPath',
+          '--ios-target=$targetType',
+          '--macos-out=macos/$macOSPath',
+          '--macos-target=$targetType',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      if (Platform.isMacOS) {
+        // check Apple service files were created and have correct content
+        final iosPath =
+            p.join(projectPath!, kIos, iOSPath, appleServiceFileName);
+        final macosPath = p.join(projectPath!, kMacos, macOSPath);
+
+        await testAppleServiceFileValues(iosPath);
+        await testAppleServiceFileValues(
+          macosPath,
+          platform: kMacos,
+        );
+      }
+    },
+    skip: !Platform.isMacOS,
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }
