@@ -1,3 +1,7 @@
+## 1.0.0
+
+ - Moved flutterfire_cli package from dev release to general release.
+
 ## 0.3.0-dev.21
 
  - **FIX**(android): ensure app/build.gradle only writes google services dependency once ([#269](https://github.com/invertase/flutterfire_cli/issues/269)). ([f195b16f](https://github.com/invertase/flutterfire_cli/commit/f195b16f0a3131288d4fccf3e1140093a2d68708))
