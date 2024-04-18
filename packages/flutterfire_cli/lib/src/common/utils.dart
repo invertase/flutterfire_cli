@@ -534,3 +534,10 @@ void validateAndroidPackageName(String appId) {
     );
   }
 }
+
+String firebaseCLIJsonParse(String output) {
+  return output.replaceFirst(
+    appendedErrorText,
+    '}',
+  );
+}
