@@ -16,7 +16,9 @@
  */
 
 import 'dart:io';
+
 import 'package:pubspec/pubspec.dart';
+
 import 'strings.dart';
 import 'utils.dart';
 
@@ -92,8 +94,8 @@ class Package {
 }
 
 extension on PubSpec {
-  Flutter? get flutter => (unParsedYaml?['flutter'] as Map<Object?, Object?>?)
-      .let((value) => Flutter(value));
+  Flutter? get flutter =>
+      (unParsedYaml?['flutter'] as Map<Object?, Object?>?).let(Flutter.new);
 }
 
 class Flutter {
