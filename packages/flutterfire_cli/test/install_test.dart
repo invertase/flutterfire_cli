@@ -128,4 +128,60 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+    'Installs then use --only-pubspec-plugins flag to remove dependency',
+    () async {
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'install',
+          '--version=0.1.0',
+          '--plugins=firebase_auth,firebase_core',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final parsedPubspec =
+          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+
+      expect(parsedPubspec.dependencies['firebase_auth'], isNotNull);
+      expect(parsedPubspec.dependencies['firebase_core'], isNotNull);
+      expect(parsedPubspec.dependencies['cloud_firestore'], isNull);
+
+      expect(result.stdout.toString().contains('Successfully installed'), true);
+
+      final result2 = Process.runSync(
+        'flutterfire',
+        [
+          'install',
+          '--version=0.1.0',
+          '--only-pubspec-plugins',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result2.stderr as String);
+      }
+
+      final parsedPubspec2 =
+          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+
+      expect(parsedPubspec2.dependencies['firebase_auth'], isNotNull);
+      expect(parsedPubspec2.dependencies['firebase_core'], isNotNull);
+      expect(parsedPubspec2.dependencies['cloud_firestore'], isNull);
+
+      expect(result.stdout.toString().contains('Successfully installed'), true);
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }

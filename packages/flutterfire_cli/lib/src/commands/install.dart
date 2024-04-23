@@ -76,6 +76,12 @@ class InstallCommand extends FlutterFireCommand {
       help: 'The version of the BoM to install.',
       valueHelp: 'version',
     );
+
+    argParser.addFlag(
+      'only-pubspec-plugins',
+      help: 'Only install plugins that are in the pubspec.yaml file.',
+      negatable: false,
+    );
   }
 
   @override
@@ -193,8 +199,6 @@ class InstallCommand extends FlutterFireCommand {
 
       final pluginVersions = await _getPluginVersionsFromJSON(bomVersion);
 
-      final selectedPlugins = await _selectPlugins(pluginVersions);
-
       final pubSpec = flutterApp!.package.pubSpec;
       final listOfAlreadyInstalledPlugins = pubSpec.dependencies.keys
           .where(
@@ -202,6 +206,17 @@ class InstallCommand extends FlutterFireCommand {
                 FlutterFirePlugins.allPluginsPublicNames.contains(element),
           )
           .toList();
+
+      late List<FlutterFirePlugins> selectedPlugins;
+      if (argResults!['only-pubspec-plugins'] as bool) {
+        selectedPlugins = FlutterFirePlugins.values
+            .where(
+              (element) => listOfAlreadyInstalledPlugins.contains(element.name),
+            )
+            .toList();
+      } else {
+        selectedPlugins = await _selectPlugins(pluginVersions);
+      }
 
       final pluginsToDelete = listOfAlreadyInstalledPlugins
           .where(
