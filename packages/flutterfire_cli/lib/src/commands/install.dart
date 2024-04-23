@@ -193,7 +193,7 @@ class InstallCommand extends FlutterFireCommand {
         );
 
         await Process.run(
-          'flutter',
+          'flutter.bat',
           [
             'pub',
             'remove',
@@ -227,7 +227,7 @@ class InstallCommand extends FlutterFireCommand {
       );
 
       await Process.run(
-        'flutter',
+        'dart',
         [
           'pub',
           'add',
@@ -259,7 +259,7 @@ class InstallCommand extends FlutterFireCommand {
               'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
         );
         final result = await Process.run(
-          'flutter',
+          'dart',
           [
             'pub',
             'add',
@@ -297,7 +297,7 @@ class InstallCommand extends FlutterFireCommand {
           );
 
           await Process.run(
-            'flutter',
+            'dart',
             [
               'pub',
               'remove',
