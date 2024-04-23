@@ -21,7 +21,7 @@ scripts:
 
   format-check:
     # Necessary to stop it formatting `firebase_options.dart` file which breaks comparison in tests
-    run: melos exec -- "find . -iname \"*.dart\" ! -name \"firebase_options.dart\" -exec dart format {} --set-exit-if-changed \;" 
+    run: melos exec -- "find . -iname \"*.dart\" ! -name \"firebase_options.dart\" -exec dart format {} --set-exit-if-changed \;"
     description: Run `dart format` checks for all packages.
     select-package:
       ignore:
@@ -30,7 +30,7 @@ scripts:
 
   test:
     description: Run tests in a specific package.
-    run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart pub run test --reporter expanded"
+    run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart run test --reporter expanded"
     select-package:
       dir-exists:
         - "test/"

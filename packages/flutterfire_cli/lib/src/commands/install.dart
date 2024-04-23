@@ -64,6 +64,18 @@ enum FlutterFirePlugins {
 class InstallCommand extends FlutterFireCommand {
   InstallCommand(FlutterApp? flutterApp) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
+
+    argParser.addOption(
+      'plugins',
+      help: 'A comma-separated list of plugins to install.',
+      valueHelp: 'plugin1,plugin2',
+    );
+
+    argParser.addOption(
+      'version',
+      help: 'The version of the BoM to install.',
+      valueHelp: 'version',
+    );
   }
 
   @override
@@ -81,6 +93,21 @@ class InstallCommand extends FlutterFireCommand {
   Future<List<FlutterFirePlugins>> _selectPlugins(
     Map<String, String> availablePlugins,
   ) async {
+    if (argResults!['plugins'] != null) {
+      final selectedPlugins = <FlutterFirePlugins>[];
+      final selectedPluginNames = argResults!['plugins'] as String;
+      final selectedPluginNamesList = selectedPluginNames.split(',');
+      for (final pluginName in selectedPluginNamesList) {
+        final plugin = FlutterFirePlugins.values.firstWhereOrNull(
+          (element) => element.name == pluginName,
+        );
+        if (plugin != null) {
+          selectedPlugins.add(plugin);
+        }
+      }
+      return selectedPlugins;
+    }
+
     final selectedPlugins = <FlutterFirePlugins>[];
     final listAvailablePluginsInVersion = availablePlugins.keys.toList();
     final choices = FlutterFirePlugins.values
@@ -148,13 +175,18 @@ class InstallCommand extends FlutterFireCommand {
   @override
   Future<void> run() async {
     // Get the BoM version number from the arguments
-    if (argResults?.arguments.length != 1) {
+    late String bomVersion;
+
+    if (argResults?.arguments.length == 1) {
+      bomVersion = argResults!.arguments[0];
+    } else if (argResults?['version'] != null) {
+      bomVersion = argResults!['version'] as String;
+    } else {
       stderr.writeln(
         'Usage for install command: flutterfire install <version>',
       );
       return;
     }
-    final bomVersion = argResults!.arguments[0];
 
     try {
       commandRequiresFlutterApp();
