@@ -193,7 +193,7 @@ class InstallCommand extends FlutterFireCommand {
         );
 
         await Process.run(
-          'flutter.bat',
+          'dart',
           [
             'pub',
             'remove',
