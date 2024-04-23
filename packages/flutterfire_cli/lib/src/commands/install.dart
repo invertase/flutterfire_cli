@@ -126,7 +126,10 @@ class InstallCommand extends FlutterFireCommand {
     final jsonString = await response.transform(utf8.decoder).join();
     final json = jsonDecode(jsonString) as Map<String, dynamic>;
 
-    if (bomVersion == 'latest') {
+    if (bomVersion == 'latest' ||
+        bomVersion == 'master' ||
+        bomVersion == 'main' ||
+        bomVersion.contains('git')) {
       // The latest version is the first key in the JSON
       return ((json[json.keys.first] as Map)['packages'] as Map)
           .cast<String, String>();
@@ -230,6 +233,78 @@ class InstallCommand extends FlutterFireCommand {
       );
 
       installingSpinner.done();
+
+      // Overriding using git branch
+      if (bomVersion == 'master' ||
+          bomVersion == 'main' ||
+          bomVersion.contains('git')) {
+        final gitBranch = bomVersion.contains('git')
+            ? bomVersion.replaceFirst('git:', '')
+            : 'master';
+        final gitSpinner = spinner(
+          (done) {
+            if (!done) {
+              return 'Overriding using git branch $gitBranch ... ';
+            }
+            return 'Override using git branch $gitBranch done.';
+          },
+        );
+
+        final gitInstructions = selectedPlugins.map(
+          (e) =>
+              'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
+        );
+        final result = await Process.run(
+          'flutter',
+          [
+            'pub',
+            'add',
+            ...gitInstructions,
+            '--directory',
+            '.',
+          ],
+          workingDirectory: flutterApp!.package.path,
+        );
+
+        gitSpinner.done();
+
+        if (result.exitCode != 0) {
+          throw Exception(
+            AnsiStyles.red('Failed to install plugins.\n\n${result.stderr}'),
+          );
+        }
+      } else {
+        // Remove the git overrides
+        final gitOverrides = pubSpec.dependencyOverrides.keys
+            .where(
+              (element) =>
+                  FlutterFirePlugins.allPluginsPublicNames.contains(element),
+            )
+            .toList();
+
+        if (gitOverrides.isNotEmpty) {
+          final gitOverrideSpinner = spinner(
+            (done) {
+              if (!done) {
+                return 'Removing git overrides ... ';
+              }
+              return 'Git overrides removed.';
+            },
+          );
+
+          await Process.run(
+            'flutter',
+            [
+              'pub',
+              'remove',
+              ...gitOverrides.map((e) => 'override:$e'),
+            ],
+            workingDirectory: flutterApp!.package.path,
+          );
+
+          gitOverrideSpinner.done();
+        }
+      }
 
       stdout.writeln(
         AnsiStyles.green(
