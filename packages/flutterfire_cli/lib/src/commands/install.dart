@@ -179,6 +179,10 @@ class InstallCommand extends FlutterFireCommand {
           .toList();
 
       if (pluginsToDelete.isNotEmpty) {
+        stdout.writeln('The following plugins will be removed:');
+        for (final plugin in pluginsToDelete) {
+          stdout.writeln(' - $plugin');
+        }
         final removingSpinner = spinner(
           (done) {
             if (!done) {
