@@ -20,7 +20,6 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:collection/collection.dart';
-import 'package:pubspec/pubspec.dart';
 
 import '../common/utils.dart';
 import '../flutter_app.dart';
@@ -155,34 +154,50 @@ class InstallCommand extends FlutterFireCommand {
 
       final selectedPlugins = await _selectPlugins(pluginVersions);
 
+      final pubSpec = flutterApp!.package.pubSpec;
+      final listOfAlreadyInstalledPlugins = pubSpec.dependencies.keys
+          .where(
+            (element) =>
+                FlutterFirePlugins.allPluginsPublicNames.contains(element),
+          )
+          .toList();
+
+      final pluginsToDelete = listOfAlreadyInstalledPlugins
+          .where(
+            (element) =>
+                !selectedPlugins.any((plugin) => plugin.name == element),
+          )
+          .toList();
+
+      if (pluginsToDelete.isNotEmpty) {
+        final removingSpinner = spinner(
+          (done) {
+            if (!done) {
+              return 'Removing plugins ... ';
+            }
+            return 'Plugins removed.';
+          },
+        );
+
+        await Process.run(
+          'flutter',
+          [
+            'pub',
+            'remove',
+            ...pluginsToDelete,
+          ],
+          workingDirectory: flutterApp!.package.path,
+        );
+
+        removingSpinner.done();
+      }
+
       if (selectedPlugins.isEmpty) {
         stdout.writeln('No plugins selected.');
         return;
       }
 
-      final pubSpec = flutterApp!.package.pubSpec;
-
-      final filteredDependencies = <String, DependencyReference>{};
-      // Removing all existing Firebase plugins from the pubspec
-      for (final dependency in pubSpec.dependencies.keys) {
-        if (!FlutterFirePlugins.allPluginsPublicNames.contains(dependency)) {
-          filteredDependencies[dependency] = pubSpec.dependencies[dependency]!;
-        }
-      }
-
-      final newPubSpec = pubSpec.copy(
-        dependencies: {
-          for (final plugin in selectedPlugins)
-            plugin.name: HostedReference.fromJson(
-              pluginVersions[plugin.name]!,
-            ),
-          ...filteredDependencies,
-        },
-      );
-
-      await newPubSpec.save(Directory(flutterApp!.package.path));
-
-      stdout.writeln('Updated `pubspec.yaml` with the following plugins:');
+      stdout.writeln('Installing the following plugins version:');
       for (final plugin in selectedPlugins) {
         stdout.writeln(
           ' - ${plugin.displayName}: ${pluginVersions[plugin.name]}',
@@ -192,7 +207,7 @@ class InstallCommand extends FlutterFireCommand {
       final installingSpinner = spinner(
         (done) {
           if (!done) {
-            return 'Installing new versions of plugins ... ';
+            return 'Running `flutter pub get` ... ';
           }
           return 'New versions installed.';
         },
@@ -200,7 +215,11 @@ class InstallCommand extends FlutterFireCommand {
 
       await Process.run(
         'flutter',
-        ['pub', 'get'],
+        [
+          'pub',
+          'add',
+          ...selectedPlugins.map((e) => '${e.name}:${pluginVersions[e.name]}'),
+        ],
         workingDirectory: flutterApp!.package.path,
       );
 
