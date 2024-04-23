@@ -126,6 +126,12 @@ class InstallCommand extends FlutterFireCommand {
     final jsonString = await response.transform(utf8.decoder).join();
     final json = jsonDecode(jsonString) as Map<String, dynamic>;
 
+    if (bomVersion == 'latest') {
+      // The latest version is the first key in the JSON
+      return ((json[json.keys.first] as Map)['packages'] as Map)
+          .cast<String, String>();
+    }
+
     if (!json.containsKey(bomVersion)) {
       throw Exception(
         'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/chore/proposal/VERSIONS.md',
