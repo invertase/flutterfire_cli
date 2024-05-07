@@ -149,9 +149,8 @@ class InstallCommand extends FlutterFireCommand {
   Future<Map<String, String>> _getPluginVersionsFromJSON(
     String bomVersion,
   ) async {
-    // TODO: change to master
     const bomPath =
-        'https://raw.githubusercontent.com/firebase/flutterfire/chore/proposal/scripts/versions.json';
+        'https://raw.githubusercontent.com/firebase/flutterfire/master/scripts/versions.json';
 
     final http = HttpClient();
     final request = await http.getUrl(Uri.parse(bomPath));
@@ -170,7 +169,7 @@ class InstallCommand extends FlutterFireCommand {
 
     if (!json.containsKey(bomVersion)) {
       throw Exception(
-        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/chore/proposal/VERSIONS.md',
+        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/master/VERSIONS.md',
       );
     }
 
