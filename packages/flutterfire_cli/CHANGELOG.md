@@ -1,3 +1,11 @@
+## 1.0.1-dev.0
+
+ - **FIX**: firebase CLI can sometimes append time out object on successful JSON response. ([#288](https://github.com/invertase/flutterfire_cli/issues/288)). ([14f132e1](https://github.com/invertase/flutterfire_cli/commit/14f132e142a2397afbfa84435ba6b5d95a03f8df))
+ - **FIX**: Raised Firebase project fetch timeout to 40 seconds from 15 seconds. ([#256](https://github.com/invertase/flutterfire_cli/issues/256)). ([2145e9b9](https://github.com/invertase/flutterfire_cli/commit/2145e9b92e4c15c050e7767b83c769a957e0152d))
+ - **FIX**: Support spaces in paths and product name for apple apps ([#228](https://github.com/invertase/flutterfire_cli/issues/228)). ([c4c11b31](https://github.com/invertase/flutterfire_cli/commit/c4c11b3109e9a61feb26d054ba410f66dcdbc051))
+ - **FIX**: throw exceptions when in CI and inputs are needed where user prompts are not possible. Validated bundle Ids for apple and package names for android. ([#276](https://github.com/invertase/flutterfire_cli/issues/276)). ([ddfb1416](https://github.com/invertase/flutterfire_cli/commit/ddfb1416299258bc7afbc9739ce816478d737b9a))
+ - **FEAT**: install command ([#289](https://github.com/invertase/flutterfire_cli/issues/289)). ([e9fa73e7](https://github.com/invertase/flutterfire_cli/commit/e9fa73e71cf89be856a4604cb504e2edb348f382))
+
 ## 1.0.0
 
  - Moved flutterfire_cli package from dev release to general release.
