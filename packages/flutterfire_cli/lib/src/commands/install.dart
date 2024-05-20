@@ -50,7 +50,8 @@ enum FlutterFirePlugins {
   ),
   performance(name: 'firebase_performance', displayName: 'Performance'),
   remoteConfig(name: 'firebase_remote_config', displayName: 'Remote Config'),
-  storage(name: 'firebase_storage', displayName: 'Storage');
+  storage(name: 'firebase_storage', displayName: 'Storage'),
+  vertexAi(name: 'firebase_vertexai', displayName: 'Vertex AI');
 
   const FlutterFirePlugins({required this.name, required this.displayName});
 
