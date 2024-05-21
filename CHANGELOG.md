@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-05-21
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.0.1-dev.1`](#flutterfire_cli---v101-dev1)
+
+---
+
+#### `flutterfire_cli` - `v1.0.1-dev.1`
+
+ - **FEAT**: add support for Vertex AI in the install command ([#296](https://github.com/invertase/flutterfire_cli/issues/296)). ([5204706d](https://github.com/invertase/flutterfire_cli/commit/5204706d9ada7290ce1801454832b75b78648dd9))
+
+
 ## 2024-05-07
 
 ### Changes
