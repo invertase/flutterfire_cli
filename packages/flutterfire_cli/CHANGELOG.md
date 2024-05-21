@@ -1,3 +1,7 @@
+## 1.0.1-dev.1
+
+ - **FEAT**: add support for Vertex AI in the install command ([#296](https://github.com/invertase/flutterfire_cli/issues/296)). ([5204706d](https://github.com/invertase/flutterfire_cli/commit/5204706d9ada7290ce1801454832b75b78648dd9))
+
 ## 1.0.1-dev.0
 
  - **FIX**: firebase CLI can sometimes append time out object on successful JSON response. ([#288](https://github.com/invertase/flutterfire_cli/issues/288)). ([14f132e1](https://github.com/invertase/flutterfire_cli/commit/14f132e142a2397afbfa84435ba6b5d95a03f8df))
