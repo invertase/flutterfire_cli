@@ -69,10 +69,10 @@ Please also enable **“Allow edits by maintainers”**, this will help to speed
 process as well.
 
 
-### Open a pull request
+### Run a release...
 
-1. Switch to `master` branch locally.
-2. Run `git pull origin master`.
+1. Switch to `main` branch locally.
+2. Run `git pull origin main`.
 3. Run `git pull --tags` to make sure all tags are fetched.
 4. Create new branch with the signature "release/[year]-[month]-[day]".
 5. Push your branch to git running `git push origin [RELEASE BRANCH NAME]`.
@@ -80,6 +80,6 @@ process as well.
 7. Run `melos publish` to dry run and confirm all packages are publishable.
 8. Run `melos cli-version` to generate the latest version number for the CLI & commit.
 9. Run `git push origin [RELEASE BRANCH NAME]` & open pull request for review on GitHub.
-10. After successful review and merge of the pull request, switch to `master` branch locally, & run `git pull origin master`.
+10. After successful review and merge of the pull request, switch to `main` branch locally, & run `git pull origin main`.
 11. Run `melos publish --no-dry-run` to now publish to Pub.dev.
 12. Run `git push --tags` to push tags to repository.
