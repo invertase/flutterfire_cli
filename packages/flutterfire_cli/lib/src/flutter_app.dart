@@ -134,6 +134,23 @@ class FlutterApp {
       }
     }
 
+    // Try extraction via android/app/build.gradle.kts
+    final appGradleKtsFile = File(
+      androidAppBuildGradleKtsPathForAppDirectory(
+        Directory(package.path),
+      ),
+    );
+    if (appGradleKtsFile.existsSync()) {
+      final fileContents = appGradleKtsFile.readAsStringSync();
+      final appIdRegex = RegExp(
+        r'''applicationId[\s]?=[\s]?"{1}(?<applicationId>([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*)"{1}''',
+      );
+      final match = appIdRegex.firstMatch(fileContents);
+      if (match != null) {
+        applicationId = match.namedGroup('applicationId');
+      }
+    }
+
     // Try extract via android/app/src/main/AndroidManifest.xml
     if (applicationId == null) {
       final androidManifestFile = File(
