@@ -51,12 +51,22 @@ enum FlutterFirePlugins {
   performance(name: 'firebase_performance', displayName: 'Performance'),
   remoteConfig(name: 'firebase_remote_config', displayName: 'Remote Config'),
   storage(name: 'firebase_storage', displayName: 'Storage'),
-  vertexAi(name: 'firebase_vertexai', displayName: 'Vertex AI');
+  vertexAi(
+    name: 'firebase_vertexai',
+    displayName: 'Vertex AI',
+    usePlatformImplementation: false,
+  ),
+  ;
 
-  const FlutterFirePlugins({required this.name, required this.displayName});
+  const FlutterFirePlugins({
+    required this.name,
+    required this.displayName,
+    this.usePlatformImplementation = true,
+  });
 
   final String name;
   final String displayName;
+  final bool usePlatformImplementation;
 
   static List<String> get allPluginsPublicNames =>
       FlutterFirePlugins.values.map((plugin) => plugin.name).toList();
@@ -301,10 +311,18 @@ class InstallCommand extends FlutterFireCommand {
           },
         );
 
-        final gitInstructions = selectedPlugins.map(
-          (e) =>
-              'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
-        );
+        final gitInstructions = selectedPlugins
+            .map(
+              (e) => [
+                'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
+                if (e.usePlatformImplementation) ...[
+                  'override:${e.name}_platform_interface:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}_platform_interface"}}',
+                  'override:${e.name}_web:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}_web"}}',
+                ],
+              ],
+            )
+            .expand((element) => element)
+            .toList();
         final result = await Process.run(
           'dart',
           [
@@ -328,8 +346,9 @@ class InstallCommand extends FlutterFireCommand {
         // Remove the git overrides
         final gitOverrides = pubSpec.dependencyOverrides.keys
             .where(
-              (element) =>
-                  FlutterFirePlugins.allPluginsPublicNames.contains(element),
+              (element) => FlutterFirePlugins.allPluginsPublicNames.contains(
+                element.split('_').first,
+              ),
             )
             .toList();
 
