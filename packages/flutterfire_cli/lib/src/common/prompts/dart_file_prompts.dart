@@ -12,10 +12,14 @@ String getFirebaseConfigurationFile({
   final segments = removeForwardBackwardSlash(configurationFilePath).split('/');
 
   if (segments.last.contains('.dart')) {
-    return path.join(
-      flutterAppPath,
-      removeForwardBackwardSlash(configurationFilePath),
-    );
+    if (path.isAbsolute(configurationFilePath)) {
+      return configurationFilePath;
+    } else {
+      return path.join(
+        flutterAppPath,
+        removeForwardBackwardSlash(configurationFilePath),
+      );
+    }
   } else {
     final configurationFilePath = promptInput(
       'Enter a path for your FirebaseOptions file. It must be to a dart file. Example input: lib/firebase_options.dart',
