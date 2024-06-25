@@ -30,6 +30,10 @@ flutterfire --help
 # | You are running a local development version of FlutterFire CLI. |
 # ------------------------------------------------------------------
 ```
+**important**: You may need to delete the cached snapshot of the FlutterFire CLI with each update to code
+(and subsequent `dart pub global activate --source="path" . --executable="flutterfire" --overwrite`). You can delete the cached snapshot
+on this path: `.dart_tool/pub/bin/flutterfire_cli_monorepo/*.snapshot`. This will ensure your code changes are reflected when developing.
+
 
 ## Install
 
