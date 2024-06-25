@@ -221,6 +221,10 @@ String androidAppBuildGradlePathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle']);
 }
 
+String androidAppBuildGradleKtsPathForAppDirectory(Directory directory) {
+  return joinAll([directory.path, 'android', 'app', 'build.gradle.kts']);
+}
+
 File xcodeProjectFileInDirectory(Directory directory, String platform) {
   return File(
     joinAll(
