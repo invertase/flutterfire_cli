@@ -125,8 +125,10 @@ class FlutterApp {
     );
     if (appGradleFile.existsSync()) {
       final fileContents = appGradleFile.readAsStringSync();
+      // Captures old and new method for setting applicationId in app/build.gradle file:
+      // https://regex101.com/r/d9i4G6/1
       final appIdRegex = RegExp(
-        r'''applicationId\s['"]{1}(?<applicationId>([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*)['"]{1}''',
+        r'''applicationId\s*(?:=)?\s*['"](?<applicationId>([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*)['"]''',
       );
       final match = appIdRegex.firstMatch(fileContents);
       if (match != null) {
