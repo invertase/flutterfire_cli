@@ -23,7 +23,7 @@ void main() {
         'flutterfire',
         [
           'install',
-          '--version=0.1.0',
+          '--version=1.0.0',
           '--plugins=firebase_auth,firebase_core',
         ],
         workingDirectory: projectPath,
@@ -80,7 +80,7 @@ void main() {
         'flutterfire',
         [
           'install',
-          '--version=0.1.0',
+          '--version=1.0.0',
           '--plugins=firebase_auth,firebase_core',
         ],
         workingDirectory: projectPath,
@@ -104,7 +104,7 @@ void main() {
         'flutterfire',
         [
           'install',
-          '--version=0.1.0',
+          '--version=1.0.0',
           '--plugins=firebase_core',
         ],
         workingDirectory: projectPath,
@@ -136,7 +136,7 @@ void main() {
         'flutterfire',
         [
           'install',
-          '--version=0.1.0',
+          '--version=1.0.0',
           '--plugins=firebase_auth,firebase_core',
         ],
         workingDirectory: projectPath,
@@ -160,7 +160,7 @@ void main() {
         'flutterfire',
         [
           'install',
-          '--version=0.1.0',
+          '--version=1.0.0',
           '--only-pubspec-plugins',
         ],
         workingDirectory: projectPath,
