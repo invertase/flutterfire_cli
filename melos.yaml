@@ -10,6 +10,9 @@ command:
     linkToCommits: true
     # Additionally build a changelog at the root of the workspace.
     workspaceChangelog: true
+    hooks:
+      preCommit: |
+        dart run scripts/generate_version.dart && git add packages/flutterfire_cli/lib/version.g.dart
 
 scripts:
   analyze:
@@ -38,4 +41,3 @@ scripts:
         - flutterfire_cli
 
   format: dart format -o write .
-  cli-version: dart run scripts/generate_version.dart && git add packages/flutterfire_cli/lib/version.g.dart
