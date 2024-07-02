@@ -78,8 +78,7 @@ process as well.
 5. Push your branch to git running `git push origin [RELEASE BRANCH NAME]`.
 6. Run `melos version` to automatically version packages and update Changelogs.
 7. Run `melos publish` to dry run and confirm all packages are publishable.
-8. Run `melos cli-version` to generate the latest version number for the CLI & commit.
-9. Run `git push origin [RELEASE BRANCH NAME]` & open pull request for review on GitHub.
-10. After successful review and merge of the pull request, switch to `main` branch locally, & run `git pull origin main`.
-11. Run `melos publish --no-dry-run` to now publish to Pub.dev.
-12. Run `git push --tags` to push tags to repository.
+8. Run `git push origin [RELEASE BRANCH NAME]` & open pull request for review on GitHub.
+9. After successful review and merge of the pull request, switch to `main` branch locally, & run `git pull origin main`.
+10. Run `melos publish --no-dry-run` to now publish to Pub.dev.
+11. Run `git push --tags` to push tags to repository.
