@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-07-02
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.0.1-dev.2`](#flutterfire_cli---v101-dev2)
+
+---
+
+#### `flutterfire_cli` - `v1.0.1-dev.2`
+
+ - **FIX**(android): auto-detect old and new way to set `applicationId` ([#318](https://github.com/invertase/flutterfire_cli/issues/318)). ([016699f2](https://github.com/invertase/flutterfire_cli/commit/016699f2836659c3fe948635bba573ceff73117b))
+ - **FEAT**(install): add support for overriding the _platform_interface and _web packages when using git ([#312](https://github.com/invertase/flutterfire_cli/issues/312)). ([b09602d5](https://github.com/invertase/flutterfire_cli/commit/b09602d5a97d76570681bc6d8ddc4dcbaaf0e4bb))
+
+
 ## 2024-05-21
 
 ### Changes
