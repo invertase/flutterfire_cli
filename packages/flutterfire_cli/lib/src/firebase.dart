@@ -158,7 +158,6 @@ Future<List<FirebaseProject>> getProjects({
   String? token,
   String? serviceAccount,
 }) async {
-  logger.stdout('MMMM:$debugMode');
   final response = await runFirebaseCommand(
     [
       'projects:list',
