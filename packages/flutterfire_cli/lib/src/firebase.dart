@@ -22,7 +22,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
-import 'common/config.dart';
+import 'common/global.dart';
 import 'common/strings.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
@@ -158,6 +158,7 @@ Future<List<FirebaseProject>> getProjects({
   String? token,
   String? serviceAccount,
 }) async {
+  logger.stdout('MMMM:$debugMode');
   final response = await runFirebaseCommand(
     [
       'projects:list',

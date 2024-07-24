@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import '../common/global.dart';
 import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -567,6 +568,7 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    updateDebugMode(argResults!['debug'] !=null);
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();
