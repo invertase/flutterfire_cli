@@ -110,11 +110,28 @@ Future<Map<String, dynamic>> runFirebaseCommand(
 
   final jsonString = firebaseCLIJsonParse(process.stdout.toString());
   Map<String, dynamic> commandResult;
-
   try {
-    commandResult = Map<String, dynamic>.from(
-      const JsonDecoder().convert(jsonString) as Map,
-    );
+    // 400 projects is roughly 134,000 characters. Roughly 334 characters per project.
+    const characterLimit = 130000;
+    if (jsonString.length > characterLimit) {
+      // If the JSON string is large, write it to a temporary file
+      final tempFile =
+          File('${Directory.systemTemp.path}/firebase_output.json');
+      await tempFile.writeAsString(jsonString);
+
+      // Read from the temporary file to create a Dart object
+      final tempFileContent = await tempFile.readAsString();
+      final jsonObject = const JsonDecoder().convert(tempFileContent);
+
+      commandResult = Map<String, dynamic>.from(jsonObject);
+
+      // Delete the temporary file
+      await tempFile.delete();
+    } else {
+      commandResult = Map<String, dynamic>.from(
+        const JsonDecoder().convert(jsonString) as Map,
+      );
+    }
   } catch (e) {
     if (debugMode) {
       logger.stdout(
