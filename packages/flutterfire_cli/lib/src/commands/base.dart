@@ -27,7 +27,7 @@ import '../flutter_app.dart';
 /// A base class for all FlutterFire commands.
 abstract class FlutterFireCommand extends Command<void> {
   FlutterFireCommand(this.flutterApp) {
-    updateDebugMode(argResults!['debug'] != null);
+    updateDebugMode(argResults?['debug'] != null);
   }
 
   final FlutterApp? flutterApp;
@@ -55,6 +55,12 @@ abstract class FlutterFireCommand extends Command<void> {
       valueHelp: 'email',
       abbr: 'e',
       help: 'The Google account to use for authorization.',
+    );
+
+    argParser.addFlag(
+      'debug',
+      abbr: 'd',
+      help: 'Print verbose output.',
     );
   }
 
