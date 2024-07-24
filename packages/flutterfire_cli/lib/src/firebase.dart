@@ -22,6 +22,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
+import 'common/config.dart';
 import 'common/strings.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
@@ -86,19 +87,28 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     if (account != null) '--account=$account',
   ];
 
-  final process = await Process.run(
-    'firebase',
-    execArgs,
-    workingDirectory: workingDirectoryPath,
-    environment: {
-      if (serviceAccount != null)
-        'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
-    },
-    runInShell: true,
-  );
+  ProcessResult process;
+  try {
+    process = await Process.run(
+      'firebase',
+      execArgs,
+      workingDirectory: workingDirectoryPath,
+      environment: {
+        if (serviceAccount != null)
+          'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
+      },
+      runInShell: true,
+    );
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout(
+        'Firebase CLI:`runFirebaseCommand()`:Process.run(`firebase`):execArgs: $execArgs',
+      );
+    }
+    rethrow;
+  }
 
   final jsonString = firebaseCLIJsonParse(process.stdout.toString());
-
   Map<String, dynamic> commandResult;
 
   try {
@@ -106,10 +116,11 @@ Future<Map<String, dynamic>> runFirebaseCommand(
       const JsonDecoder().convert(jsonString) as Map,
     );
   } catch (e) {
-    // ignore: avoid_print
-    print(
-      'Failed to parse JSON response from Firebase CLI. JSON response: $jsonString',
-    );
+    if (debugMode) {
+      logger.stdout(
+        'Firebase CLI:`runFirebaseCommand()`:JsonDecoder().convert: $jsonString',
+      );
+    }
     rethrow;
   }
 
@@ -138,14 +149,21 @@ Future<List<FirebaseProject>> getProjects({
     account: account,
     serviceAccount: serviceAccount,
   );
-  final result = List<Map<String, dynamic>>.from(response['result'] as List);
-  return result
-      .map<FirebaseProject>(
-        (Map<String, dynamic> e) =>
-            FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
-      )
-      .where((project) => project.state == 'ACTIVE')
-      .toList();
+  try {
+    final result = List<Map<String, dynamic>>.from(response['result'] as List);
+    return result
+        .map<FirebaseProject>(
+          (Map<String, dynamic> e) =>
+              FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
+        )
+        .where((project) => project.state == 'ACTIVE')
+        .toList();
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout('Firebase CLI:`getProjects()`:response: $response');
+    }
+    rethrow;
+  }
 }
 
 /// Create a new [FirebaseProject].

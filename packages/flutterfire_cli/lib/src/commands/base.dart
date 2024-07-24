@@ -19,13 +19,16 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 
+import '../common/config.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 
 /// A base class for all FlutterFire commands.
 abstract class FlutterFireCommand extends Command<void> {
-  FlutterFireCommand(this.flutterApp);
+  FlutterFireCommand(this.flutterApp) {
+    updateDebugMode(argResults!['debug'] != null);
+  }
 
   final FlutterApp? flutterApp;
 
