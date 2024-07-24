@@ -1,9 +1,11 @@
 import 'package:cli_util/cli_logging.dart';
 
-bool debugMode = false;
+bool _debugMode = false;
+
+bool get debugMode => _debugMode;
 
 void updateDebugMode(bool value) {
-  debugMode = value;
+  _debugMode = value;
 }
 
 Logger get logger => debugMode ? Logger.verbose() : Logger.standard();
