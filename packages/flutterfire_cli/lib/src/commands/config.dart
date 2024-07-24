@@ -568,7 +568,7 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
-    updateDebugMode(argResults!['debug'] !=null);
+    updateDebugMode(argResults!['debug']as bool);
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();

@@ -5,7 +5,6 @@ bool _debugMode = false;
 bool get debugMode => _debugMode;
 
 void updateDebugMode(bool value) {
-  print('VVV: $value');
   _debugMode = value;
 }
 
