@@ -59,7 +59,9 @@ class FirebaseProject {
           name: json['name'] as String,
           state: json['state'] as String,
           resources: FirebaseProjectResources.fromJson(
-            Map<String, dynamic>.from(json['resources'] as Map),
+            Map<String, dynamic>.from(
+              json['resources'] ?? <String, dynamic>{} as Map,
+            ),
           ),
         );
 
