@@ -419,11 +419,6 @@ class ConfigCommand extends FlutterFireCommand {
         return baseMessage;
       },
     );
-    firebaseProjects = await firebase.getProjects(
-      account: accountEmail,
-      token: token,
-      serviceAccount: serviceAccount,
-    );
 
     try {
       firebaseProjects = await firebase
