@@ -57,7 +57,7 @@ abstract class FlutterFireCommand extends Command<void> {
     argParser.addFlag(
       'debug',
       abbr: 'd',
-      help: 'Use debug logger for additional information.',
+      help: 'Use debug logger for additional output.',
     );
   }
 
