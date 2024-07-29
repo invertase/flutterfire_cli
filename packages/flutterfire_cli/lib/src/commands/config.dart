@@ -563,6 +563,7 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    // Has to set during `run()` otherwise `argResults` will be null
     updateDebugMode(argResults!['debug']as bool);
     try {
       commandRequiresFlutterApp();
