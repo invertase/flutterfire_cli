@@ -22,6 +22,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
+import 'common/global.dart';
 import 'common/strings.dart';
 import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
@@ -86,30 +87,57 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     if (account != null) '--account=$account',
   ];
 
-  final process = await Process.run(
-    'firebase',
-    execArgs,
-    workingDirectory: workingDirectoryPath,
-    environment: {
-      if (serviceAccount != null)
-        'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
-    },
-    runInShell: true,
-  );
-
-  final jsonString = firebaseCLIJsonParse(process.stdout.toString());
-
-  Map<String, dynamic> commandResult;
-
+  ProcessResult process;
   try {
-    commandResult = Map<String, dynamic>.from(
-      const JsonDecoder().convert(jsonString) as Map,
+    process = await Process.run(
+      'firebase',
+      execArgs,
+      workingDirectory: workingDirectoryPath,
+      environment: {
+        if (serviceAccount != null)
+          'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
+      },
+      runInShell: true,
     );
   } catch (e) {
-    // ignore: avoid_print
-    print(
-      'Failed to parse JSON response from Firebase CLI. JSON response: $jsonString',
-    );
+    if (debugMode) {
+      logger.stdout(
+        'Firebase CLI:`runFirebaseCommand()`:Process.run(`firebase`):execArgs: $execArgs',
+      );
+    }
+    rethrow;
+  }
+
+  final jsonString = firebaseCLIJsonParse(process.stdout.toString());
+  Map<String, dynamic> commandResult;
+  try {
+    // 400 projects is roughly 134,000 characters. Roughly 334 characters per project.
+    const characterLimit = 130000;
+    if (jsonString.length > characterLimit) {
+      // If the JSON string is large, write it to a temporary file
+      final tempFile =
+          File('${Directory.systemTemp.path}/firebase_output.json');
+      await tempFile.writeAsString(jsonString);
+
+      // Read from the temporary file to create a Dart object
+      final tempFileContent = await tempFile.readAsString();
+      final jsonObject = const JsonDecoder().convert(tempFileContent);
+
+      commandResult = Map<String, dynamic>.from(jsonObject);
+
+      // Delete the temporary file
+      await tempFile.delete();
+    } else {
+      commandResult = Map<String, dynamic>.from(
+        const JsonDecoder().convert(jsonString) as Map,
+      );
+    }
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout(
+        'Firebase CLI:`runFirebaseCommand()`:JsonDecoder().convert: $jsonString',
+      );
+    }
     rethrow;
   }
 
@@ -138,14 +166,21 @@ Future<List<FirebaseProject>> getProjects({
     account: account,
     serviceAccount: serviceAccount,
   );
-  final result = List<Map<String, dynamic>>.from(response['result'] as List);
-  return result
-      .map<FirebaseProject>(
-        (Map<String, dynamic> e) =>
-            FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
-      )
-      .where((project) => project.state == 'ACTIVE')
-      .toList();
+  try {
+    final result = List<Map<String, dynamic>>.from(response['result'] as List);
+    return result
+        .map<FirebaseProject>(
+          (Map<String, dynamic> e) =>
+              FirebaseProject.fromJson(Map<String, dynamic>.from(e)),
+        )
+        .where((project) => project.state == 'ACTIVE')
+        .toList();
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout('Firebase CLI:`getProjects()`:response: $response');
+    }
+    rethrow;
+  }
 }
 
 /// Create a new [FirebaseProject].
