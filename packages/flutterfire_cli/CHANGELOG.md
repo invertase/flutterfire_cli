@@ -1,3 +1,7 @@
+## 1.0.1-dev.3
+
+ - **FIX**: `resources` property can be `null` in newer Firebase projects if no products have been enabled on the project ([#329](https://github.com/invertase/flutterfire_cli/issues/329)). ([67df625f](https://github.com/invertase/flutterfire_cli/commit/67df625f102ed9992a9d5813fe3f3abae725207c))
+
 ## 1.0.1-dev.2
 
  - **FIX**(android): auto-detect old and new way to set `applicationId` ([#318](https://github.com/invertase/flutterfire_cli/issues/318)). ([016699f2](https://github.com/invertase/flutterfire_cli/commit/016699f2836659c3fe948635bba573ceff73117b))
