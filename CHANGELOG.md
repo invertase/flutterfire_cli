@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2024-07-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.0.1-dev.3`](#flutterfire_cli---v101-dev3)
+
+---
+
+#### `flutterfire_cli` - `v1.0.1-dev.3`
+
+ - **FIX**: `resources` property can be `null` in newer Firebase projects if no products have been enabled on the project ([#329](https://github.com/invertase/flutterfire_cli/issues/329)). ([67df625f](https://github.com/invertase/flutterfire_cli/commit/67df625f102ed9992a9d5813fe3f3abae725207c))
+
+
 ## 2024-07-02
 
 ### Changes
