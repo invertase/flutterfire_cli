@@ -174,7 +174,7 @@ class InstallCommand extends FlutterFireCommand {
     String bomVersion,
   ) async {
     const bomPath =
-        'https://raw.githubusercontent.com/firebase/flutterfire/master/scripts/versions.json';
+        'https://raw.githubusercontent.com/firebase/flutterfire/main/scripts/versions.json';
 
     final http = HttpClient();
     final request = await http.getUrl(Uri.parse(bomPath));
@@ -193,7 +193,7 @@ class InstallCommand extends FlutterFireCommand {
 
     if (!json.containsKey(bomVersion)) {
       throw Exception(
-        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/master/VERSIONS.md',
+        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/main/VERSIONS.md',
       );
     }
 
@@ -314,7 +314,7 @@ class InstallCommand extends FlutterFireCommand {
           bomVersion.contains('git')) {
         final gitBranch = bomVersion.contains('git')
             ? bomVersion.replaceFirst('git:', '')
-            : 'master';
+            : 'main';
         final gitSpinner = spinner(
           (done) {
             if (!done) {
