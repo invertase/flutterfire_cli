@@ -48,7 +48,7 @@ dart pub global activate flutterfire_cli
 Dev version has the latest fixes and `flutterfire install` command for easier plugin installation:
 
 ```bash
-dart pub global activate flutterfire_cli 1.0.1-dev.3
+dart pub global activate flutterfire_cli 1.0.1-dev.4
 ```
 
 - FlutterFire CLI requires the Firebase CLI (`firebase-tools`) to be installed on your local machine, [follow these instructions](https://firebase.google.com/docs/cli) for installation.
