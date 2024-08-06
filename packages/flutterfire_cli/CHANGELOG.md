@@ -1,3 +1,7 @@
+## 1.0.1-dev.4
+
+ - **FEAT**: update to support main on the FlutterFire repository ([#332](https://github.com/invertase/flutterfire_cli/issues/332)). ([7893a2e1](https://github.com/invertase/flutterfire_cli/commit/7893a2e1849e4f08b435d52932c202b937ecee33))
+
 ## 1.0.1-dev.3
 
  - **FIX**: `resources` property can be `null` in newer Firebase projects if no products have been enabled on the project ([#329](https://github.com/invertase/flutterfire_cli/issues/329)). ([67df625f](https://github.com/invertase/flutterfire_cli/commit/67df625f102ed9992a9d5813fe3f3abae725207c))
