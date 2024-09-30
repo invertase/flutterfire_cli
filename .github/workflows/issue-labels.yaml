@@ -24,11 +24,20 @@ jobs:
         with:
           labels: 'Needs Attention'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Remove 'blocked customer-response' label if OP responded
         if: env.op_comment == 'true'
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: 'blocked: customer-response'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  label-new-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add 'Needs Attention' label to new issue
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: 'Needs Attention'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
