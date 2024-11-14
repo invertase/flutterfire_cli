@@ -115,6 +115,8 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WE
 
 ### Multi build configuration setup
 
+For a deeper dive into multiple flavor setup, you may wish to read [this comprehensive overview](https://codewithandrea.com/articles/flutter-firebase-multiple-flavors-flutterfire-cli/) provided by @bizz84.
+
 **important**: You need to run `flutterfire configure` for every configuration type. E.g. if you have `Debug` & `Release` configurations, you need to run `flutterfire configure` twice with the relevant arguments documented below.
 
 #### Android
