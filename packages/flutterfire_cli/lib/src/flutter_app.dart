@@ -123,9 +123,22 @@ class FlutterApp {
         Directory(package.path),
       ),
     );
-    if (appGradleFile.existsSync()) {
-      final fileContents = appGradleFile.readAsStringSync();
-      // Captures old and new method for setting applicationId in app/build.gradle file:
+
+    final appGradleKtsFile = File(
+      '${androidAppBuildGradlePathForAppDirectory(
+        Directory(package.path),
+      )}.kts',
+    );
+
+    String? fileContents;
+    if (appGradleKtsFile.existsSync()) {
+      fileContents = appGradleKtsFile.readAsStringSync();
+    } else if (appGradleFile.existsSync()) {
+      fileContents = appGradleFile.readAsStringSync();
+    }
+
+    if (fileContents != null) {
+      // Captures old and new method for setting applicationId in both app/build.gradle and app/build.gradle.kt file:
       // https://regex101.com/r/d9i4G6/1
       final appIdRegex = RegExp(
         r'''applicationId\s*(?:=)?\s*['"](?<applicationId>([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*)['"]''',

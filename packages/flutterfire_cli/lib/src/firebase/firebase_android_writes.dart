@@ -7,24 +7,24 @@ import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
-// https://regex101.com/r/Lj93lx/1
+// https://regex101.com/r/Lj93lx/2
 final _androidBuildGradleRegex = RegExp(
-  r'dependencies\s*\{',
+  r'dependencies\s*[\{]',
   multiLine: true,
 );
-// https://regex101.com/r/OZnO1j/1
+// https://regex101.com/r/OZnO1j/2
 final _androidAppBuildGradleRegex = RegExp(
-  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})|(^[\s]*?id[\s]+["']com\.android\.application["']))''',
+  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.android\.application['"]{1})|(^[\s]*?id[\s]+["']com\.android\.application["'])|plugins\s*\{\s*id\(['"]{1}com\.android\.application['"]{1}\))''',
   multiLine: true,
 );
-// https://regex101.com/r/ndlYVL/1
+// https://regex101.com/r/ndlYVL/2
 final _androidBuildGradleGoogleServicesRegex = RegExp(
-  r'''((?<indentation>^[\s]*?)classpath\s?['"]{1}com\.google\.gms:google-services:.*?['"]{1}\s*?$)''',
+  r'''((?<indentation>^[\s]*?)(?:classpath\s?['"]{1}com\.google\.gms:google-services:.*?['"]{1}\s*?$|id\(['"]{1}com\.google\.gms\.google-services['"]{1}\)))''',
   multiLine: true,
 );
-// https://regex101.com/r/pP1k6i/1
+// https://regex101.com/r/pP1k6i/2
 final _androidAppBuildGradleGoogleServicesRegex = RegExp(
-  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.google\.gms\.google-services['"]{1})|(^[\s]*?id[\s]+['"]com\.google\.gms\.google-services['"]))''',
+  r'''(?:(^[\s]*?apply[\s]+plugin\:[\s]+['"]{1}com\.google\.gms\.google-services['"]{1})|(^[\s]*?id[\s]+['"]com\.google\.gms\.google-services['"])|plugins\s*\{\s*id\(['"]{1}com\.google\.gms\.google-services['"]{1}\))''',
   multiLine: true,
 );
 
@@ -57,10 +57,11 @@ String _applyGradleSettingsDependency(
   String version, {
   bool flutterfireComments = false,
 }) {
-  if (flutterfireComments) {
-    return '\n    $_flutterFireConfigCommentStart\n    id "$dependency" version "$version" apply false\n    $_flutterFireConfigCommentEnd';
-  }
-  return '\n    id "$dependency" version "$version" apply false';
+  final kotlinDslContent = flutterfireComments
+      ? '\n    $_flutterFireConfigCommentStart\n    id("$dependency") version "$version" apply false\n    $_flutterFireConfigCommentEnd'
+      : '\n    id("$dependency") version "$version" apply false';
+
+  return kotlinDslContent;
 }
 
 enum BuildGradleConfiguration {
@@ -182,9 +183,12 @@ Future<void> gradleContentUpdates(
   final androidBuildGradleFile = File(
     path.join(
       flutterApp.androidDirectory.path,
-      'build.gradle',
+      'build.gradle.kts',
     ),
-  );
+  ).existsSync()
+      ? File(path.join(flutterApp.androidDirectory.path, 'build.gradle.kts'))
+      : File(path.join(flutterApp.androidDirectory.path, 'build.gradle'));
+
   final androidBuildGradleFileContents =
       androidBuildGradleFile.readAsStringSync();
 
@@ -192,18 +196,23 @@ Future<void> gradleContentUpdates(
     path.join(
       flutterApp.androidDirectory.path,
       'app',
-      'build.gradle',
+      'build.gradle.kts',
     ),
-  );
+  ).existsSync()
+      ? File(path.join(flutterApp.androidDirectory.path, 'app', 'build.gradle.kts'))
+      : File(path.join(flutterApp.androidDirectory.path, 'app', 'build.gradle'));
+
   final androidAppBuildGradleFileContents =
       androidAppBuildGradleFile.readAsStringSync();
 
   final androidGradleSettingsFile = File(
     path.join(
       flutterApp.androidDirectory.path,
-      'settings.gradle',
+      'settings.gradle.kts',
     ),
-  );
+  ).existsSync()
+      ? File(path.join(flutterApp.androidDirectory.path, 'settings.gradle.kts'))
+      : File(path.join(flutterApp.androidDirectory.path, 'settings.gradle'));
 
   final androidGradleSettingsFileContents =
       androidGradleSettingsFile.readAsStringSync();
