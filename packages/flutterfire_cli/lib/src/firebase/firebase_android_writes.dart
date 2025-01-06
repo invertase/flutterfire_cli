@@ -1,11 +1,15 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import 'package:pubspec/pubspec.dart';
+import 'package:yaml/yaml.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
+import 'firebase_pubspec_model.dart';
 
 // Gradle Groovy DSL RegExp
 
@@ -55,24 +59,13 @@ final _androidAppBuildGradleKtsGoogleServicesRegex = RegExp(
 // Google services JSON.
 const _googleServicesPluginClass = 'com.google.gms:google-services';
 const _googleServicesPluginName = 'com.google.gms.google-services';
-// TODO read from firebase_core pubspec.yaml firebase.google_services_gradle_plugin_version
-const _googleServicesPluginVersion = '4.3.15';
-const _googleServicesPlugin =
-    "classpath '$_googleServicesPluginClass:$_googleServicesPluginVersion'";
-const _googleServicesPluginKts =
-    'classpath("$_googleServicesPluginClass:$_googleServicesPluginVersion")';
 
 // Firebase Crashlytics
-const _crashlyticsPluginClassPath =
-    'com.google.firebase:firebase-crashlytics-gradle';
-// TODO read from firebase_core pubspec.yaml firebase.crashlytics_gradle_plugin_version
-const _crashlyticsPluginClassPathVersion = '2.8.1';
+const _crashlyticsPluginClassPath = 'com.google.firebase:firebase-crashlytics-gradle';
 const _crashlyticsPluginClass = 'com.google.firebase.crashlytics';
 
 // Firebase Performance
 const _performancePluginClassPath = 'com.google.firebase:perf-plugin';
-// TODO read from firebase_core pubspec.yaml firebase.performance_gradle_plugin_version
-const _performancePluginClassPathVersion = '1.4.1';
 const _performancePluginClass = 'com.google.firebase.firebase-perf';
 
 const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
@@ -272,6 +265,8 @@ Future<void> _gradleContentUpdates(
     ),
   );
 
+  final firebaseCorePubSpec = await getFirebaseCorePubSpec();
+
   final androidGradleSettingsFileContents =
       androidGradleSettingsFile.readAsStringSync();
 
@@ -291,16 +286,19 @@ Future<void> _gradleContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
   }
 
@@ -317,16 +315,19 @@ Future<void> _gradleContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
   }
 
@@ -341,16 +342,19 @@ Future<void> _gradleContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePlugin(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
 
     // WRITE <app>/android/settings.gradle. We only need to do this with latest Flutter version >= 3.16.5
@@ -370,6 +374,7 @@ Future<void> _gradleContentUpdates(
 
 AndroidGradleContents _legacyUpdateAndroidBuildGradle(
   AndroidGradleContents content,
+  String googleServicesGradlePluginVersion,
 ) {
   var androidBuildGradleFileContents = content.buildGradleContent;
 
@@ -394,7 +399,9 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradle(
   androidBuildGradleFileContents = androidBuildGradleFileContents
       .replaceFirstMapped(_androidBuildGradleRegex, (match) {
     const indentation = '        ';
-    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$_googleServicesPlugin\n$indentation$_flutterFireConfigCommentEnd';
+    final googleServicesPlugin =
+        "classpath '$_googleServicesPluginClass:$googleServicesGradlePluginVersion'";
+    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesPlugin\n$indentation$_flutterFireConfigCommentEnd';
   });
 
   return AndroidGradleContents(
@@ -408,6 +415,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String googleServicesGradlePluginVersion,
 ) {
   var androidBuildGradleFileContents = content.buildGradleContent;
   var androidAppBuildGradleFileContents = content.appBuildGradleContent;
@@ -415,7 +423,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
 
   if (buildGradleConfiguration == BuildGradleConfiguration.legacy1 ||
       buildGradleConfiguration == BuildGradleConfiguration.legacy2) {
-    final updatedContent = _legacyUpdateAndroidBuildGradle(content);
+    final updatedContent = _legacyUpdateAndroidBuildGradle(content, googleServicesGradlePluginVersion);
     androidBuildGradleFileContents = updatedContent.buildGradleContent;
   }
 
@@ -475,7 +483,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependency(
           _googleServicesPluginName,
-          _googleServicesPluginVersion,
+          googleServicesGradlePluginVersion,
           flutterfireComments: true,
         );
 
@@ -498,13 +506,14 @@ AndroidGradleContents _applyCrashlyticsPlugin(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String crashlyticsGradlePluginVersion,
 ) {
   // do not apply if firebase_crashlytics is not present
   if (!flutterApp.dependsOnPackage('firebase_crashlytics')) return content;
 
   return _applyFirebaseAndroidPlugin(
     pluginClassPath: _crashlyticsPluginClassPath,
-    pluginClassPathVersion: _crashlyticsPluginClassPathVersion,
+    pluginClassPathVersion: crashlyticsGradlePluginVersion,
     pluginClass: _crashlyticsPluginClass,
     content: content,
     buildGradleConfiguration: buildGradleConfiguration,
@@ -515,13 +524,14 @@ AndroidGradleContents _applyPerformancePlugin(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String performanceGradlePluginVersion,
 ) {
   // do not apply if firebase_performance is not present
   if (!flutterApp.dependsOnPackage('firebase_performance')) return content;
 
   return _applyFirebaseAndroidPlugin(
     pluginClassPath: _performancePluginClassPath,
-    pluginClassPathVersion: _performancePluginClassPathVersion,
+    pluginClassPathVersion: performanceGradlePluginVersion,
     pluginClass: _performancePluginClass,
     content: content,
     buildGradleConfiguration: buildGradleConfiguration,
@@ -675,6 +685,8 @@ Future<void> _gradleKtsContentUpdates(
     ),
   );
 
+  final firebaseCorePubSpec = await getFirebaseCorePubSpec();
+
   final androidGradleSettingsKtsFileContents =
       androidGradleSettingsKtsFile.readAsStringSync();
 
@@ -694,16 +706,19 @@ Future<void> _gradleKtsContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy1,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
   }
 
@@ -720,16 +735,19 @@ Future<void> _gradleKtsContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.legacy2,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
   }
 
@@ -744,16 +762,19 @@ Future<void> _gradleKtsContentUpdates(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.googleServicesGradlePluginVersion,
     );
     content = _applyCrashlyticsPluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.crashlyticsGradlePluginVersion,
     );
     content = _applyPerformancePluginKts(
       flutterApp,
       content,
       BuildGradleConfiguration.latest,
+      firebaseCorePubSpec.performanceGradlePluginVersion,
     );
 
     // WRITE <app>/android/settings.gradle.kts. We only need to do this with latest Flutter version >= 3.16.5
@@ -773,6 +794,7 @@ Future<void> _gradleKtsContentUpdates(
 
 AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
   AndroidGradleContents content,
+  String googleServicesGradlePluginVersion,
 ) {
   var androidBuildGradleKtsFileContents = content.buildGradleContent;
 
@@ -797,7 +819,7 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
   androidBuildGradleKtsFileContents = androidBuildGradleKtsFileContents
       .replaceFirstMapped(_androidBuildGradleKtsRegex, (match) {
     const indentation = '        ';
-    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$_googleServicesPluginKts\n$indentation$_flutterFireConfigCommentEnd';
+    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesGradlePluginVersion\n$indentation$_flutterFireConfigCommentEnd';
   });
 
   return AndroidGradleContents(
@@ -811,6 +833,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String googleServicesGradlePluginVersion,
 ) {
   var androidBuildGradleKtsFileContents = content.buildGradleContent;
   var androidAppBuildGradleKtsFileContents = content.appBuildGradleContent;
@@ -818,7 +841,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
 
   if (buildGradleConfiguration == BuildGradleConfiguration.legacy1 ||
       buildGradleConfiguration == BuildGradleConfiguration.legacy2) {
-    final updatedContent = _legacyUpdateAndroidBuildGradleKts(content);
+    final updatedContent = _legacyUpdateAndroidBuildGradleKts(content, googleServicesGradlePluginVersion);
     androidBuildGradleKtsFileContents = updatedContent.buildGradleContent;
   }
 
@@ -882,7 +905,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependencyKts(
           _googleServicesPluginName,
-          _googleServicesPluginVersion,
+          googleServicesGradlePluginVersion,
           flutterfireComments: true,
         );
 
@@ -905,13 +928,14 @@ AndroidGradleContents _applyCrashlyticsPluginKts(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String crashlyticsGradlePluginVersion,
 ) {
   // do not apply if firebase_crashlytics is not present
   if (!flutterApp.dependsOnPackage('firebase_crashlytics')) return content;
 
   return _applyFirebaseAndroidPluginKts(
     pluginClassPath: _crashlyticsPluginClassPath,
-    pluginClassPathVersion: _crashlyticsPluginClassPathVersion,
+    pluginClassPathVersion: crashlyticsGradlePluginVersion,
     pluginClass: _crashlyticsPluginClass,
     content: content,
     buildGradleConfiguration: buildGradleConfiguration,
@@ -922,13 +946,14 @@ AndroidGradleContents _applyPerformancePluginKts(
   FlutterApp flutterApp,
   AndroidGradleContents content,
   BuildGradleConfiguration buildGradleConfiguration,
+  String performanceGradlePluginVersion,
 ) {
   // do not apply if firebase_performance is not present
   if (!flutterApp.dependsOnPackage('firebase_performance')) return content;
 
   return _applyFirebaseAndroidPluginKts(
     pluginClassPath: _performancePluginClassPath,
-    pluginClassPathVersion: _performancePluginClassPathVersion,
+    pluginClassPathVersion: performanceGradlePluginVersion,
     pluginClass: _performancePluginClass,
     content: content,
     buildGradleConfiguration: buildGradleConfiguration,
@@ -1050,4 +1075,40 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
     appBuildGradleContent: androidAppBuildGradleKtsFileContents,
     gradleSettingsContent: androidGradleSettingsKtsFileContents,
   );
+}
+
+Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
+  final pubCacheFolder = _getPubCacheDirectory();
+  final items = pubCacheFolder.listSync();
+  final firebaseCoreDirectory = items
+      .whereType<Directory>()
+      .where((e) => e.path.split('/').last.startsWith('firebase_core-'))
+      .sortedBy((d) => d.path)
+      .last;
+
+  final firebaseCorePubspecFile =
+      pubspecPathForDirectory(firebaseCoreDirectory);
+  final pubSpec = await PubSpec.loadFile(firebaseCorePubspecFile);
+  final unparsedJson = pubSpec.unParsedYaml?['firebase'] as YamlMap?;
+  if (unparsedJson == null) {
+    throw Exception('Could not parse firebase_core pubspec.yaml');
+  }
+
+  return FirebasePubSpecModel.fromJson(unparsedJson.cast<String, dynamic>());
+}
+
+Directory _getPubCacheDirectory() {
+  final env = Platform.environment;
+
+  if (env.containsKey('PUB_CACHE')) {
+    return Directory(env['PUB_CACHE']!);
+  } else if (Platform.isWindows) {
+    return Directory(
+      path.join(env['LOCALAPPDATA']!, 'Pub', 'Cache', 'hosted', 'pub.dev'),
+    );
+  } else {
+    return Directory(
+      path.join('${env['HOME']}/.pub-cache', 'hosted', 'pub.dev'),
+    );
+  }
 }
