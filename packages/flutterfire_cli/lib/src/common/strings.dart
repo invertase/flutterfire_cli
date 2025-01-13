@@ -131,9 +131,12 @@ class XcodeProjectException implements FlutterFireException {
 
 /// An exception that is thrown when you do not have a firebase.json file at the root of your project or it does not have values required
 class FirebaseJsonException implements FlutterFireException {
+  FirebaseJsonException({this.underlyingException}) : super();
+
+  final String? underlyingException;
   @override
   String toString() {
-    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values.';
+    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values. ${underlyingException != null ? '' : underlyingException}';
   }
 }
 
