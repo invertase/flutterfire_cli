@@ -309,7 +309,7 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
       appId = configurationMap[kAppId] as String?;
       projectId = configurationMap[kProjectId] as String?;
     } catch (e) {
-      throw FirebaseJsonException();
+      throw FirebaseJsonException(underlyingException: e.toString());
     }
 
     if (projectId == null || appId == null) {
