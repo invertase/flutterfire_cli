@@ -34,29 +34,52 @@ enum FlutterFirePlugins {
     name: 'firebase_app_installations',
     displayName: 'App Installations',
   ),
-  crashlytics(name: 'firebase_crashlytics', displayName: 'Crashlytics'),
+  crashlytics(
+    name: 'firebase_crashlytics',
+    displayName: 'Crashlytics',
+    useWeb: false,
+  ),
   firestore(name: 'cloud_firestore', displayName: 'Firestore'),
   functions(name: 'cloud_functions', displayName: 'Functions'),
   database(name: 'firebase_database', displayName: 'Realtime Database'),
-  dynamicLinks(name: 'firebase_dynamic_links', displayName: 'Dynamic Links'),
+  dynamicLinks(
+    name: 'firebase_dynamic_links',
+    displayName: 'Dynamic Links',
+    useWeb: false,
+  ),
   inAppMessaging(
     name: 'firebase_in_app_messaging',
     displayName: 'In-App Messaging',
+    useWeb: false,
   ),
   messaging(name: 'firebase_messaging', displayName: 'Messaging'),
   mlModelDownloader(
     name: 'firebase_ml_model_downloader',
     displayName: 'ML Model Downloader',
+    useWeb: false,
   ),
   performance(name: 'firebase_performance', displayName: 'Performance'),
   remoteConfig(name: 'firebase_remote_config', displayName: 'Remote Config'),
   storage(name: 'firebase_storage', displayName: 'Storage'),
-  vertexAi(name: 'firebase_vertexai', displayName: 'Vertex AI');
+  vertexAi(
+    name: 'firebase_vertexai',
+    displayName: 'Vertex AI',
+    usePlatformInterface: false,
+    useWeb: false,
+  ),
+  ;
 
-  const FlutterFirePlugins({required this.name, required this.displayName});
+  const FlutterFirePlugins({
+    required this.name,
+    required this.displayName,
+    this.usePlatformInterface = true,
+    this.useWeb = true,
+  });
 
   final String name;
   final String displayName;
+  final bool usePlatformInterface;
+  final bool useWeb;
 
   static List<String> get allPluginsPublicNames =>
       FlutterFirePlugins.values.map((plugin) => plugin.name).toList();
@@ -151,7 +174,7 @@ class InstallCommand extends FlutterFireCommand {
     String bomVersion,
   ) async {
     const bomPath =
-        'https://raw.githubusercontent.com/firebase/flutterfire/master/scripts/versions.json';
+        'https://raw.githubusercontent.com/firebase/flutterfire/main/scripts/versions.json';
 
     final http = HttpClient();
     final request = await http.getUrl(Uri.parse(bomPath));
@@ -170,7 +193,7 @@ class InstallCommand extends FlutterFireCommand {
 
     if (!json.containsKey(bomVersion)) {
       throw Exception(
-        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/master/VERSIONS.md',
+        'BoM version $bomVersion not found. Check the available versions at https://github.com/firebase/flutterfire/blob/main/VERSIONS.md',
       );
     }
 
@@ -291,7 +314,7 @@ class InstallCommand extends FlutterFireCommand {
           bomVersion.contains('git')) {
         final gitBranch = bomVersion.contains('git')
             ? bomVersion.replaceFirst('git:', '')
-            : 'master';
+            : 'main';
         final gitSpinner = spinner(
           (done) {
             if (!done) {
@@ -301,10 +324,18 @@ class InstallCommand extends FlutterFireCommand {
           },
         );
 
-        final gitInstructions = selectedPlugins.map(
-          (e) =>
-              'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
-        );
+        final gitInstructions = selectedPlugins
+            .map(
+              (e) => [
+                'override:${e.name}:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}"}}',
+                if (e.usePlatformInterface)
+                  'override:${e.name}_platform_interface:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}_platform_interface"}}',
+                if (e.useWeb)
+                  'override:${e.name}_web:{"git":{"url":"https://github.com/firebase/flutterfire.git","ref":"$gitBranch","path":"packages/${e.name}/${e.name}_web"}}',
+              ],
+            )
+            .expand((element) => element)
+            .toList();
         final result = await Process.run(
           'dart',
           [
@@ -328,8 +359,9 @@ class InstallCommand extends FlutterFireCommand {
         // Remove the git overrides
         final gitOverrides = pubSpec.dependencyOverrides.keys
             .where(
-              (element) =>
-                  FlutterFirePlugins.allPluginsPublicNames.contains(element),
+              (element) => FlutterFirePlugins.allPluginsPublicNames.contains(
+                element.split('_').first,
+              ),
             )
             .toList();
 

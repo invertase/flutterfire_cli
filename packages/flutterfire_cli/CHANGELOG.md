@@ -1,3 +1,20 @@
+## 1.0.1
+
+ - Graduate package to a stable release. See pre-releases prior to this version for changelog entries.
+
+## 1.0.1-dev.4
+
+ - **FEAT**: update to support main on the FlutterFire repository ([#332](https://github.com/invertase/flutterfire_cli/issues/332)). ([7893a2e1](https://github.com/invertase/flutterfire_cli/commit/7893a2e1849e4f08b435d52932c202b937ecee33))
+
+## 1.0.1-dev.3
+
+ - **FIX**: `resources` property can be `null` in newer Firebase projects if no products have been enabled on the project ([#329](https://github.com/invertase/flutterfire_cli/issues/329)). ([67df625f](https://github.com/invertase/flutterfire_cli/commit/67df625f102ed9992a9d5813fe3f3abae725207c))
+
+## 1.0.1-dev.2
+
+ - **FIX**(android): auto-detect old and new way to set `applicationId` ([#318](https://github.com/invertase/flutterfire_cli/issues/318)). ([016699f2](https://github.com/invertase/flutterfire_cli/commit/016699f2836659c3fe948635bba573ceff73117b))
+ - **FEAT**(install): add support for overriding the _platform_interface and _web packages when using git ([#312](https://github.com/invertase/flutterfire_cli/issues/312)). ([b09602d5](https://github.com/invertase/flutterfire_cli/commit/b09602d5a97d76570681bc6d8ddc4dcbaaf0e4bb))
+
 ## 1.0.1-dev.1
 
  - **FEAT**: add support for Vertex AI in the install command ([#296](https://github.com/invertase/flutterfire_cli/issues/296)). ([5204706d](https://github.com/invertase/flutterfire_cli/commit/5204706d9ada7290ce1801454832b75b78648dd9))

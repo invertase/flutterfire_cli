@@ -30,6 +30,10 @@ flutterfire --help
 # | You are running a local development version of FlutterFire CLI. |
 # ------------------------------------------------------------------
 ```
+**important**: You may need to delete the cached snapshot of the FlutterFire CLI with each update to code
+(and subsequent `dart pub global activate --source="path" . --executable="flutterfire" --overwrite`). You can delete the cached snapshot
+on this path: `.dart_tool/pub/bin/flutterfire_cli_monorepo/*.snapshot`. This will ensure your code changes are reflected when developing.
+
 
 ## Install
 
@@ -43,7 +47,7 @@ dart pub global activate flutterfire_cli
 - If you're running on a windows machine, we highly recommend you install via npm (i.e. `npm install -g firebase-tools`). The standalone
 `firebase-tools` version can cause problems which you can read about [here](https://github.com/invertase/flutterfire_cli/issues/55#issuecomment-1316201478).
 
-## Documentation for `v1.0.0`
+## Documentation for `>= v1.0.1`
 
 ### Default setup
 
@@ -102,6 +106,8 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WE
 
 
 ### Multi build configuration setup
+
+For a deeper dive into multiple flavor setup, you may wish to read [this comprehensive overview](https://codewithandrea.com/articles/flutter-firebase-multiple-flavors-flutterfire-cli/) provided by @bizz84.
 
 **important**: You need to run `flutterfire configure` for every configuration type. E.g. if you have `Debug` & `Release` configurations, you need to run `flutterfire configure` twice with the relevant arguments documented below.
 

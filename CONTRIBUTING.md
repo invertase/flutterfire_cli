@@ -33,16 +33,11 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 
 ## How To Contribute
 
-### Forking & cloning the repository
+### Cloning the repository
 
 - Ensure all the dependencies described in the previous section are installed.
-- Fork `https://github.com/invertase/flutterfire_cli` into your own GitHub account. If
-  you already have a fork, and are now installing a development environment on
-  a new machine, make sure you've updated your fork so that you don't use stale
-  configuration options from long ago.
-- `git clone git@github.com:<your_name_here>/flutterfire_cli.git`
-- `git remote add upstream git@github.com:invertase/flutterfire_cli.git` (So that you
-  pull from the main repository, not your clone, when running `git pull`.)
+- Clone `https://github.com/invertase/flutterfire_cli` repository (Do not fork, as we cannot run CI against a fork):
+- `git clone git@github.com:invertase/flutterfire_cli.git`.
 
 ### Performing changes
 
@@ -50,8 +45,8 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 - Make your changes (try to split them up with one PR per feature/fix).
 - When committing your changes, make sure that each commit message is clear
  (e.g. `git commit -m 'doc: Added CONTRIBUTING.md'`).
-- Push your new branch to your own fork into the same remote branch
- (e.g. `git push origin my-username.my-new-feature`, replace `origin` if you use another remote.)
+- Push your new branch to the same remote branch
+ (e.g. `git push origin my-new-feature`, replace `origin` if you use another remote.)
  
 ### Open a pull request
 
@@ -78,8 +73,7 @@ process as well.
 5. Push your branch to git running `git push origin [RELEASE BRANCH NAME]`.
 6. Run `melos version` to automatically version packages and update Changelogs.
 7. Run `melos publish` to dry run and confirm all packages are publishable.
-8. Run `melos cli-version` to generate the latest version number for the CLI & commit.
-9. Run `git push origin [RELEASE BRANCH NAME]` & open pull request for review on GitHub.
-10. After successful review and merge of the pull request, switch to `main` branch locally, & run `git pull origin main`.
-11. Run `melos publish --no-dry-run` to now publish to Pub.dev.
-12. Run `git push --tags` to push tags to repository.
+8. Run `git push origin [RELEASE BRANCH NAME]` & open pull request for review on GitHub.
+9. After successful review and merge of the pull request, switch to `main` branch locally, & run `git pull origin main`.
+10. Run `melos publish --no-dry-run` to now publish to Pub.dev.
+11. Run `git push --tags` to push tags to repository.

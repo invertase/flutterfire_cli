@@ -515,7 +515,7 @@ void validateAppBundleId(
   String platform,
 ) {
   final bundleIdRegex = RegExp(
-    r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+$',
+  r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?|([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+))$',
   );
 
   if (!bundleIdRegex.hasMatch(bundleId)) {
@@ -540,8 +540,7 @@ void validateAndroidPackageName(String appId) {
 }
 
 String firebaseCLIJsonParse(String output) {
-  return output.replaceFirst(
-    appendedErrorText,
-    '}',
-  );
+  // Sometimes the response has an appended time out exception which breaks parsing
+  final regex = RegExp(r'\}\s*\{\s*"status":\s*"error",\s*"error":\s*"Timed out."\s*\}');
+  return output.replaceFirst(regex, '}');
 }

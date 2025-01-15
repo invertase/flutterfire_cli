@@ -53,6 +53,12 @@ abstract class FlutterFireCommand extends Command<void> {
       abbr: 'e',
       help: 'The Google account to use for authorization.',
     );
+
+    argParser.addFlag(
+      'debug',
+      abbr: 'd',
+      help: 'Use debug logger for additional output.',
+    );
   }
 
   void commandRequiresFlutterApp() {

@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import '../common/global.dart';
 import '../common/inputs.dart';
 import '../common/platform.dart';
 import '../common/strings.dart';
@@ -418,11 +419,6 @@ class ConfigCommand extends FlutterFireCommand {
         return baseMessage;
       },
     );
-    firebaseProjects = await firebase.getProjects(
-      account: accountEmail,
-      token: token,
-      serviceAccount: serviceAccount,
-    );
 
     try {
       firebaseProjects = await firebase
@@ -567,6 +563,8 @@ class ConfigCommand extends FlutterFireCommand {
 
   @override
   Future<void> run() async {
+    // Has to set during `run()` otherwise `argResults` will be null
+    updateDebugMode(argResults!['debug']as bool);
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();
