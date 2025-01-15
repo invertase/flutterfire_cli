@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-01-13
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.0.1`](#flutterfire_cli---v101)
+
+Packages graduated to a stable release (see pre-releases prior to the stable version for changelog entries):
+
+ - `flutterfire_cli` - `v1.0.1`
+
+---
+
+#### `flutterfire_cli` - `v1.0.1`
+
+
 ## 2024-08-06
 
 ### Changes

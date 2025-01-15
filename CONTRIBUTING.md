@@ -33,16 +33,11 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 
 ## How To Contribute
 
-### Forking & cloning the repository
+### Cloning the repository
 
 - Ensure all the dependencies described in the previous section are installed.
-- Fork `https://github.com/invertase/flutterfire_cli` into your own GitHub account. If
-  you already have a fork, and are now installing a development environment on
-  a new machine, make sure you've updated your fork so that you don't use stale
-  configuration options from long ago.
-- `git clone git@github.com:<your_name_here>/flutterfire_cli.git`
-- `git remote add upstream git@github.com:invertase/flutterfire_cli.git` (So that you
-  pull from the main repository, not your clone, when running `git pull`.)
+- Clone `https://github.com/invertase/flutterfire_cli` repository (Do not fork, as we cannot run CI against a fork):
+- `git clone git@github.com:invertase/flutterfire_cli.git`.
 
 ### Performing changes
 
@@ -50,8 +45,8 @@ _See also: [Flutter's code of conduct](https://flutter.dev/design-principles/#co
 - Make your changes (try to split them up with one PR per feature/fix).
 - When committing your changes, make sure that each commit message is clear
  (e.g. `git commit -m 'doc: Added CONTRIBUTING.md'`).
-- Push your new branch to your own fork into the same remote branch
- (e.g. `git push origin my-username.my-new-feature`, replace `origin` if you use another remote.)
+- Push your new branch to the same remote branch
+ (e.g. `git push origin my-new-feature`, replace `origin` if you use another remote.)
  
 ### Open a pull request
 

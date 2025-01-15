@@ -42,6 +42,20 @@ void main() {
         ),
         returnsNormally,
       );
+      expect(
+        () => validateAppBundleId(
+          'example',
+          kIos,
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => validateAppBundleId(
+          'exampleEN',
+          kIos,
+        ),
+        returnsNormally,
+      );
     });
 
     test('Invalid bundle IDs', () {
@@ -69,13 +83,6 @@ void main() {
       expect(
         () => validateAppBundleId(
           'com.example/app',
-          kIos,
-        ),
-        throwsA(isA<ValidationException>()),
-      );
-      expect(
-        () => validateAppBundleId(
-          'example',
           kIos,
         ),
         throwsA(isA<ValidationException>()),
