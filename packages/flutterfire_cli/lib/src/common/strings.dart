@@ -136,7 +136,7 @@ class FirebaseJsonException implements FlutterFireException {
   final String? underlyingException;
   @override
   String toString() {
-    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values. ${underlyingException != null ? '' : underlyingException}';
+    return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values. ${underlyingException ?? ''}';
   }
 }
 
