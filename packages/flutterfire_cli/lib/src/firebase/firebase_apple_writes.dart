@@ -393,9 +393,9 @@ bashScript = %q(
 PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
 
 if [ -z "\$PODS_ROOT" ]; then
-  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols"
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
 else
-  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/upload-symbols"
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/run"
 fi
 
 # Command to upload symbols script used to upload symbols to Firebase server
