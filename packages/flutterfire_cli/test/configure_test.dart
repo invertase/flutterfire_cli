@@ -541,7 +541,7 @@ void main() {
           '-i',
           '',
           's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
-          'ios/Runner.xcodeproj/project.pbxproj'
+          'ios/Runner.xcodeproj/project.pbxproj',
         ],
         workingDirectory: projectPath,
       );
@@ -586,7 +586,7 @@ void main() {
         'bash',
         [
           '-c',
-          '[ -f Podfile ] && rm Podfile && pod deintegrate && rm -rf Pods/'
+          '[ -f Podfile ] && rm Podfile && pod deintegrate && rm -rf Pods/',
         ],
         workingDirectory: iosDirectory,
       );
