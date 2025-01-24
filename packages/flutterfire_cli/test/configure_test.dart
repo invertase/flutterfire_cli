@@ -6,7 +6,6 @@ import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'reconfigure_test.dart';
 import 'test_utils.dart';
 
 void main() {
