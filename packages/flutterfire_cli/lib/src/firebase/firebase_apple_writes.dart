@@ -393,7 +393,9 @@ bashScript = %q(
 PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
 
 if [ -z "\$PODS_ROOT" ]; then
-  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+  # Cannot use "BUILD_DIR%/Build/*" as per Firebase documentation, it points to "flutter-project/build/ios/*" path which doesn't have run script
+  DERIVED_DATA_PATH=\$(echo "\$BUILD_ROOT" | sed -E 's|(.*DerivedData/[^/]+).*|\\1|')
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${DERIVED_DATA_PATH}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
 else
   PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/run"
 fi
