@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
@@ -81,6 +83,26 @@ bool containsInOrder(String content, List<String> lines) {
     }
   }
   return true;
+}
+
+Future<String?> generateAccessTokenCI() async {
+  // If it's not on the CI, this won't be present, and it will run as normal
+  final serviceAccount = Platform.environment['FIREBASE_SERVICE_ACCOUNT'];
+
+  if (serviceAccount == null) {
+    return null;
+  }
+
+  final credentials = ServiceAccountCredentials.fromJson(serviceAccount);
+
+  // Authenticate with the Google Auth Library
+  final scopes = [
+    'https://www.googleapis.com/auth/firebase',
+  ];
+  final client = await clientViaServiceAccount(credentials, scopes);
+
+  // Return the access token
+  return client.credentials.accessToken.data;
 }
 
 String rubyScriptForTestingDefaultConfigure(

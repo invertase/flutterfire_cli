@@ -6,7 +6,6 @@ import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'reconfigure_test.dart';
 import 'test_utils.dart';
 
 void main() {
@@ -504,8 +503,8 @@ void main() {
   );
 
   test(
-    'Validate `flutterfire upload-crashlytics-symbols` script is included when `firebase_crashlytics` is a dependency',
-    () {
+    'Validate `flutterfire upload-crashlytics-symbols` script is ran when building app',
+    () async {
       final result = Process.runSync(
         'flutter',
         ['pub', 'add', 'firebase_crashlytics'],
@@ -534,59 +533,91 @@ void main() {
         fail(result2.stderr as String);
       }
 
-      final iosXcodeProject = p.join(
-        projectPath!,
-        kIos,
-        'Runner.xcodeproj',
+      const iosVersion = '13.0';
+      // Update project.pbxproj
+      final pbxprojResult = Process.runSync(
+        'sed',
+        [
+          '-i',
+          '',
+          's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
+          'ios/Runner.xcodeproj/project.pbxproj',
+        ],
+        workingDirectory: projectPath,
       );
 
-      final scriptToCheckIosPbxprojFile =
-          rubyScriptForTestingDebugSymbolScriptExists(iosXcodeProject);
+      if (pbxprojResult.exitCode != 0) {
+        fail(pbxprojResult.stderr as String);
+      }
 
-      final iosResult = Process.runSync(
-        'ruby',
+      final buildApp = Process.runSync(
+        'flutter',
         [
-          '-e',
-          scriptToCheckIosPbxprojFile,
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
         ],
+        workingDirectory: projectPath,
         runInShell: true,
       );
 
-      if (iosResult.exitCode != 0) {
-        fail(iosResult.stderr as String);
+      if (buildApp.exitCode != 0) {
+        fail(buildApp.stderr as String);
       }
 
-      expect(iosResult.stdout, 'success');
-
-      final macosXcodeProject = p.join(
-        projectPath!,
-        kMacos,
-        'Runner.xcodeproj',
+      expect(
+        buildApp.stdout,
+        // Check symbols are uploaded in the background
+        contains('Symbol uploading will proceed in the background'),
       );
 
-      final scriptToCheckMacosPbxprojFile =
-          rubyScriptForTestingDebugSymbolScriptExists(
-        macosXcodeProject,
+      Process.runSync(
+        'flutter',
+        ['config', '--enable-swift-package-manager'],
+        workingDirectory: projectPath,
       );
 
-      final macosResult = Process.runSync(
-        'ruby',
+      final iosDirectory = p.join(projectPath!, 'ios');
+
+      Process.runSync(
+        'bash',
         [
-          '-e',
-          scriptToCheckMacosPbxprojFile,
+          '-c',
+          '[ -f Podfile ] && rm Podfile && pod deintegrate && rm -rf Pods/',
         ],
+        workingDirectory: iosDirectory,
+      );
+
+      final buildAppSPM = Process.runSync(
+        'flutter',
+        [
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
+        ],
+        workingDirectory: projectPath,
         runInShell: true,
       );
 
-      if (macosResult.exitCode != 0) {
-        fail(macosResult.stderr as String);
+      if (buildAppSPM.exitCode != 0) {
+        fail(buildAppSPM.stderr as String);
       }
 
-      expect(macosResult.stdout, 'success');
+      expect(
+        buildAppSPM.stdout,
+        // Check symbols are uploaded in the background
+        contains('Symbol uploading will proceed in the background'),
+      );
     },
     skip: !Platform.isMacOS,
     timeout: const Timeout(
-      Duration(minutes: 2),
+      Duration(minutes: 3),
     ),
   );
 
