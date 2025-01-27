@@ -112,6 +112,10 @@ void main() {
         () => validateAndroidPackageName('com.example123.app456'),
         returnsNormally,
       );
+      expect(
+        () => validateAndroidPackageName('abc123.com.example.app'),
+        returnsNormally,
+      );
     });
 
     test('Invalid Package names', () {

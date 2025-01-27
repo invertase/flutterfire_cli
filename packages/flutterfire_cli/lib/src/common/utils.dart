@@ -524,7 +524,7 @@ void validateAppBundleId(
 
 void validateAndroidPackageName(String appId) {
   final appIdRegex = RegExp(
-    r'^[a-zA-Z]+(\.[a-zA-Z_][a-zA-Z0-9_]*)+$',
+    r'^[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$',
   );
 
   if (!appIdRegex.hasMatch(appId)) {
