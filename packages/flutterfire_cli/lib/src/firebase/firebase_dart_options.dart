@@ -65,9 +65,15 @@ extension FirebaseDartOptions on FirebaseOptions {
     var jsonBody = '';
     if (match != null) {
       jsonBody = match.namedGroup('jsonBody')!;
+      return FirebaseOptions.fromMap(
+        const JsonDecoder().convert('{$jsonBody}') as Map,
+      );
+    } else {
+      // Handle new JSON format introduced in Firebase CLI v13.31.0
+      // The config is now returned as direct JSON instead of JavaScript format
+      return FirebaseOptions.fromMap(
+        const JsonDecoder().convert(appSdkConfig.fileContents) as Map,
+      );
     }
-    return FirebaseOptions.fromMap(
-      const JsonDecoder().convert('{$jsonBody}') as Map,
-    );
   }
 }
