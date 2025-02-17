@@ -313,7 +313,10 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     }
 
     if (projectId == null || appId == null) {
-      throw FirebaseJsonException();
+      final underlyingException =
+          projectId == null ? 'projectId is missing.' : 'appId is missing.';
+
+      throw FirebaseJsonException(underlyingException: underlyingException);
     }
 
     return ConfigurationResults(
