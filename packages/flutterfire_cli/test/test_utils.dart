@@ -462,16 +462,16 @@ Future<void> checkBuildGradleFileUpdated(
 }) async {
   // Check android/settings.gradle
   final androidSettingsGradlePath =
-      p.join(projectPath, 'android', 'settings.gradle');
+      p.join(projectPath, 'android', 'settings.gradle.kts');
   final androidBuildGradle = File(androidSettingsGradlePath).readAsStringSync();
 
   final pluginsPatternSettings = [
     '// START: FlutterFire Configuration',
-    r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
+    r'id\("com\.google\.gms\.google-services"\) version\("\d+\.\d+\.\d+"\) apply false',
     if (checkPerf)
-      r'id "com\.google\.firebase\.firebase-perf" version "\d+\.\d+\.\d+" apply false',
+      r'id\("com\.google\.firebase\.firebase-perf"\) version\("\d+\.\d+\.\d+"\) apply false',
     if (checkCrashlytics)
-      r'id "com\.google\.firebase\.crashlytics" version "\d+\.\d+\.\d+" apply false',
+      r'id\("com\.google\.firebase\.crashlytics"\) version\("\d+\.\d+\.\d+"\) apply false',
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
@@ -481,26 +481,26 @@ Future<void> checkBuildGradleFileUpdated(
   final matchesSettings = patternSettings.allMatches(androidBuildGradle);
 
   if (matchesSettings.isEmpty) {
-    fail('android/settings.gradle file was not updated as expected');
+    fail('android/settings.gradle.kts file was not updated as expected');
   } else if (matchesSettings.length > 1) {
     fail(
-      'android/settings.gradle file contains duplicate FlutterFire configurations',
+      'android/settings.gradle.kts file contains duplicate FlutterFire configurations',
     );
   }
 
   // Check android/app/build.gradle
   final androidAppBuildGradlePath =
-      p.join(projectPath, 'android', 'app', 'build.gradle');
+      p.join(projectPath, 'android', 'app', 'build.gradle.kts');
   final androidAppBuildGradle =
       File(androidAppBuildGradlePath).readAsStringSync();
 
   final pluginsPatternApp = [
     '// START: FlutterFire Configuration',
-    r"(apply plugin: 'com\.google\.gms\.google-services'|id 'com\.google\.gms\.google-services')",
+    r'id\("com\.google\.gms\.google-services"\)',
     if (checkPerf)
-      r"(apply plugin: 'com\.google\.firebase\.firebase-perf'|id 'com\.google\.firebase\.firebase-perf')",
+      r'id\("com\.google\.firebase\.firebase-perf"\)',
     if (checkCrashlytics)
-      r"(apply plugin: 'com\.google\.firebase\.crashlytics'|id 'com\.google\.firebase\.crashlytics')",
+      r'id\("com\.google\.firebase\.crashlytics"\)',
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 
@@ -510,10 +510,10 @@ Future<void> checkBuildGradleFileUpdated(
   final matchesForApp = patternForApp.allMatches(androidAppBuildGradle);
 
   if (matchesForApp.isEmpty) {
-    fail('android/app/build.gradle file was not updated as expected');
+    fail('android/app/build.gradle.kts file was not updated as expected');
   } else if (matchesForApp.length > 1) {
     fail(
-      'android/app/build.gradle file contains duplicate FlutterFire configurations',
+      'android/app/build.gradle.kts file contains duplicate FlutterFire configurations',
     );
   }
 }
