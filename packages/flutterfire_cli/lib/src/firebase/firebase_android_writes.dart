@@ -7,6 +7,8 @@ import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
 
+// Gradle Groovy DSL RegExp
+
 // https://regex101.com/r/Lj93lx/1
 final _androidBuildGradleRegex = RegExp(
   r'dependencies\s*\{',
@@ -28,6 +30,28 @@ final _androidAppBuildGradleGoogleServicesRegex = RegExp(
   multiLine: true,
 );
 
+// Gradle Kotlin DSL RegExp
+// https://regex101.com/r/wgXNuN/1
+final _androidBuildGradleKtsRegex = RegExp(
+  r'dependencies\s*\{',
+  multiLine: true,
+);
+// https://regex101.com/r/Qubo6v/1
+final _androidAppBuildGradleKtsRegex = RegExp(
+  r'^\s*id\s*\(\s*"com\.android\.application"\s*\)',
+  multiLine: true,
+);
+// https://regex101.com/r/l6LvNV/1
+final _androidBuildGradleKtsGoogleServicesRegex = RegExp(
+  r'''((?<indentation>^[\s]*?)classpath\s?\("{1}com\.google\.gms:google-services:.*?"\){1}\s*?$)''',
+  multiLine: true,
+);
+// https://regex101.com/r/w5cW65/2
+final _androidAppBuildGradleKtsGoogleServicesRegex = RegExp(
+  r'''(?:(^[\s]*?apply[\s]*\(plugin[\s]*=[\s]*"{1}com\.google\.gms\.google-services"\){1})|(^[\s]*?id[\s]*\("com\.google\.gms\.google-services"\)))''',
+  multiLine: true,
+);
+
 // Google services JSON.
 const _googleServicesPluginClass = 'com.google.gms:google-services';
 const _googleServicesPluginName = 'com.google.gms.google-services';
@@ -35,6 +59,8 @@ const _googleServicesPluginName = 'com.google.gms.google-services';
 const _googleServicesPluginVersion = '4.3.15';
 const _googleServicesPlugin =
     "classpath '$_googleServicesPluginClass:$_googleServicesPluginVersion'";
+const _googleServicesPluginKts =
+    'classpath("$_googleServicesPluginClass:$_googleServicesPluginVersion")';
 
 // Firebase Crashlytics
 const _crashlyticsPluginClassPath =
@@ -61,6 +87,17 @@ String _applyGradleSettingsDependency(
     return '\n    $_flutterFireConfigCommentStart\n    id "$dependency" version "$version" apply false\n    $_flutterFireConfigCommentEnd';
   }
   return '\n    id "$dependency" version "$version" apply false';
+}
+
+String _applyGradleSettingsDependencyKts(
+  String dependency,
+  String version, {
+  bool flutterfireComments = false,
+}) {
+  if (flutterfireComments) {
+    return '\n    $_flutterFireConfigCommentStart\n    id("$dependency") version("$version") apply false\n    $_flutterFireConfigCommentEnd';
+  }
+  return '\n    id("$dependency") version("$version") apply false';
 }
 
 enum BuildGradleConfiguration {
@@ -177,6 +214,36 @@ class FirebaseAndroidWrites {
 }
 
 Future<void> gradleContentUpdates(
+  FlutterApp flutterApp,
+) async {
+  final androidBuildGradleFile = File(
+    path.join(
+      flutterApp.androidDirectory.path,
+      'build.gradle',
+    ),
+  );
+
+  if (androidBuildGradleFile.existsSync()) {
+    return _gradleContentUpdates(flutterApp);
+  }
+
+  final androidBuildGradleKtsFile = File(
+    path.join(
+      flutterApp.androidDirectory.path,
+      'build.gradle.kts',
+    ),
+  );
+
+  if (androidBuildGradleKtsFile.existsSync()) {
+    return _gradleKtsContentUpdates(flutterApp);
+  }
+
+  throw UnimplementedError(
+    'Neither build.gradle nor build.gradle.kts were found at Paths:\n${androidBuildGradleFile.path}\n${androidBuildGradleKtsFile.path}',
+  );
+}
+
+Future<void> _gradleContentUpdates(
   FlutterApp flutterApp,
 ) async {
   final androidBuildGradleFile = File(
@@ -574,5 +641,413 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
     buildGradleContent: androidBuildGradleFileContents,
     appBuildGradleContent: androidAppBuildGradleFileContents,
     gradleSettingsContent: androidGradleSettingsFileContents,
+  );
+}
+
+// Handle Gradle files written in Kotlin DSL,
+// i.e., build.gradle.kts, app/build.gradle.kts and settings.gradle.kts files
+Future<void> _gradleKtsContentUpdates(
+  FlutterApp flutterApp,
+) async {
+  final androidBuildGradleKtsFile = File(
+    path.join(
+      flutterApp.androidDirectory.path,
+      'build.gradle.kts',
+    ),
+  );
+  final androidBuildGradleKtsFileContents =
+      androidBuildGradleKtsFile.readAsStringSync();
+
+  final androidAppBuildGradleKtsFile = File(
+    path.join(
+      flutterApp.androidDirectory.path,
+      'app',
+      'build.gradle.kts',
+    ),
+  );
+  final androidAppBuildGradleKtsFileContents =
+      androidAppBuildGradleKtsFile.readAsStringSync();
+
+  final androidGradleSettingsKtsFile = File(
+    path.join(
+      flutterApp.androidDirectory.path,
+      'settings.gradle.kts',
+    ),
+  );
+
+  final androidGradleSettingsKtsFileContents =
+      androidGradleSettingsKtsFile.readAsStringSync();
+
+  var content = AndroidGradleContents(
+    buildGradleContent: androidBuildGradleKtsFileContents,
+    appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+    gradleSettingsContent: androidGradleSettingsKtsFileContents,
+  );
+
+  // Legacy build.gradle.kts's update 1
+  // android/build.gradle.kts - update the dependencies block
+  // android/app/build.gradle.kts - update via apply plugins
+  // We check if "apply plugin: 'com.android.application'" is present in the android/app/build.gradle.kts file
+  if (androidAppBuildGradleKtsFileContents
+      .contains('''apply(plugin = "com.android.application")''')) {
+    content = _applyGoogleServicesPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy1,
+    );
+    content = _applyCrashlyticsPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy1,
+    );
+    content = _applyPerformancePluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy1,
+    );
+  }
+
+  // Legacy build.gradle.kts's update 2
+  // android/build.gradle.kts - update the dependencies block
+  // android/app/build.gradle.kts - update plugins block containing "id "com.android.application""
+  // We check if plugins block does not contain "id "com.android.application"" in the android/gradle.settings.kts file
+  // & android/app/build.gradle.kts file does not contain "apply plugin: 'com.android.application"
+  if (!androidGradleSettingsKtsFileContents
+          .contains('id("com.android.application")') &&
+      !androidAppBuildGradleKtsFileContents
+          .contains('''apply(plugin = "com.android.application")''')) {
+    content = _applyGoogleServicesPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy2,
+    );
+    content = _applyCrashlyticsPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy2,
+    );
+    content = _applyPerformancePluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.legacy2,
+    );
+  }
+
+  // Latest build.gradle.kts's update 3
+  // do nothing to android/build.gradle.kts
+  // android/app/build.gradle.kts - update plugins block containing "id "com.android.application""
+  // android/settings.gradle.kts - update the plugins block containing "id "com.android.application""
+  // We check if plugins block containing "id "com.android.application"" is present in the android/settings.gradle.kts file
+  if (androidGradleSettingsKtsFileContents
+      .contains('id("com.android.application")')) {
+    content = _applyGoogleServicesPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.latest,
+    );
+    content = _applyCrashlyticsPluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.latest,
+    );
+    content = _applyPerformancePluginKts(
+      flutterApp,
+      content,
+      BuildGradleConfiguration.latest,
+    );
+
+    // WRITE <app>/android/settings.gradle.kts. We only need to do this with latest Flutter version >= 3.16.5
+    await androidGradleSettingsKtsFile.writeAsString(
+      content.gradleSettingsContent,
+    );
+  }
+
+  // WRITE <app>/android/build.gradle.kts
+  await androidBuildGradleKtsFile.writeAsString(content.buildGradleContent);
+
+  // WRITE <app>/android/app/build.gradle.kts
+  await androidAppBuildGradleKtsFile.writeAsString(
+    content.appBuildGradleContent,
+  );
+}
+
+AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
+  AndroidGradleContents content,
+) {
+  var androidBuildGradleKtsFileContents = content.buildGradleContent;
+
+  if (!androidBuildGradleKtsFileContents.contains(_googleServicesPluginClass)) {
+    final hasMatch =
+        _androidBuildGradleKtsRegex.hasMatch(androidBuildGradleKtsFileContents);
+    if (!hasMatch) {
+      // Unable to match the pattern in the android/build.gradle file
+      return AndroidGradleContents(
+        buildGradleContent: androidBuildGradleKtsFileContents,
+        appBuildGradleContent: content.appBuildGradleContent,
+        gradleSettingsContent: content.gradleSettingsContent,
+      );
+    }
+  } else {
+    return AndroidGradleContents(
+      buildGradleContent: androidBuildGradleKtsFileContents,
+      appBuildGradleContent: content.appBuildGradleContent,
+      gradleSettingsContent: content.gradleSettingsContent,
+    );
+  }
+  androidBuildGradleKtsFileContents = androidBuildGradleKtsFileContents
+      .replaceFirstMapped(_androidBuildGradleKtsRegex, (match) {
+    const indentation = '        ';
+    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$_googleServicesPluginKts\n$indentation$_flutterFireConfigCommentEnd';
+  });
+
+  return AndroidGradleContents(
+    buildGradleContent: androidBuildGradleKtsFileContents,
+    appBuildGradleContent: content.appBuildGradleContent,
+    gradleSettingsContent: content.gradleSettingsContent,
+  );
+}
+
+AndroidGradleContents _applyGoogleServicesPluginKts(
+  FlutterApp flutterApp,
+  AndroidGradleContents content,
+  BuildGradleConfiguration buildGradleConfiguration,
+) {
+  var androidBuildGradleKtsFileContents = content.buildGradleContent;
+  var androidAppBuildGradleKtsFileContents = content.appBuildGradleContent;
+  var androidGradleSettingsKtsFileContents = content.gradleSettingsContent;
+
+  if (buildGradleConfiguration == BuildGradleConfiguration.legacy1 ||
+      buildGradleConfiguration == BuildGradleConfiguration.legacy2) {
+    final updatedContent = _legacyUpdateAndroidBuildGradleKts(content);
+    androidBuildGradleKtsFileContents = updatedContent.buildGradleContent;
+  }
+
+  if (!androidAppBuildGradleKtsFileContents
+      .contains(_googleServicesPluginClass)) {
+    final hasMatch = _androidAppBuildGradleKtsRegex
+        .hasMatch(androidAppBuildGradleKtsFileContents);
+    if (!hasMatch) {
+      // Unable to match the pattern in the android/app/build.gradle.kts file
+      return AndroidGradleContents(
+        buildGradleContent: androidBuildGradleKtsFileContents,
+        appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+        gradleSettingsContent: androidGradleSettingsKtsFileContents,
+      );
+    }
+  } else {
+    // Already applied.
+    return AndroidGradleContents(
+      buildGradleContent: androidBuildGradleKtsFileContents,
+      appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+      gradleSettingsContent: androidGradleSettingsKtsFileContents,
+    );
+  }
+
+  if (!androidAppBuildGradleKtsFileContents
+      .contains(_googleServicesPluginName)) {
+    androidAppBuildGradleKtsFileContents = androidAppBuildGradleKtsFileContents
+        .replaceFirstMapped(_androidAppBuildGradleKtsRegex, (match) {
+      // Check which pattern was matched and insert the appropriate content
+      if (match.group(0) != null) {
+        if (buildGradleConfiguration == BuildGradleConfiguration.legacy2 ||
+            buildGradleConfiguration == BuildGradleConfiguration.latest) {
+          // This is legacy2 & latest
+          // If matched pattern is 'id("com.android.application")'
+          return '${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id("$_googleServicesPluginName")\n    $_flutterFireConfigCommentEnd';
+        } else {
+          // This is legacy1
+          // If matched pattern is 'apply plugin:...'
+          return '${match.group(0)}\n$_flutterFireConfigCommentStart\napply(plugin = "$_googleServicesPluginName")\n$_flutterFireConfigCommentEnd';
+        }
+      }
+      throw Exception(
+        'Could not match pattern in android/app `build.gradle.kts` file for plugin $_googleServicesPluginName',
+      );
+    });
+  }
+
+  if (buildGradleConfiguration == BuildGradleConfiguration.latest) {
+    final pluginExists = androidGradleSettingsKtsFileContents
+        .contains(_androidAppBuildGradleKtsGoogleServicesRegex);
+
+    if (!pluginExists) {
+      final pattern = RegExp(
+        r'^.*id\("com\.android\.application"\).*',
+        multiLine: true,
+      );
+      final match = pattern.firstMatch(androidGradleSettingsKtsFileContents);
+
+      if (match != null) {
+        // Find the index where to insert the new line
+        final endIndex = match.end;
+        final toInsert = _applyGradleSettingsDependencyKts(
+          _googleServicesPluginName,
+          _googleServicesPluginVersion,
+          flutterfireComments: true,
+        );
+
+        // Insert the new line
+        androidGradleSettingsKtsFileContents =
+            androidGradleSettingsKtsFileContents.substring(0, endIndex) +
+                toInsert +
+                androidGradleSettingsKtsFileContents.substring(endIndex);
+      }
+    }
+  }
+  return AndroidGradleContents(
+    buildGradleContent: androidBuildGradleKtsFileContents,
+    appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+    gradleSettingsContent: androidGradleSettingsKtsFileContents,
+  );
+}
+
+AndroidGradleContents _applyCrashlyticsPluginKts(
+  FlutterApp flutterApp,
+  AndroidGradleContents content,
+  BuildGradleConfiguration buildGradleConfiguration,
+) {
+  // do not apply if firebase_crashlytics is not present
+  if (!flutterApp.dependsOnPackage('firebase_crashlytics')) return content;
+
+  return _applyFirebaseAndroidPluginKts(
+    pluginClassPath: _crashlyticsPluginClassPath,
+    pluginClassPathVersion: _crashlyticsPluginClassPathVersion,
+    pluginClass: _crashlyticsPluginClass,
+    content: content,
+    buildGradleConfiguration: buildGradleConfiguration,
+  );
+}
+
+AndroidGradleContents _applyPerformancePluginKts(
+  FlutterApp flutterApp,
+  AndroidGradleContents content,
+  BuildGradleConfiguration buildGradleConfiguration,
+) {
+  // do not apply if firebase_performance is not present
+  if (!flutterApp.dependsOnPackage('firebase_performance')) return content;
+
+  return _applyFirebaseAndroidPluginKts(
+    pluginClassPath: _performancePluginClassPath,
+    pluginClassPathVersion: _performancePluginClassPathVersion,
+    pluginClass: _performancePluginClass,
+    content: content,
+    buildGradleConfiguration: buildGradleConfiguration,
+  );
+}
+
+AndroidGradleContents _applyFirebaseAndroidPluginKts({
+  required String pluginClassPath,
+  required String pluginClassPathVersion,
+  required String pluginClass,
+  required AndroidGradleContents content,
+  required BuildGradleConfiguration buildGradleConfiguration,
+}) {
+  var androidBuildGradleKtsFileContents = content.buildGradleContent;
+  var androidAppBuildGradleKtsFileContents = content.appBuildGradleContent;
+  var androidGradleSettingsKtsFileContents = content.gradleSettingsContent;
+
+  if (BuildGradleConfiguration.legacy1 == buildGradleConfiguration ||
+      BuildGradleConfiguration.legacy2 == buildGradleConfiguration) {
+    if (!androidBuildGradleKtsFileContents.contains(pluginClassPath)) {
+      final hasMatch = _androidBuildGradleKtsGoogleServicesRegex
+          .hasMatch(androidBuildGradleKtsFileContents);
+      if (!hasMatch) {
+        // Unable to match the pattern in the android/app/build.gradle.kts file
+        return AndroidGradleContents(
+          buildGradleContent: androidBuildGradleKtsFileContents,
+          appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+          gradleSettingsContent: androidGradleSettingsKtsFileContents,
+        );
+      }
+    } else {
+      // Already applied.
+      return AndroidGradleContents(
+        buildGradleContent: androidBuildGradleKtsFileContents,
+        appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+        gradleSettingsContent: androidGradleSettingsKtsFileContents,
+      );
+    }
+    androidBuildGradleKtsFileContents = androidBuildGradleKtsFileContents
+        .replaceFirstMapped(_androidBuildGradleKtsGoogleServicesRegex, (match) {
+      final indentation = match.group(2);
+      return '${match.group(1)}\n${indentation}classpath("$pluginClassPath:$pluginClassPathVersion")';
+    });
+  }
+
+  if (!androidAppBuildGradleKtsFileContents.contains(pluginClass)) {
+    final hasMatch = _androidAppBuildGradleKtsGoogleServicesRegex
+        .hasMatch(androidAppBuildGradleKtsFileContents);
+    if (!hasMatch) {
+      // TODO some unrecoverable error here as well?
+      return AndroidGradleContents(
+        buildGradleContent: androidBuildGradleKtsFileContents,
+        appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+        gradleSettingsContent: androidGradleSettingsKtsFileContents,
+      );
+    }
+  } else {
+    // Already applied.
+    return AndroidGradleContents(
+      buildGradleContent: androidBuildGradleKtsFileContents,
+      appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+      gradleSettingsContent: androidGradleSettingsKtsFileContents,
+    );
+  }
+  androidAppBuildGradleKtsFileContents = androidAppBuildGradleKtsFileContents
+      .replaceFirstMapped(_androidAppBuildGradleKtsGoogleServicesRegex,
+          (match) {
+    // Check which pattern was matched and insert the appropriate content
+    if (match.group(0) != null) {
+      if (BuildGradleConfiguration.legacy2 == buildGradleConfiguration ||
+          BuildGradleConfiguration.latest == buildGradleConfiguration) {
+        // This is legacy2 & latest
+        // If matched pattern is 'id "com.google.gms.google-services"'
+        return '${match.group(0)}\n    id("$pluginClass")';
+      } else {
+        // If matched pattern is 'apply plugin:...'
+        return '${match.group(0)}\napply(plugin = "$pluginClass")';
+      }
+    }
+    throw Exception(
+      'Could not match pattern in android/app `build.gradle` file for plugin $pluginClass',
+    );
+  });
+
+  if (BuildGradleConfiguration.latest == buildGradleConfiguration) {
+    // We need to update the android/settings.gradle file
+    final pluginExists =
+        androidGradleSettingsKtsFileContents.contains(RegExp(pluginClassPath));
+
+    if (!pluginExists) {
+      final pattern = RegExp(
+        r'id\("com\.google\.gms\.google-services"\) version\("\d+\.\d+\.\d+"\) apply false',
+      );
+
+      final match = pattern.firstMatch(androidGradleSettingsKtsFileContents);
+
+      if (match != null) {
+        // Find the index where to insert the new line
+        final endIndex = match.end;
+        final toInsert = _applyGradleSettingsDependencyKts(
+          // Need to use plugin class rather than plugin class path in settings.gradle
+          pluginClassPath.contains('crashlytics')
+              ? _crashlyticsPluginClass
+              : _performancePluginClass,
+          pluginClassPathVersion,
+        );
+
+        // Insert the new line
+        androidGradleSettingsKtsFileContents =
+            androidGradleSettingsKtsFileContents.substring(0, endIndex) +
+                toInsert +
+                androidGradleSettingsKtsFileContents.substring(endIndex);
+      }
+    }
+  }
+
+  return AndroidGradleContents(
+    buildGradleContent: androidBuildGradleKtsFileContents,
+    appBuildGradleContent: androidAppBuildGradleKtsFileContents,
+    gradleSettingsContent: androidGradleSettingsKtsFileContents,
   );
 }
