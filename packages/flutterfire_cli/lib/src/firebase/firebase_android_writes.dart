@@ -38,7 +38,8 @@ final _androidBuildGradleKtsRegex = RegExp(
 );
 // https://regex101.com/r/Qubo6v/1
 final _androidAppBuildGradleKtsRegex = RegExp(
-  r'''(?:(^[\s]*?apply[\s]*\(plugin[\s]*=[\s]*"{1}com\.android\.application"\){1})|(^[\s]*?id[\s]*\("com\.android\.application"\)))''',
+  r'^\s*id\s*\(\s*"com\.android\.application"\s*\)',
+  multiLine: true,
 );
 // https://regex101.com/r/l6LvNV/1
 final _androidBuildGradleKtsGoogleServicesRegex = RegExp(
@@ -871,7 +872,8 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
 
     if (!pluginExists) {
       final pattern = RegExp(
-        r'id\("com\.android\.application"\) version\("[^"]*"\) apply false',
+        r'^.*id\("com\.android\.application"\).*',
+        multiLine: true,
       );
       final match = pattern.firstMatch(androidGradleSettingsKtsFileContents);
 
