@@ -413,9 +413,9 @@ void checkDartFirebaseJsonValues(
 }
 
 Future<void> cleanBuildGradleFiles(String projectPath) async {
-  final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle');
+  final androidBuildGradle = p.join(projectPath, 'android', 'build.gradle.kts');
   final androidAppBuildGradle =
-      p.join(projectPath, 'android', 'app', 'build.gradle');
+      p.join(projectPath, 'android', 'app', 'build.gradle.kts');
 
   final androidBuildGradleContent = File(androidBuildGradle).readAsStringSync();
   final androidAppBuildGradleContent =
