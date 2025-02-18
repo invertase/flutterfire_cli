@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-02-18
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.1.0`](#flutterfire_cli---v110)
+
+---
+
+#### `flutterfire_cli` - `v1.1.0`
+
+ - **FIX**: Support json format in Firebase options for web for firebase CLI `>=13.31.0` ([#373](https://github.com/invertase/flutterfire_cli/issues/373)). ([581e7c46](https://github.com/invertase/flutterfire_cli/commit/581e7c4605906a4bcfdb329ae682685a3cc1f491))
+ - **FIX**: Relax android package name validation ([#369](https://github.com/invertase/flutterfire_cli/issues/369)). ([e9903647](https://github.com/invertase/flutterfire_cli/commit/e99036473b06b09ecc37de6b5482bbe7e38633c8))
+ - **FIX**: add underlyingException to FirebaseJsonException when projectId or appId are missing ([#364](https://github.com/invertase/flutterfire_cli/issues/364)). ([d1fab7e5](https://github.com/invertase/flutterfire_cli/commit/d1fab7e56fd3606347335727292884ab1e33da3f))
+ - **FIX**: improve ios bundleID regex to stop bundleIDs from throwing incorrectly ([#357](https://github.com/invertase/flutterfire_cli/issues/357)). ([b048aad5](https://github.com/invertase/flutterfire_cli/commit/b048aad579669699d52b837af74524c15ffee40b))
+ - **FEAT**: support for Gradle Kotlin DSL (Kotlin DSL comes as standard in newly created Flutter projects) ([#306](https://github.com/invertase/flutterfire_cli/issues/306)). ([c3625d1d](https://github.com/invertase/flutterfire_cli/commit/c3625d1db14f8535105b9b7b06851f26cc52ddf9))
+ - **FEAT**: Support for uploading debug symbols when building app via Swift Package Manager ([#367](https://github.com/invertase/flutterfire_cli/issues/367)). ([88c9e424](https://github.com/invertase/flutterfire_cli/commit/88c9e42471e6eb27487cb2981e0403785b0ff9c8))
+
+
 ## 2025-01-13
 
 ### Changes
