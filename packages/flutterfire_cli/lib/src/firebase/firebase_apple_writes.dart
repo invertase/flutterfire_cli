@@ -198,7 +198,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
+PATH="\${PATH}:\$FLUTTER_ROOT/bin:\${PUB_CACHE}/bin:\$HOME/.pub-cache/bin"
 $command
 )
 
@@ -390,7 +390,7 @@ project = Xcodeproj::Project.open(xcodeFile)
 # multi line argument for bash script
 bashScript = %q(
 #!/bin/bash
-PATH="\${PATH}:\$FLUTTER_ROOT/bin:\$HOME/.pub-cache/bin"
+PATH="\${PATH}:\$FLUTTER_ROOT/bin:\${PUB_CACHE}/bin:\$HOME/.pub-cache/bin"
 
 if [ -z "\$PODS_ROOT" ] || [ ! -d "\$PODS_ROOT/FirebaseCrashlytics" ]; then
   # Cannot use "BUILD_DIR%/Build/*" as per Firebase documentation, it points to "flutter-project/build/ios/*" path which doesn't have run script
