@@ -1,3 +1,8 @@
+## 1.2.0
+
+ - **FIX**: Check for `Pods/FirebaseCrashlytics` directory when using SPM ([#377](https://github.com/invertase/flutterfire_cli/issues/377)). ([7ef4ddd3](https://github.com/invertase/flutterfire_cli/commit/7ef4ddd39cde180c5756538b0520f81cdce712f2))
+ - **FEAT**: Add `PUB_CACHE` to path for Apple writes ([#387](https://github.com/invertase/flutterfire_cli/issues/387)). ([227bfaf3](https://github.com/invertase/flutterfire_cli/commit/227bfaf309eae3cfa0c5b5f28955896d7ae89503))
+
 ## 1.1.0
 
  - **FIX**: Support json format in Firebase options for web for firebase CLI `>=13.31.0` ([#373](https://github.com/invertase/flutterfire_cli/issues/373)). ([581e7c46](https://github.com/invertase/flutterfire_cli/commit/581e7c4605906a4bcfdb329ae682685a3cc1f491))
