@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.2.0`](#flutterfire_cli---v120)
+
+---
+
+#### `flutterfire_cli` - `v1.2.0`
+
+ - **FIX**: Check for `Pods/FirebaseCrashlytics` directory when using SPM ([#377](https://github.com/invertase/flutterfire_cli/issues/377)). ([7ef4ddd3](https://github.com/invertase/flutterfire_cli/commit/7ef4ddd39cde180c5756538b0520f81cdce712f2))
+ - **FEAT**: Add `PUB_CACHE` to path for Apple writes ([#387](https://github.com/invertase/flutterfire_cli/issues/387)). ([227bfaf3](https://github.com/invertase/flutterfire_cli/commit/227bfaf309eae3cfa0c5b5f28955896d7ae89503))
+
+
 ## 2025-02-18
 
 ### Changes
