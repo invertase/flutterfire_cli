@@ -404,7 +404,7 @@ fi
 flutterfire upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
-for target in project.targets 
+for target in project.targets
   if (target.name == '$target')
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
@@ -412,14 +412,15 @@ for target in project.targets
       end
     end
 
-    if (!phase.nil?)
-      phase.remove_from_project()
+    if phase.nil?
+      phase = target.new_shell_script_build_phase(runScriptName)
+      phase.shell_script = bashScript
+      project.save()
+    elsif phase.shell_script != bashScript
+      phase.shell_script = bashScript
+      project.save()
     end
-    
-    phase = target.new_shell_script_build_phase(runScriptName)
-    phase.shell_script = bashScript
-    project.save()   
-  end  
+  end
 end
 ''';
 }
