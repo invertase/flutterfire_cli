@@ -819,7 +819,8 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
   androidBuildGradleKtsFileContents = androidBuildGradleKtsFileContents
       .replaceFirstMapped(_androidBuildGradleKtsRegex, (match) {
     const indentation = '        ';
-    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesGradlePluginVersion\n$indentation$_flutterFireConfigCommentEnd';
+    final googleServicesPluginKts = 'classpath("$_googleServicesPluginClass:$googleServicesGradlePluginVersion")';
+    return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesPluginKts\n$indentation$_flutterFireConfigCommentEnd';
   });
 
   return AndroidGradleContents(
