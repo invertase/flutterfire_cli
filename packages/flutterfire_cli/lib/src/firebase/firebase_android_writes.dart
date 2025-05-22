@@ -57,16 +57,20 @@ final _androidAppBuildGradleKtsGoogleServicesRegex = RegExp(
 );
 
 // Google services JSON.
-const _googleServicesPluginClass = 'com.google.gms:google-services';
-const _googleServicesPluginName = 'com.google.gms.google-services';
+const _googleServicesPluginClassPath = 'com.google.gms:google-services';
+const _googleServicesPluginClass = 'com.google.gms.google-services';
+const _googleServicesPluginClassPathFallbackVersion = '4.3.15';
 
 // Firebase Crashlytics
-const _crashlyticsPluginClassPath = 'com.google.firebase:firebase-crashlytics-gradle';
+const _crashlyticsPluginClassPath =
+    'com.google.firebase:firebase-crashlytics-gradle';
 const _crashlyticsPluginClass = 'com.google.firebase.crashlytics';
+const _crashlyticsPluginClassPathFallbackVersion = '2.8.1';
 
 // Firebase Performance
 const _performancePluginClassPath = 'com.google.firebase:perf-plugin';
 const _performancePluginClass = 'com.google.firebase.firebase-perf';
+const _performancePluginClassPathFallbackVersion = '1.4.1';
 
 const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
@@ -378,7 +382,8 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradle(
 ) {
   var androidBuildGradleFileContents = content.buildGradleContent;
 
-  if (!androidBuildGradleFileContents.contains(_googleServicesPluginClass)) {
+  if (!androidBuildGradleFileContents
+      .contains(_googleServicesPluginClassPath)) {
     final hasMatch =
         _androidBuildGradleRegex.hasMatch(androidBuildGradleFileContents);
     if (!hasMatch) {
@@ -400,7 +405,7 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradle(
       .replaceFirstMapped(_androidBuildGradleRegex, (match) {
     const indentation = '        ';
     final googleServicesPlugin =
-        "classpath '$_googleServicesPluginClass:$googleServicesGradlePluginVersion'";
+        "classpath '$_googleServicesPluginClassPath:$googleServicesGradlePluginVersion'";
     return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesPlugin\n$indentation$_flutterFireConfigCommentEnd';
   });
 
@@ -423,11 +428,15 @@ AndroidGradleContents _applyGoogleServicesPlugin(
 
   if (buildGradleConfiguration == BuildGradleConfiguration.legacy1 ||
       buildGradleConfiguration == BuildGradleConfiguration.legacy2) {
-    final updatedContent = _legacyUpdateAndroidBuildGradle(content, googleServicesGradlePluginVersion);
+    final updatedContent = _legacyUpdateAndroidBuildGradle(
+      content,
+      googleServicesGradlePluginVersion,
+    );
     androidBuildGradleFileContents = updatedContent.buildGradleContent;
   }
 
-  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginClass)) {
+  if (!androidAppBuildGradleFileContents
+      .contains(_googleServicesPluginClassPath)) {
     final hasMatch =
         _androidAppBuildGradleRegex.hasMatch(androidAppBuildGradleFileContents);
     if (!hasMatch) {
@@ -447,7 +456,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     );
   }
 
-  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginName)) {
+  if (!androidAppBuildGradleFileContents.contains(_googleServicesPluginClass)) {
     androidAppBuildGradleFileContents = androidAppBuildGradleFileContents
         .replaceFirstMapped(_androidAppBuildGradleRegex, (match) {
       // Check which pattern was matched and insert the appropriate content
@@ -456,15 +465,15 @@ AndroidGradleContents _applyGoogleServicesPlugin(
             buildGradleConfiguration == BuildGradleConfiguration.latest) {
           // This is legacy2 & latest
           // If matched pattern is 'id "com.android.application"'
-          return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginName'\n    $_flutterFireConfigCommentEnd";
+          return "${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id '$_googleServicesPluginClass'\n    $_flutterFireConfigCommentEnd";
         } else {
           // This is legacy1
           // If matched pattern is 'apply plugin:...'
-          return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginName'\n$_flutterFireConfigCommentEnd";
+          return "${match.group(0)}\n$_flutterFireConfigCommentStart\napply plugin: '$_googleServicesPluginClass'\n$_flutterFireConfigCommentEnd";
         }
       }
       throw Exception(
-        'Could not match pattern in android/app `build.gradle` file for plugin $_googleServicesPluginName',
+        'Could not match pattern in android/app `build.gradle` file for plugin $_googleServicesPluginClass',
       );
     });
   }
@@ -482,7 +491,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         // Find the index where to insert the new line
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependency(
-          _googleServicesPluginName,
+          _googleServicesPluginClass,
           googleServicesGradlePluginVersion,
           flutterfireComments: true,
         );
@@ -798,7 +807,8 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
 ) {
   var androidBuildGradleKtsFileContents = content.buildGradleContent;
 
-  if (!androidBuildGradleKtsFileContents.contains(_googleServicesPluginClass)) {
+  if (!androidBuildGradleKtsFileContents
+      .contains(_googleServicesPluginClassPath)) {
     final hasMatch =
         _androidBuildGradleKtsRegex.hasMatch(androidBuildGradleKtsFileContents);
     if (!hasMatch) {
@@ -819,7 +829,8 @@ AndroidGradleContents _legacyUpdateAndroidBuildGradleKts(
   androidBuildGradleKtsFileContents = androidBuildGradleKtsFileContents
       .replaceFirstMapped(_androidBuildGradleKtsRegex, (match) {
     const indentation = '        ';
-    final googleServicesPluginKts = 'classpath("$_googleServicesPluginClass:$googleServicesGradlePluginVersion")';
+    final googleServicesPluginKts =
+        'classpath("$_googleServicesPluginClassPath:$googleServicesGradlePluginVersion")';
     return '${match.group(0)}\n$indentation$_flutterFireConfigCommentStart\n$indentation$googleServicesPluginKts\n$indentation$_flutterFireConfigCommentEnd';
   });
 
@@ -842,12 +853,15 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
 
   if (buildGradleConfiguration == BuildGradleConfiguration.legacy1 ||
       buildGradleConfiguration == BuildGradleConfiguration.legacy2) {
-    final updatedContent = _legacyUpdateAndroidBuildGradleKts(content, googleServicesGradlePluginVersion);
+    final updatedContent = _legacyUpdateAndroidBuildGradleKts(
+      content,
+      googleServicesGradlePluginVersion,
+    );
     androidBuildGradleKtsFileContents = updatedContent.buildGradleContent;
   }
 
   if (!androidAppBuildGradleKtsFileContents
-      .contains(_googleServicesPluginClass)) {
+      .contains(_googleServicesPluginClassPath)) {
     final hasMatch = _androidAppBuildGradleKtsRegex
         .hasMatch(androidAppBuildGradleKtsFileContents);
     if (!hasMatch) {
@@ -868,7 +882,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
   }
 
   if (!androidAppBuildGradleKtsFileContents
-      .contains(_googleServicesPluginName)) {
+      .contains(_googleServicesPluginClass)) {
     androidAppBuildGradleKtsFileContents = androidAppBuildGradleKtsFileContents
         .replaceFirstMapped(_androidAppBuildGradleKtsRegex, (match) {
       // Check which pattern was matched and insert the appropriate content
@@ -877,15 +891,15 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
             buildGradleConfiguration == BuildGradleConfiguration.latest) {
           // This is legacy2 & latest
           // If matched pattern is 'id("com.android.application")'
-          return '${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id("$_googleServicesPluginName")\n    $_flutterFireConfigCommentEnd';
+          return '${match.group(0)}\n    $_flutterFireConfigCommentStart\n    id("$_googleServicesPluginClass")\n    $_flutterFireConfigCommentEnd';
         } else {
           // This is legacy1
           // If matched pattern is 'apply plugin:...'
-          return '${match.group(0)}\n$_flutterFireConfigCommentStart\napply(plugin = "$_googleServicesPluginName")\n$_flutterFireConfigCommentEnd';
+          return '${match.group(0)}\n$_flutterFireConfigCommentStart\napply(plugin = "$_googleServicesPluginClass")\n$_flutterFireConfigCommentEnd';
         }
       }
       throw Exception(
-        'Could not match pattern in android/app `build.gradle.kts` file for plugin $_googleServicesPluginName',
+        'Could not match pattern in android/app `build.gradle.kts` file for plugin $_googleServicesPluginClass',
       );
     });
   }
@@ -905,7 +919,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
         // Find the index where to insert the new line
         final endIndex = match.end;
         final toInsert = _applyGradleSettingsDependencyKts(
-          _googleServicesPluginName,
+          _googleServicesPluginClass,
           googleServicesGradlePluginVersion,
           flutterfireComments: true,
         );
@@ -1092,7 +1106,14 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
   final pubSpec = await PubSpec.loadFile(firebaseCorePubspecFile);
   final unparsedJson = pubSpec.unParsedYaml?['firebase'] as YamlMap?;
   if (unparsedJson == null) {
-    throw Exception('Could not parse firebase_core pubspec.yaml');
+    return const FirebasePubSpecModel(
+      googleServicesGradlePluginVersion:
+          _googleServicesPluginClassPathFallbackVersion,
+      crashlyticsGradlePluginVersion:
+          _crashlyticsPluginClassPathFallbackVersion,
+      performanceGradlePluginVersion:
+          _performancePluginClassPathFallbackVersion,
+    );
   }
 
   return FirebasePubSpecModel.fromJson(unparsedJson.cast<String, dynamic>());
