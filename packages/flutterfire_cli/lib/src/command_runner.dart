@@ -56,8 +56,8 @@ class FlutterFireCommandRunner extends CommandRunner<void> {
 
     addCommand(ConfigCommand(flutterApp));
     addCommand(UpdateCommand(flutterApp));
-    addCommand(UploadCrashlyticsSymbols(flutterApp));
     addCommand(BundleServiceFile(flutterApp));
+    addCommand(UploadCrashlyticsSymbols(flutterApp));
     addCommand(Reconfigure(flutterApp));
     addCommand(InstallCommand(flutterApp));
   }
