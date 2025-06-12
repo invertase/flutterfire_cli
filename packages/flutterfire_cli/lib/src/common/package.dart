@@ -17,7 +17,7 @@
 
 import 'dart:io';
 
-import 'package:pubspec/pubspec.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 import 'strings.dart';
 import 'utils.dart';
@@ -46,14 +46,16 @@ class Package {
   }
 
   final String path;
-  final PubSpec pubSpec;
+  final Pubspec pubSpec;
 
   /// Loads the package located in the [projectDirectory]
   static Future<Package> load(Directory projectDirectory) async {
-    if (!File(pubspecPathForDirectory(projectDirectory)).existsSync()) {
+    final pubspecFile = File(pubspecPathForDirectory(projectDirectory));
+    if (!pubspecFile.existsSync()) {
       throw FlutterAppRequiredException();
     }
-    final pubSpec = await PubSpec.load(projectDirectory);
+    final pubspecContent = await pubspecFile.readAsString();
+    final pubSpec = Pubspec.parse(pubspecContent);
     return Package(
       path: projectDirectory.path,
       pubSpec: pubSpec,
@@ -90,18 +92,5 @@ class Package {
 
   /// Returns whether this package is a Flutter plugin.
   /// This is determined by whether the pubspec contains a flutter.plugin definition.
-  bool get isFlutterPlugin => pubSpec.flutter?.isPlugin ?? false;
-}
-
-extension on PubSpec {
-  Flutter? get flutter =>
-      (unParsedYaml?['flutter'] as Map<Object?, Object?>?).let(Flutter.new);
-}
-
-class Flutter {
-  Flutter(this._flutter);
-
-  final Map<Object?, Object?> _flutter;
-
-  bool get isPlugin => _flutter['plugin'] != null;
+  bool get isFlutterPlugin => pubSpec.flutter?.containsKey('plugin') ?? false;
 }
