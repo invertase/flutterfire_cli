@@ -1093,30 +1093,34 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
 }
 
 Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
-  final pubCacheFolder = _getPubCacheDirectory();
-  final items = pubCacheFolder.listSync();
-  final firebaseCoreDirectory = items
-      .whereType<Directory>()
-      .where((e) => e.path.split('/').last.startsWith('firebase_core-'))
-      .sortedBy((d) => d.path)
-      .last;
+  try {
+    final pubCacheFolder = _getPubCacheDirectory();
+    final items = pubCacheFolder.listSync();
+    final firebaseCoreDirectory = items
+        .whereType<Directory>()
+        .where((e) => e.path.split('/').last.startsWith('firebase_core-'))
+        .sortedBy((d) => d.path)
+        .last;
 
-  final firebaseCorePubspecFile =
-      pubspecPathForDirectory(firebaseCoreDirectory);
-  final pubSpec = await PubSpec.loadFile(firebaseCorePubspecFile);
-  final unparsedJson = pubSpec.unParsedYaml?['firebase'] as YamlMap?;
-  if (unparsedJson == null) {
-    return const FirebasePubSpecModel(
-      googleServicesGradlePluginVersion:
-          _googleServicesPluginClassPathFallbackVersion,
-      crashlyticsGradlePluginVersion:
-          _crashlyticsPluginClassPathFallbackVersion,
-      performanceGradlePluginVersion:
-          _performancePluginClassPathFallbackVersion,
-    );
+    final firebaseCorePubspecFile =
+        pubspecPathForDirectory(firebaseCoreDirectory);
+    final pubSpec = await PubSpec.loadFile(firebaseCorePubspecFile);
+    final unparsedJson = pubSpec.unParsedYaml?['firebase'] as YamlMap?;
+    if (unparsedJson != null) {
+      return FirebasePubSpecModel.fromJson(
+        unparsedJson.cast<String, dynamic>(),
+      );
+    }
+  } catch (_) {
+    // If we cannot find the firebase_core package, we return the fallback versions
   }
 
-  return FirebasePubSpecModel.fromJson(unparsedJson.cast<String, dynamic>());
+  return const FirebasePubSpecModel(
+    googleServicesGradlePluginVersion:
+        _googleServicesPluginClassPathFallbackVersion,
+    crashlyticsGradlePluginVersion: _crashlyticsPluginClassPathFallbackVersion,
+    performanceGradlePluginVersion: _performancePluginClassPathFallbackVersion,
+  );
 }
 
 Directory _getPubCacheDirectory() {
