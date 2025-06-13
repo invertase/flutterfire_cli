@@ -127,6 +127,7 @@ end
       logger: logger,
       platform: platform,
       projectConfiguration: projectConfiguration,
+      isGlobalScript: isGlobalScript,
     );
 
     return _firebaseJsonWrites(debugSymbolScriptAdded, target);
@@ -185,7 +186,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     } else {
       // iOS is bundled in the root of the app bundle
       command =
-          'flutterfire bundle-service-file --plist-destination="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
+          '${isGlobalScript ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} bundle-service-file --plist-destination="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
     }
 
     return '''
@@ -230,6 +231,7 @@ end
       logger: logger,
       projectConfiguration: projectConfiguration,
       platform: platform,
+      isGlobalScript: isGlobalScript,
     );
 
     return _firebaseJsonWrites(
@@ -261,6 +263,7 @@ abstract class FirebaseAppleConfiguration {
   final String serviceFilePath;
   final Logger logger;
   ProjectConfiguration projectConfiguration;
+  bool isGlobalScript = isRunningFromGlobal();
 
   FirebaseJsonWrites _firebaseJsonWrites(
     bool uploadDebugSymbols,
@@ -306,6 +309,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
   required Logger logger,
   required String platform,
   required ProjectConfiguration projectConfiguration,
+  required bool isGlobalScript,
 }) async {
   final packageConfigContents = File(
     path.join(
@@ -352,6 +356,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
         target,
         projectConfiguration,
         platform,
+        isGlobalScript,
       ),
     ]);
 
@@ -372,6 +377,7 @@ String _debugSymbolsScript(
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,
+  bool isGlobalScript,
 ) {
   final projectType = switch (projectConfiguration) {
     ProjectConfiguration.buildConfiguration =>
@@ -401,7 +407,7 @@ else
 fi
 
 # Command to upload symbols script used to upload symbols to Firebase server
-flutterfire upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
+${isGlobalScript ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
 for target in project.targets

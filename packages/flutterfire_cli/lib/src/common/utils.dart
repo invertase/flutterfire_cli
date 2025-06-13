@@ -544,3 +544,35 @@ String firebaseCLIJsonParse(String output) {
   final regex = RegExp(r'\}\s*\{\s*"status":\s*"error",\s*"error":\s*"Timed out."\s*\}');
   return output.replaceFirst(regex, '}');
 }
+
+
+/// Detects if the CLI is running from global installation or dev dependency
+bool isRunningFromGlobal() {
+  try {
+    // Check if we're in pub cache (global installation)
+    final scriptPath = Platform.script.toFilePath();
+    final pubCacheDir = Platform.environment['PUB_CACHE'] ??
+        (Platform.isWindows
+            ? '${Platform.environment['APPDATA']}\\Pub\\Cache'
+            : '${Platform.environment['HOME']}/.pub-cache');
+
+    if (scriptPath.contains(pubCacheDir)) {
+      return true;
+    }
+
+    // Check if we're in a .dart_tool directory (dev dependency)
+    if (scriptPath.contains('.dart_tool')) {
+      return false;
+    }
+
+    // Check environment variables set by pub global run
+    if (Platform.environment.containsKey('PUB_CACHE')) {
+      return true;
+    }
+
+    // Default assumption is global
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
