@@ -377,7 +377,7 @@ String _debugSymbolsScript(
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,
-  bool isGlobalScript,
+  bool isDevDependency,
 ) {
   final projectType = switch (projectConfiguration) {
     ProjectConfiguration.buildConfiguration =>
@@ -407,7 +407,7 @@ else
 fi
 
 # Command to upload symbols script used to upload symbols to Firebase server
-${isGlobalScript ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
+${isDevDependency ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
 for target in project.targets
