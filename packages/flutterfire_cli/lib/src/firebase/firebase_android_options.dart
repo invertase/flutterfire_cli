@@ -56,7 +56,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     );
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       packageNameOrBundleIdentifier: selectedAndroidApplicationId,
-      displayName: flutterApp.package.pubSpec.name ?? 'flutterfire_app',
+      displayName: flutterApp.package.pubSpec.name,
       platform: kAndroid,
       project: firebaseProjectId,
       account: firebaseAccount,
