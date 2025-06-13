@@ -75,7 +75,10 @@ jobs:
           melos-version: '3.0.0'
       - name: "Install Firebase CLI"
         run: |
-          sudo npm i -g firebase-tools  
+          sudo npm i -g firebase-tools
+      - name: Select Xcode version
+        run: |
+          sudo xcode-select -switch /Applications/Xcode_16.2.app/Contents/Developer
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
