@@ -1510,7 +1510,6 @@ void main() {
         workingDirectory: projectPath,
       );
 
-
       if (result.exitCode != 0) {
         fail(result.stderr as String);
       }

@@ -377,6 +377,7 @@ class Reconfigure extends FlutterFireCommand {
   @override
   Future<void> run() async {
     try {
+      commandRequiresFlutterApp();
       final firebaseJson = File(
         path.join(
           flutterApp!.package.path,
