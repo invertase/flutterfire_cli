@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
-import 'package:pubspec/pubspec.dart';
 import 'package:yaml/yaml.dart';
 import '../common/strings.dart';
 import '../common/utils.dart';
@@ -1104,8 +1103,9 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
 
     final firebaseCorePubspecFile =
         pubspecPathForDirectory(firebaseCoreDirectory);
-    final pubSpec = await PubSpec.loadFile(firebaseCorePubspecFile);
-    final unparsedJson = pubSpec.unParsedYaml?['firebase'] as YamlMap?;
+    final content = await File(firebaseCorePubspecFile).readAsString();
+    final yamlMap = loadYaml(content) as YamlMap;
+    final unparsedJson = yamlMap['firebase'] as YamlMap?;
     if (unparsedJson != null) {
       return FirebasePubSpecModel.fromJson(
         unparsedJson.cast<String, dynamic>(),
