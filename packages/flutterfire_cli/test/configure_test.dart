@@ -1521,7 +1521,7 @@ void main() {
           'add',
           '--dev',
           'flutterfire_cli',
-          '--path=${Directory.current.path}'
+          '--path=${Directory.current.path}',
         ],
         workingDirectory: projectPath,
       );
@@ -1566,8 +1566,11 @@ void main() {
       );
 
       // Exit code 0 means both strings were found
-      expect(grepDevDependencyScriptsAdded.exitCode, 0,
-          reason: 'Required FlutterFire scripts not found in project.pbxproj');
+      expect(
+        grepDevDependencyScriptsAdded.exitCode,
+        0,
+        reason: 'Required FlutterFire scripts not found in project.pbxproj',
+      );
 
       const iosVersion = '13.0';
       // Update project.pbxproj

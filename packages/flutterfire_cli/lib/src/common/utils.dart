@@ -545,17 +545,3 @@ String firebaseCLIJsonParse(String output) {
       RegExp(r'\}\s*\{\s*"status":\s*"error",\s*"error":\s*"Timed out."\s*\}');
   return output.replaceFirst(regex, '}');
 }
-
-// Warns user if they have a dev dependency on flutterfire_cli and are running globally
-void warnUserIfRunningGlobally(FlutterApp flutterApp) {
-  final scriptPath = Platform.script.toFilePath();
-
-  // Check if we're in a .dart_tool directory (dev dependency)
-  if (!scriptPath.contains('.dart_tool') &&
-      flutterApp.dependsOnPackage('flutterfire_cli')) {
-    // TODO use logger and make it global rather than passing it around
-    print(
-      'If you\'re trying to run as dev dependency, you need to run `dart run flutterfire_cli:flutterfire` instead of `flutterfire`',
-    );
-  }
-}
