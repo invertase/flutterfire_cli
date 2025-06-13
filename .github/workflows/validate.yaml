@@ -116,6 +116,6 @@ jobs:
         shell: bash
         run: |
           set -e
-          melos run test
+          melos run test --no-select
         env:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
