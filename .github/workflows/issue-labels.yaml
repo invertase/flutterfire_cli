@@ -3,6 +3,8 @@ name: Update labels on issues with OP response
 on:
   issue_comment:
     types: [created]
+  issues:
+    types: [opened]
 
 jobs:
   label-op-response:
@@ -33,6 +35,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   label-new-issue:
+    if: github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - name: Add 'Needs Attention' label to new issue
