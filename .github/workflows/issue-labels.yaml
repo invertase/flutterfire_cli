@@ -3,6 +3,8 @@ name: Update labels on issues with OP response
 on:
   issue_comment:
     types: [created]
+  issues:
+    types: [opened]
 
 jobs:
   label-op-response:
@@ -13,11 +15,18 @@ jobs:
         run: |
           OP=${{ github.event.issue.user.login }}
           COMMENTER=${{ github.event.comment.user.login }}
+          echo "OP: $OP"
+          echo "COMMENTER: $COMMENTER"
           if [ "$OP" = "$COMMENTER" ]; then
             echo "op_comment=true" >> $GITHUB_ENV
+            echo "Setting op_comment to true"
           else
             echo "op_comment=false" >> $GITHUB_ENV
+            echo "Setting op_comment to false"
           fi
+      - name: Debug - Print op_comment value
+        run: |
+          echo "op_comment value: ${{ env.op_comment }}"
       - name: Add 'Needs Attention' label if OP responded
         if: env.op_comment == 'true'
         uses: actions-ecosystem/action-add-labels@v1
@@ -33,6 +42,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   label-new-issue:
+    if: github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
       - name: Add 'Needs Attention' label to new issue
