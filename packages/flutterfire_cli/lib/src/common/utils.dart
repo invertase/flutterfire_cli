@@ -515,7 +515,7 @@ void validateAppBundleId(
   String platform,
 ) {
   final bundleIdRegex = RegExp(
-  r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?|([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+))$',
+    r'^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?|([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+))$',
   );
 
   if (!bundleIdRegex.hasMatch(bundleId)) {
@@ -541,38 +541,21 @@ void validateAndroidPackageName(String appId) {
 
 String firebaseCLIJsonParse(String output) {
   // Sometimes the response has an appended time out exception which breaks parsing
-  final regex = RegExp(r'\}\s*\{\s*"status":\s*"error",\s*"error":\s*"Timed out."\s*\}');
+  final regex =
+      RegExp(r'\}\s*\{\s*"status":\s*"error",\s*"error":\s*"Timed out."\s*\}');
   return output.replaceFirst(regex, '}');
 }
 
+// Warns user if they have a dev dependency on flutterfire_cli and are running globally
+void warnUserIfRunningGlobally(FlutterApp flutterApp) {
+  final scriptPath = Platform.script.toFilePath();
 
-/// Detects if the CLI is running from global installation or dev dependency
-bool isRunningFromGlobal() {
-  try {
-    // Check if we're in pub cache (global installation)
-    final scriptPath = Platform.script.toFilePath();
-    final pubCacheDir = Platform.environment['PUB_CACHE'] ??
-        (Platform.isWindows
-            ? '${Platform.environment['APPDATA']}\\Pub\\Cache'
-            : '${Platform.environment['HOME']}/.pub-cache');
-
-    if (scriptPath.contains(pubCacheDir)) {
-      return true;
-    }
-
-    // Check if we're in a .dart_tool directory (dev dependency)
-    if (scriptPath.contains('.dart_tool')) {
-      return false;
-    }
-
-    // Check environment variables set by pub global run
-    if (Platform.environment.containsKey('PUB_CACHE')) {
-      return true;
-    }
-
-    // Default assumption is global
-    return true;
-  } catch (e) {
-    return true;
+  // Check if we're in a .dart_tool directory (dev dependency)
+  if (!scriptPath.contains('.dart_tool') &&
+      flutterApp.dependsOnPackage('flutterfire_cli')) {
+    // TODO use logger and make it global rather than passing it around
+    print(
+      'If you\'re trying to run as dev dependency, you need to run `dart run flutterfire_cli:flutterfire` instead of `flutterfire`',
+    );
   }
 }

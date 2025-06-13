@@ -497,10 +497,8 @@ Future<void> checkBuildGradleFileUpdated(
   final pluginsPatternApp = [
     '// START: FlutterFire Configuration',
     r'id\("com\.google\.gms\.google-services"\)',
-    if (checkPerf)
-      r'id\("com\.google\.firebase\.firebase-perf"\)',
-    if (checkCrashlytics)
-      r'id\("com\.google\.firebase\.crashlytics"\)',
+    if (checkPerf) r'id\("com\.google\.firebase\.firebase-perf"\)',
+    if (checkCrashlytics) r'id\("com\.google\.firebase\.crashlytics"\)',
     '// END: FlutterFire Configuration',
   ].join(r'\s*');
 

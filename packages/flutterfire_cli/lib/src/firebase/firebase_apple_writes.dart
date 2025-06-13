@@ -7,6 +7,7 @@ import 'package:yaml/yaml.dart';
 
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
+import '../flutter_app.dart';
 
 const debugSymbolScriptName =
     'FlutterFire: "flutterfire upload-crashlytics-symbols"';
@@ -15,7 +16,7 @@ const bundleServiceScriptName =
 
 Future<FirebaseJsonWrites> appleWrites({
   required String platform,
-  required String flutterAppPath,
+  required FlutterApp flutterApp,
   required String serviceFilePath,
   required FirebaseOptions platformOptions,
   required Logger logger,
@@ -27,7 +28,7 @@ Future<FirebaseJsonWrites> appleWrites({
     case ProjectConfiguration.buildConfiguration:
       return FirebaseAppleBuildConfiguration(
         platformOptions: platformOptions,
-        flutterAppPath: flutterAppPath,
+        flutterApp: flutterApp,
         serviceFilePath: serviceFilePath,
         logger: logger,
         platform: platform,
@@ -38,7 +39,7 @@ Future<FirebaseJsonWrites> appleWrites({
     case ProjectConfiguration.defaultConfig:
       return FirebaseAppleTargetConfiguration(
         platformOptions: platformOptions,
-        flutterAppPath: flutterAppPath,
+        flutterApp: flutterApp,
         serviceFilePath: serviceFilePath,
         logger: logger,
         platform: platform,
@@ -53,7 +54,7 @@ Future<FirebaseJsonWrites> appleWrites({
 class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
   FirebaseAppleTargetConfiguration({
     required FirebaseOptions platformOptions,
-    required String flutterAppPath,
+    required FlutterApp flutterApp,
     required String serviceFilePath,
     required Logger logger,
     required String platform,
@@ -61,7 +62,7 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
     required this.target,
   }) : super(
           platformOptions: platformOptions,
-          flutterAppPath: flutterAppPath,
+          flutterApp: flutterApp,
           serviceFilePath: serviceFilePath,
           logger: logger,
           platform: platform,
@@ -123,11 +124,11 @@ end
 
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
       target: target,
-      flutterAppPath: flutterAppPath,
+      flutterAppPath: flutterApp.package.path,
       logger: logger,
       platform: platform,
       projectConfiguration: projectConfiguration,
-      isGlobalScript: isGlobalScript,
+      isDevDependency: flutterApp.dependsOnPackage('flutterfire_cli'),
     );
 
     return _firebaseJsonWrites(debugSymbolScriptAdded, target);
@@ -142,7 +143,7 @@ end
 class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   FirebaseAppleBuildConfiguration({
     required FirebaseOptions platformOptions,
-    required String flutterAppPath,
+    required FlutterApp flutterApp,
     required String serviceFilePath,
     required Logger logger,
     required String platform,
@@ -150,7 +151,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     required this.buildConfiguration,
   }) : super(
           platformOptions: platformOptions,
-          flutterAppPath: flutterAppPath,
+          flutterApp: flutterApp,
           serviceFilePath: serviceFilePath,
           logger: logger,
           platform: platform,
@@ -186,7 +187,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     } else {
       // iOS is bundled in the root of the app bundle
       command =
-          '${isGlobalScript ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} bundle-service-file --plist-destination="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
+          '${flutterApp.dependsOnPackage('flutterfire_cli') ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} bundle-service-file --plist-destination="\${BUILT_PRODUCTS_DIR}/\${PRODUCT_NAME}.app" --build-configuration=\${CONFIGURATION} --platform=$platform --apple-project-path="\${SRCROOT}"';
     }
 
     return '''
@@ -227,11 +228,11 @@ end
     await _writeGoogleServiceFileToPath();
     await _writeBundleServiceFileScriptToProject();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
-      flutterAppPath: flutterAppPath,
+      flutterAppPath: flutterApp.package.path,
       logger: logger,
       projectConfiguration: projectConfiguration,
       platform: platform,
-      isGlobalScript: isGlobalScript,
+      isDevDependency: flutterApp.dependsOnPackage('flutterfire_cli'),
     );
 
     return _firebaseJsonWrites(
@@ -250,7 +251,7 @@ end
 abstract class FirebaseAppleConfiguration {
   FirebaseAppleConfiguration({
     required this.platformOptions,
-    required this.flutterAppPath,
+    required this.flutterApp,
     required this.serviceFilePath,
     required this.logger,
     required this.platform,
@@ -258,12 +259,11 @@ abstract class FirebaseAppleConfiguration {
   });
   // Either "ios" or "macos"
   final String platform;
-  final String flutterAppPath;
+  final FlutterApp flutterApp;
   final FirebaseOptions platformOptions;
   final String serviceFilePath;
   final Logger logger;
   ProjectConfiguration projectConfiguration;
-  bool isGlobalScript = isRunningFromGlobal();
 
   FirebaseJsonWrites _firebaseJsonWrites(
     bool uploadDebugSymbols,
@@ -283,7 +283,7 @@ abstract class FirebaseAppleConfiguration {
       pathToMap: keysToMap,
       projectId: platformOptions.projectId,
       appId: platformOptions.appId,
-      fileOutput: path.relative(serviceFilePath, from: flutterAppPath),
+      fileOutput: path.relative(serviceFilePath, from: flutterApp.package.path),
       uploadDebugSymbols: uploadDebugSymbols,
     );
   }
@@ -309,7 +309,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
   required Logger logger,
   required String platform,
   required ProjectConfiguration projectConfiguration,
-  required bool isGlobalScript,
+  required bool isDevDependency,
 }) async {
   final packageConfigContents = File(
     path.join(
@@ -356,7 +356,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
         target,
         projectConfiguration,
         platform,
-        isGlobalScript,
+        isDevDependency,
       ),
     ]);
 
