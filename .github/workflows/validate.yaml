@@ -113,6 +113,9 @@ jobs:
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite
       - name: "Run Tests"
-        run: cmd /K melos run test --no-select
+        shell: bash
+        run: |
+          set -e
+          melos run test
         env:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
