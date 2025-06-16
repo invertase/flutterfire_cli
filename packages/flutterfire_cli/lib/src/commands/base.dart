@@ -15,6 +15,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -64,6 +66,20 @@ abstract class FlutterFireCommand extends Command<void> {
   void commandRequiresFlutterApp() {
     if (flutterApp == null) {
       throw FlutterAppRequiredException();
+    }
+    _warnUserIfRunningGlobally();
+  }
+
+  // Warns user if they have a dev dependency on flutterfire_cli and are running globally
+  void _warnUserIfRunningGlobally() {
+    final scriptPath = Platform.script.toFilePath();
+
+    // Check if we're in a .dart_tool directory (dev dependency)
+    if (!scriptPath.contains('.dart_tool') &&
+        flutterApp!.dependsOnPackage('flutterfire_cli')) {
+      logger.stdout(
+        "If you're trying to run FlutterFire CLI as a dev dependency, you need to run `dart run flutterfire_cli:flutterfire` instead of `flutterfire`",
+      );
     }
   }
 

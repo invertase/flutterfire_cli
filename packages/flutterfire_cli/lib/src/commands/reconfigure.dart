@@ -156,6 +156,7 @@ class Reconfigure extends FlutterFireCommand {
         platform: platform,
         logger: logger,
         projectConfiguration: ProjectConfiguration.buildConfiguration,
+        isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
       );
 
       final buildConfigurations = getNestedMap(
@@ -196,6 +197,7 @@ class Reconfigure extends FlutterFireCommand {
         platform: platform,
         logger: logger,
         projectConfiguration: ProjectConfiguration.defaultConfig,
+        isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
       );
 
       await _writeFile(
@@ -230,6 +232,7 @@ class Reconfigure extends FlutterFireCommand {
           platform: platform,
           logger: logger,
           projectConfiguration: ProjectConfiguration.target,
+          isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
         );
         // ignore: cast_nullable_to_non_nullable
         final configuration = targets[key] as Map<String, dynamic>;
@@ -374,6 +377,7 @@ class Reconfigure extends FlutterFireCommand {
   @override
   Future<void> run() async {
     try {
+      commandRequiresFlutterApp();
       final firebaseJson = File(
         path.join(
           flutterApp!.package.path,
