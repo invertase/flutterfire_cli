@@ -482,8 +482,9 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         .contains(_androidAppBuildGradleGoogleServicesRegex);
 
     if (!pluginExists) {
-      final pattern =
-          RegExp(r'id "com\.android\.application" version "[^"]*" apply false');
+      final pattern = RegExp(
+        "id ([\"']com\\.android\\.application[\"']) version ([\"'][^\"']*[\"']) apply false",
+      );
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
       if (match != null) {
@@ -630,7 +631,7 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
 
     if (!pluginExists) {
       final pattern = RegExp(
-        r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
+        "id ([\"']com\\.google\\.gms\\.google-services[\"']) version ([\"']\\d+\\.\\d+\\.\\d+[\"']) apply false",
       );
 
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
@@ -1059,7 +1060,7 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
 
     if (!pluginExists) {
       final pattern = RegExp(
-        r'id\("com\.google\.gms\.google-services"\) version\("\d+\.\d+\.\d+"\) apply false',
+        "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version\\(([\"']\\d+\\.\\d+\\.\\d+[\"'])\\) apply false",
       );
 
       final match = pattern.firstMatch(androidGradleSettingsKtsFileContents);
