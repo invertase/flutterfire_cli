@@ -58,7 +58,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     );
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       packageNameOrBundleIdentifier: selectedAppleBundleId,
-      displayName: flutterApp.package.pubSpec.name ?? 'flutterfire_app',
+      displayName: flutterApp.package.pubSpec.name,
       platform: platformIdentifier,
       project: firebaseProjectId,
       account: firebaseAccount,

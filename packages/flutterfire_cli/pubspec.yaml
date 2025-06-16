@@ -8,25 +8,25 @@ environment:
 
 dependencies:
   ansi_styles: ^0.3.2+1
-  args: ^2.3.0
+  args: ^2.7.0
   ci: ^0.1.0
   cli_util: ^0.4.0
   collection: ^1.18.0
   deep_pick: ^1.0.0
   file: ^7.0.0
-  http: ^1.2.1
+  http: ^1.4.0
   interact: ^2.2.0
   meta: ^1.6.0
   path: ^1.8.0
   platform: ^3.0.2
-  pub_updater: ^0.4.0
-  pubspec: ^2.1.0
+  pub_updater: ^0.5.0
+  pubspec_parse: ^1.5.0
   xml: ^6.1.0
   yaml: ^3.1.2
 
 dev_dependencies:
-  googleapis_auth: ^1.4.0
-  test: ^1.24.3
+  googleapis_auth: ^2.0.0
+  test: ^1.26.2
 executables:
   flutterfire:
 

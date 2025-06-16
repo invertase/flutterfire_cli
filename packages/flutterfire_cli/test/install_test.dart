@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:pubspec/pubspec.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
@@ -34,8 +34,9 @@ void main() {
         fail(result.stderr as String);
       }
 
-      final parsedPubspec =
-          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+      final parsedPubspec = Pubspec.parse(
+        await File(p.join(projectPath!, 'pubspec.yaml')).readAsString(),
+      );
 
       expect(parsedPubspec.dependencies['firebase_auth'], isNotNull);
       expect(parsedPubspec.dependencies['firebase_core'], isNotNull);
@@ -91,8 +92,9 @@ void main() {
         fail(result.stderr as String);
       }
 
-      final parsedPubspec =
-          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+      final parsedPubspec = Pubspec.parse(
+        await File(p.join(projectPath!, 'pubspec.yaml')).readAsString(),
+      );
 
       expect(parsedPubspec.dependencies['firebase_auth'], isNotNull);
       expect(parsedPubspec.dependencies['firebase_core'], isNotNull);
@@ -115,8 +117,9 @@ void main() {
         fail(result2.stderr as String);
       }
 
-      final parsedPubspec2 =
-          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+      final parsedPubspec2 = Pubspec.parse(
+        await File(p.join(projectPath!, 'pubspec.yaml')).readAsString(),
+      );
 
       expect(parsedPubspec2.dependencies['firebase_auth'], isNull);
       expect(parsedPubspec2.dependencies['firebase_core'], isNotNull);
@@ -147,8 +150,9 @@ void main() {
         fail(result.stderr as String);
       }
 
-      final parsedPubspec =
-          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+      final parsedPubspec = Pubspec.parse(
+        await File(p.join(projectPath!, 'pubspec.yaml')).readAsString(),
+      );
 
       expect(parsedPubspec.dependencies['firebase_auth'], isNotNull);
       expect(parsedPubspec.dependencies['firebase_core'], isNotNull);
@@ -171,8 +175,9 @@ void main() {
         fail(result2.stderr as String);
       }
 
-      final parsedPubspec2 =
-          await PubSpec.loadFile(p.join(projectPath!, 'pubspec.yaml'));
+      final parsedPubspec2 = Pubspec.parse(
+        await File(p.join(projectPath!, 'pubspec.yaml')).readAsString(),
+      );
 
       expect(parsedPubspec2.dependencies['firebase_auth'], isNotNull);
       expect(parsedPubspec2.dependencies['firebase_core'], isNotNull);
