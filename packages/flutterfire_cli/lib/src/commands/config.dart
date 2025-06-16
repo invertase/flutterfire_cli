@@ -564,7 +564,7 @@ class ConfigCommand extends FlutterFireCommand {
   @override
   Future<void> run() async {
     // Has to set during `run()` otherwise `argResults` will be null
-    updateDebugMode(argResults!['debug']as bool);
+    updateDebugMode(argResults!['debug'] as bool);
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();
@@ -659,7 +659,7 @@ class ConfigCommand extends FlutterFireCommand {
             iosInputs != null) {
           final firebaseJsonWrite = await appleWrites(
             platformOptions: fetchedFirebaseOptions.iosOptions!,
-            flutterAppPath: flutterApp!.package.path,
+            flutterApp: flutterApp!,
             serviceFilePath: iosInputs!.serviceFilePath,
             logger: logger,
             buildConfiguration: iosInputs?.buildConfiguration,
@@ -676,7 +676,7 @@ class ConfigCommand extends FlutterFireCommand {
             macosInputs != null) {
           final firebaseJsonWrite = await appleWrites(
             platformOptions: fetchedFirebaseOptions.macosOptions!,
-            flutterAppPath: flutterApp!.package.path,
+            flutterApp: flutterApp!,
             serviceFilePath: macosInputs!.serviceFilePath,
             logger: logger,
             buildConfiguration: macosInputs?.buildConfiguration,

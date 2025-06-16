@@ -1500,4 +1500,163 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+    'Validate dev dependency works as normal & `flutterfire upload-crashlytics-symbols` works via dev dependency',
+    () async {
+      final result = Process.runSync(
+        'flutter',
+        ['pub', 'add', 'firebase_crashlytics'],
+        workingDirectory: projectPath,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final installDevDependency = Process.runSync(
+        'flutter',
+        [
+          'pub',
+          'add',
+          '--dev',
+          'flutterfire_cli',
+          '--path=${Directory.current.path}',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (installDevDependency.exitCode != 0) {
+        fail(installDevDependency.stderr as String);
+      }
+
+      final result2 = Process.runSync(
+        'dart',
+        [
+          'run',
+          'flutterfire_cli:flutterfire',
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          '--platforms=ios,macos',
+          // Need to test bundle script is written correctly for both build configurations
+          '--ios-build-config=$appleBuildConfiguration',
+          '--ios-out=ios/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+          '--macos-out=macos/$buildType',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result2.stderr as String);
+      }
+
+      // Run grep to check for both strings
+      final grepDevDependencyScriptsAdded = Process.runSync(
+        'grep',
+        [
+          '-q',
+          '-E',
+          'dart run flutterfire_cli:flutterfire (upload-crashlytics-symbols|bundle-service-file)',
+          'ios/Runner.xcodeproj/project.pbxproj',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      // Exit code 0 means both strings were found
+      expect(
+        grepDevDependencyScriptsAdded.exitCode,
+        0,
+        reason: 'Required FlutterFire scripts not found in project.pbxproj',
+      );
+
+      const iosVersion = '13.0';
+      // Update project.pbxproj
+      final pbxprojResult = Process.runSync(
+        'sed',
+        [
+          '-i',
+          '',
+          's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
+          'ios/Runner.xcodeproj/project.pbxproj',
+        ],
+        workingDirectory: projectPath,
+      );
+
+      if (pbxprojResult.exitCode != 0) {
+        fail(pbxprojResult.stderr as String);
+      }
+
+      final buildApp = Process.runSync(
+        'flutter',
+        [
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (buildApp.exitCode != 0) {
+        fail(buildApp.stderr as String);
+      }
+
+      expect(
+        buildApp.stdout,
+        // Check symbols are uploaded in the background
+        contains('Symbol uploading will proceed in the background'),
+      );
+
+      Process.runSync(
+        'flutter',
+        ['config', '--enable-swift-package-manager'],
+        workingDirectory: projectPath,
+      );
+
+      final iosDirectory = p.join(projectPath!, 'ios');
+
+      Process.runSync(
+        'bash',
+        [
+          '-c',
+          '[ -f Podfile ] && rm Podfile && pod deintegrate && rm -rf Pods/',
+        ],
+        workingDirectory: iosDirectory,
+      );
+
+      final buildAppSPM = Process.runSync(
+        'flutter',
+        [
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (buildAppSPM.exitCode != 0) {
+        fail(buildAppSPM.stderr as String);
+      }
+
+      expect(
+        buildAppSPM.stdout,
+        // Check symbols are uploaded in the background
+        contains('Symbol uploading will proceed in the background'),
+      );
+    },
+    skip: !Platform.isMacOS,
+    timeout: const Timeout(
+      Duration(minutes: 3),
+    ),
+  );
 }
