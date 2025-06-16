@@ -37,11 +37,46 @@ on this path: `.dart_tool/pub/bin/flutterfire_cli_monorepo/*.snapshot`. This wil
 
 ## Install
 
+### Global Installation
+
 To install, run the following command:
 
 ```bash
 dart pub global activate flutterfire_cli
 ```
+
+### Dev Dependency (Beta)
+
+It is now possible to install as a dev dependency:
+
+```bash
+dart pub add --dev flutterfire_cli
+```
+**important** - remember to deactivate your current global installation of `flutterfire_cli`.
+
+To run flutterfire commands from your dev dependency:
+
+```bash
+dart run flutterfire_cli:flutterfire [COMMAND]
+```
+
+It might be worth creating an alias in your shell of choice, if you're using zsh shell, it might look like:
+
+```bash
+echo 'alias flutterfire="dart run flutterfire_cli:flutterfire"' >> ~/.zshrc
+```
+
+This will allow you to run commands like previously from within your Flutter app:
+
+```bash
+flutterfire configure
+```
+
+Remember to update or open a new terminal window so alias change is applied.
+
+This feature is in Beta, if you find any bugs, please file a new issue on the repo.
+
+#### Installation Requirements for Global and Dev Dependency
 
 - FlutterFire CLI requires the Firebase CLI (`firebase-tools`) to be installed on your local machine, [follow these instructions](https://firebase.google.com/docs/cli) for installation.
 - If you're running on a windows machine, we highly recommend you install via npm (i.e. `npm install -g firebase-tools`). The standalone
