@@ -1502,7 +1502,7 @@ void main() {
   );
 
   test(
-    'Validate `flutterfire upload-crashlytics-symbols` script works when running as dev dependency',
+    'Validate dev dependency works as normal & `flutterfire upload-crashlytics-symbols` works via dev dependency',
     () async {
       final result = Process.runSync(
         'flutter',
