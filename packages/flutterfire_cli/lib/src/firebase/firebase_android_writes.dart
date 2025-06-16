@@ -74,6 +74,22 @@ const _performancePluginClassPathFallbackVersion = '1.4.1';
 const _flutterFireConfigCommentStart = '// START: FlutterFire Configuration';
 const _flutterFireConfigCommentEnd = '// END: FlutterFire Configuration';
 
+// Public regex patterns for testing
+/// Pattern for matching Android application plugin with mixed quotes in settings.gradle
+final androidApplicationPluginPattern = RegExp(
+  "id ([\"']com\\.android\\.application[\"']) version ([\"'][^\"']*[\"']) apply false",
+);
+
+/// Pattern for matching Google Services plugin with mixed quotes in settings.gradle
+final googleServicesPluginPattern = RegExp(
+  "id ([\"']com\\.google\\.gms\\.google-services[\"']) version ([\"']\\d+\\.\\d+\\.\\d+[\"']) apply false",
+);
+
+/// Pattern for matching Kotlin DSL Google Services plugin with mixed quotes in settings.gradle.kts
+final kotlinGoogleServicesPluginPattern = RegExp(
+  "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version\\(([\"']\\d+\\.\\d+\\.\\d+[\"'])\\) apply false",
+);
+
 String _applyGradleSettingsDependency(
   String dependency,
   String version, {
@@ -482,8 +498,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
         .contains(_androidAppBuildGradleGoogleServicesRegex);
 
     if (!pluginExists) {
-      final pattern =
-          RegExp(r'id "com\.android\.application" version "[^"]*" apply false');
+      final pattern = androidApplicationPluginPattern;
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
       if (match != null) {
@@ -629,9 +644,7 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
         androidGradleSettingsFileContents.contains(RegExp(pluginClassPath));
 
     if (!pluginExists) {
-      final pattern = RegExp(
-        r'id "com\.google\.gms\.google-services" version "\d+\.\d+\.\d+" apply false',
-      );
+      final pattern = googleServicesPluginPattern;
 
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
@@ -1058,9 +1071,7 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
         androidGradleSettingsKtsFileContents.contains(RegExp(pluginClassPath));
 
     if (!pluginExists) {
-      final pattern = RegExp(
-        r'id\("com\.google\.gms\.google-services"\) version\("\d+\.\d+\.\d+"\) apply false',
-      );
+      final pattern = kotlinGoogleServicesPluginPattern;
 
       final match = pattern.firstMatch(androidGradleSettingsKtsFileContents);
 
