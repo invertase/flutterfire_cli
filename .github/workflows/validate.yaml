@@ -41,6 +41,7 @@ jobs:
   test_linux:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -83,6 +84,7 @@ jobs:
   test_macos:
     runs-on: macos-latest
     timeout-minutes: 25
+    environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -128,6 +130,7 @@ jobs:
   test_windows:
     runs-on: windows-latest
     timeout-minutes: 25
+    environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
