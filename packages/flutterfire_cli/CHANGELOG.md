@@ -1,3 +1,11 @@
+## 1.3.0
+
+ - **FIX**: regex Gradle single quote regex patterns ([#404](https://github.com/invertase/flutterfire_cli/issues/404)). ([29385979](https://github.com/invertase/flutterfire_cli/commit/29385979349e9ac6322a81d3dd320500c95de133))
+ - **FIX**: unnecessary changes to upload-crashlytics-symbols script each time configure project ([#391](https://github.com/invertase/flutterfire_cli/issues/391)). ([c3b1b089](https://github.com/invertase/flutterfire_cli/commit/c3b1b089814ed3b0d988ea0da3bdbe534c32232f))
+ - **FEAT**: allow FFCLI to be installed as a dev dependency ([#401](https://github.com/invertase/flutterfire_cli/issues/401)). ([a91f541c](https://github.com/invertase/flutterfire_cli/commit/a91f541ce9294ebef65d04d9db6a91f3572aed3d))
+ - **FEAT**: update dependencies to latest + remove discontinued pubspec ([#398](https://github.com/invertase/flutterfire_cli/issues/398)). ([3f114446](https://github.com/invertase/flutterfire_cli/commit/3f114446fc8f1b7844da243e356705f358ebbd90))
+ - **FEAT**: Use versions from firebase_core pubspec ([#393](https://github.com/invertase/flutterfire_cli/issues/393)). ([c9092c9e](https://github.com/invertase/flutterfire_cli/commit/c9092c9ea1e05198cd86bf24184688ae3da0e173))
+
 ## 1.2.0
 
  - **FIX**: Check for `Pods/FirebaseCrashlytics` directory when using SPM ([#377](https://github.com/invertase/flutterfire_cli/issues/377)). ([7ef4ddd3](https://github.com/invertase/flutterfire_cli/commit/7ef4ddd39cde180c5756538b0520f81cdce712f2))

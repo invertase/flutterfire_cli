@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.3.0`](#flutterfire_cli---v130)
+
+---
+
+#### `flutterfire_cli` - `v1.3.0`
+
+ - **FIX**: regex Gradle single quote regex patterns ([#404](https://github.com/invertase/flutterfire_cli/issues/404)). ([29385979](https://github.com/invertase/flutterfire_cli/commit/29385979349e9ac6322a81d3dd320500c95de133))
+ - **FIX**: unnecessary changes to upload-crashlytics-symbols script each time configure project ([#391](https://github.com/invertase/flutterfire_cli/issues/391)). ([c3b1b089](https://github.com/invertase/flutterfire_cli/commit/c3b1b089814ed3b0d988ea0da3bdbe534c32232f))
+ - **FEAT**: allow FFCLI to be installed as a dev dependency ([#401](https://github.com/invertase/flutterfire_cli/issues/401)). ([a91f541c](https://github.com/invertase/flutterfire_cli/commit/a91f541ce9294ebef65d04d9db6a91f3572aed3d))
+ - **FEAT**: update dependencies to latest + remove discontinued pubspec ([#398](https://github.com/invertase/flutterfire_cli/issues/398)). ([3f114446](https://github.com/invertase/flutterfire_cli/commit/3f114446fc8f1b7844da243e356705f358ebbd90))
+ - **FEAT**: Use versions from firebase_core pubspec ([#393](https://github.com/invertase/flutterfire_cli/issues/393)). ([c9092c9e](https://github.com/invertase/flutterfire_cli/commit/c9092c9ea1e05198cd86bf24184688ae3da0e173))
+
+
 ## 2025-04-15
 
 ### Changes
