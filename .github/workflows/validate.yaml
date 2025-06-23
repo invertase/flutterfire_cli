@@ -1,13 +1,19 @@
 name: all_packages
 on:
   workflow_dispatch:
-  pull_request:
   push:
     branches:
       - main
+  pull_request:
+    # Basic checks for all PRs (no secrets)
+  pull_request_target:
+    # Full tests with secrets (runs in base repo context)
+    types: [opened, synchronize, reopened]
 
 jobs:
-  analyze:
+  # Always run basic checks (no secrets needed)
+  basic_checks:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,27 +26,23 @@ jobs:
         with:
           fatal-infos: true
           fatal-warnings: true
-
-  format:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - uses: bluefireteam/melos-action@v2
       - name: "Check formatting"
         run: melos run format-check
+
+  # Full tests - requires approval for external PRs
   test_linux:
+    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    environment: CI Environment 
+    environment: CI Environment  # This triggers the approval workflow
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          # Important: checkout the PR head for pull_request_target
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -59,14 +61,17 @@ jobs:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
 
   test_macos:
+    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
     runs-on: macos-latest
     timeout-minutes: 25
-    environment: CI Environment 
+    environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
@@ -88,14 +93,17 @@ jobs:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
   
   test_windows:
+    if: github.event_name == 'push' || github.event_name == 'pull_request_target'
     runs-on: windows-latest
     timeout-minutes: 25
-    environment: CI Environment 
+    environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
