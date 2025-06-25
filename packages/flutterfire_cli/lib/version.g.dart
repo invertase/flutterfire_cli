@@ -1,2 +1,2 @@
 // This file is generated. Do not manually edit.
-String cliVersion = '1.3.0';
+String cliVersion = '1.3.1';

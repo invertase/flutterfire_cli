@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.3.1`](#flutterfire_cli---v131)
+
+---
+
+#### `flutterfire_cli` - `v1.3.1`
+
+ - **FIX**: 'Null' is not a subtype of type 'String' in type cast on Linux ([#405](https://github.com/invertase/flutterfire_cli/issues/405)). ([9c8e8438](https://github.com/invertase/flutterfire_cli/commit/9c8e8438bf78cfedd43d2c2ebc234c5a221e062a))
+
+
 ## 2025-06-23
 
 ### Changes
