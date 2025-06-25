@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
@@ -1104,14 +1106,41 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
 
 Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
   try {
+    const packageName = 'firebase_core-';
     final pubCacheFolder = _getPubCacheDirectory();
     final items = pubCacheFolder.listSync();
-    final firebaseCoreDirectory = items
+    final firebaseCoreItems = items
+        // Take only folders
         .whereType<Directory>()
-        .where((e) => e.path.split('/').last.startsWith('firebase_core-'))
-        .sortedBy((d) => d.path)
-        .last;
+        // Take only folders from firebase_core package
+        .where(
+          (e) => e.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .startsWith(packageName),
+        )
+        // Sort by version
+        .sorted(
+      (a, b) {
+        final aVersion = Version.parse(
+          a.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .replaceFirst(packageName, ''),
+        );
 
+        final bVersion = Version.parse(
+          b.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .replaceFirst(packageName, ''),
+        );
+
+        return aVersion.compareTo(bVersion);
+      },
+    );
+
+    final firebaseCoreDirectory = firebaseCoreItems.last;
     final firebaseCorePubspecFile =
         pubspecPathForDirectory(firebaseCoreDirectory);
     final content = await File(firebaseCorePubspecFile).readAsString();
