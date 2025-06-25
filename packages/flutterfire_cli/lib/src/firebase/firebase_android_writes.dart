@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 import '../common/strings.dart';
@@ -1104,13 +1105,27 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
 
 Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
   try {
+    const packageName = 'firebase_core-';
     final pubCacheFolder = _getPubCacheDirectory();
     final items = pubCacheFolder.listSync();
-    final firebaseCoreDirectory = items
+    final firebaseCoreItems = items
         .whereType<Directory>()
-        .where((e) => e.path.split('/').last.startsWith('firebase_core-'))
-        .sortedBy((d) => d.path)
-        .last;
+        .where((e) => e.path.split('/').last.startsWith(packageName))
+        .sorted(
+      (a, b) {
+        final aVersion = Version.parse(
+          a.path.split('/').last.replaceFirst(packageName, ''),
+        );
+        final bVersion = Version.parse(
+          b.path.split('/').last.replaceFirst(packageName, ''),
+        );
+
+        return aVersion.compareTo(bVersion);
+      },
+    );
+
+    final firebaseCoreDirectory = firebaseCoreItems.last;
+    print(firebaseCoreDirectory);
 
     final firebaseCorePubspecFile =
         pubspecPathForDirectory(firebaseCoreDirectory);
