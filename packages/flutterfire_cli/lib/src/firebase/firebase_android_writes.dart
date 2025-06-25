@@ -1110,15 +1110,30 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
     final pubCacheFolder = _getPubCacheDirectory();
     final items = pubCacheFolder.listSync();
     final firebaseCoreItems = items
+        // Take only folders
         .whereType<Directory>()
-        .where((e) => e.path.split('/').last.startsWith(packageName))
+        // Take only folders from firebase_core package
+        .where(
+          (e) => e.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .startsWith(packageName),
+        )
+        // Sort by version
         .sorted(
       (a, b) {
         final aVersion = Version.parse(
-          a.path.split('/').last.replaceFirst(packageName, ''),
+          a.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .replaceFirst(packageName, ''),
         );
+
         final bVersion = Version.parse(
-          b.path.split('/').last.replaceFirst(packageName, ''),
+          b.uri.pathSegments
+              .where((p) => p.isNotEmpty)
+              .last
+              .replaceFirst(packageName, ''),
         );
 
         return aVersion.compareTo(bVersion);
@@ -1126,7 +1141,6 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
     );
 
     final firebaseCoreDirectory = firebaseCoreItems.last;
-
     final firebaseCorePubspecFile =
         pubspecPathForDirectory(firebaseCoreDirectory);
     final content = await File(firebaseCorePubspecFile).readAsString();
