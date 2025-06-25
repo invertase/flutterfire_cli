@@ -1,3 +1,7 @@
+## 1.3.1
+
+ - **FIX**: 'Null' is not a subtype of type 'String' in type cast on Linux ([#405](https://github.com/invertase/flutterfire_cli/issues/405)). ([9c8e8438](https://github.com/invertase/flutterfire_cli/commit/9c8e8438bf78cfedd43d2c2ebc234c5a221e062a))
+
 ## 1.3.0
 
  - **FIX**: regex Gradle single quote regex patterns ([#404](https://github.com/invertase/flutterfire_cli/issues/404)). ([29385979](https://github.com/invertase/flutterfire_cli/commit/29385979349e9ac6322a81d3dd320500c95de133))
