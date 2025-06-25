@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
 import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
@@ -1125,7 +1126,6 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
     );
 
     final firebaseCoreDirectory = firebaseCoreItems.last;
-    print(firebaseCoreDirectory);
 
     final firebaseCorePubspecFile =
         pubspecPathForDirectory(firebaseCoreDirectory);
