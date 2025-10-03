@@ -56,7 +56,6 @@ Future<bool> npxExists() async {
   return _npxExistsCache = process.exitCode == 0;
 }
 
-
 /// Tries to read the default Firebase project id from the
 /// .firbaserc file at the root of the dart project if it exists.
 Future<String?> getDefaultFirebaseProjectId() async {
@@ -99,8 +98,8 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   if (!cliExists) {
     // If the CLI isn't installed, we can attempt to run it via npx which will
     // use the newest Firebase CLI version
-    final npxExists = await npxExists();
-    if (!npxExists) {
+    final npxCliExists = await npxExists();
+    if (!npxCliExists) {
       throw FirebaseCommandException(
         '--version',
         logMissingFirebaseCli,
@@ -112,7 +111,7 @@ Future<Map<String, dynamic>> runFirebaseCommand(
     ];
     process = await Process.run(
       'npx',
-      execArgs,
+      npxExecArgs,
       workingDirectory: workingDirectoryPath,
       environment: {
         if (serviceAccount != null)
