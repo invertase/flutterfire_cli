@@ -87,7 +87,8 @@ Future<Map<String, dynamic>> runFirebaseCommand(
       String? serviceAccount,
     }) async {
   final workingDirectoryPath = Directory.current.path;
-  final execArgs = [
+  var command = 'firebase';
+  var execArgs = [
     ...commandAndArgs,
     '--json',
     if (project != null) '--project=$project',
@@ -105,26 +106,17 @@ Future<Map<String, dynamic>> runFirebaseCommand(
         logMissingFirebaseCli,
       );
     }
-    final npxExecArgs = [
+    command = 'npx'
+    execArgs = [
       'firebase-tools@latest'
       ...execArgs,
     ];
-    process = await Process.run(
-      'npx',
-      npxExecArgs,
-      workingDirectory: workingDirectoryPath,
-      environment: {
-        if (serviceAccount != null)
-          'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
-      },
-      runInShell: true,
-    );
   }
 
   ProcessResult process;
   try {
     process = await Process.run(
-      'firebase',
+      command,
       execArgs,
       workingDirectory: workingDirectoryPath,
       environment: {
