@@ -63,6 +63,14 @@ class ConfigCommand extends FlutterFireCommand {
           'as a comma separated list. For example "android,ios,macos,web,linux,windows".',
     );
     argParser.addOption(
+      kDisplayNameFlag,
+      valueHelp: 'displayName',
+      abbr: 'n',
+      help: 'The display name of your app, e.g. "My Cool App". '
+          'If no display name is provided then an attempt will be made to '
+          'automatically detect it from your project configuration (if it exists).',
+    );
+    argParser.addOption(
       kIosBundleIdFlag,
       valueHelp: 'bundleIdentifier',
       abbr: 'i',
@@ -241,6 +249,10 @@ class ConfigCommand extends FlutterFireCommand {
               element == 'windows',
         )
         .toList();
+  }
+
+  String? get appDisplayName {
+    return argResults![kDisplayNameFlag] as String?;
   }
 
   bool get applyGradlePlugins {
@@ -625,6 +637,7 @@ class ConfigCommand extends FlutterFireCommand {
         iosBundleId: iosBundleId,
         macosBundleId: macosBundleId,
         token: token,
+        appDisplayName: appDisplayName,
         serviceAccount: serviceAccount,
         webAppId: webAppId,
         windowsAppId: windowsAppId,

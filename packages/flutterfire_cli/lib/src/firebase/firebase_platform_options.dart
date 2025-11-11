@@ -40,6 +40,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? windowsAppId,
   String? token,
   String? serviceAccount,
+  required String? appDisplayName,
 }) async {
   FirebaseOptions? androidOptions;
   FirebaseOptions? iosOptions;
@@ -56,6 +57,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       token: token,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
 
@@ -67,6 +69,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       token: token,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
   if (macos) {
@@ -78,6 +81,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       macos: true,
       token: token,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
 
@@ -89,6 +93,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       webAppId: webAppId,
       token: token,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
 
@@ -101,6 +106,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       token: token,
       webAppId: windowsAppId,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
 
@@ -112,6 +118,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       platform: kLinux,
       token: token,
       serviceAccount: serviceAccount,
+      displayName: appDisplayName,
     );
   }
 

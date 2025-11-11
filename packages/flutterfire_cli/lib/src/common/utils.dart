@@ -63,6 +63,7 @@ const String kConfigurations = 'configurations';
 const String kOutFlag = 'out';
 const String kYesFlag = 'yes';
 const String kPlatformsFlag = 'platforms';
+const String kDisplayNameFlag = 'display-name';
 const String kIosBundleIdFlag = 'ios-bundle-id';
 const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
