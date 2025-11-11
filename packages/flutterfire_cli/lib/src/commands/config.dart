@@ -251,7 +251,7 @@ class ConfigCommand extends FlutterFireCommand {
         .toList();
   }
 
-  String? get appDisplayName {
+  String? get displayName {
     return argResults![kDisplayNameFlag] as String?;
   }
 
@@ -637,7 +637,7 @@ class ConfigCommand extends FlutterFireCommand {
         iosBundleId: iosBundleId,
         macosBundleId: macosBundleId,
         token: token,
-        appDisplayName: appDisplayName,
+        displayName: displayName,
         serviceAccount: serviceAccount,
         webAppId: webAppId,
         windowsAppId: windowsAppId,
