@@ -120,6 +120,11 @@ If you wish to be specific about which platforms you want to configure, use the 
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=android,ios,web
 ```
 
+If you want to specify a display name you want to configurem use the `--display-name` flag:
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
+```
+
 FlutterFire CLI now supports Windows applications. The Firebase console does not allow you to create an application for Windows, FlutterFire CLI will create a **web app** if you specify windows as a platform you want to configure:
 
 ```bash
