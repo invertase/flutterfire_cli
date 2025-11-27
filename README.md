@@ -120,7 +120,7 @@ If you wish to be specific about which platforms you want to configure, use the 
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=android,ios,web
 ```
 
-If you want to specify a display name you want to configurem use the `--display-name` flag:
+If you want to specify a display name (i.e. how it appears in the Firebase console), use the `--display-name` flag:
 ```bash
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
 ```
