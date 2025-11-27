@@ -33,7 +33,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     String? firebaseAccount,
     required String? token,
     required String? serviceAccount,
-    required String? displayName,
+    required String displayName,
   }) async {
     final platformIdentifier = macos ? kMacos : kIos;
     var selectedAppleBundleId = appleBundleIdentifier ??
@@ -59,7 +59,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     );
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       packageNameOrBundleIdentifier: selectedAppleBundleId,
-      displayName: displayName ?? flutterApp.package.pubSpec.name,
+      displayName: displayName,
       platform: platformIdentifier,
       project: firebaseProjectId,
       account: firebaseAccount,

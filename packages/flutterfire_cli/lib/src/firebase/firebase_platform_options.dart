@@ -40,7 +40,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? windowsAppId,
   String? token,
   String? serviceAccount,
-  String? displayName,
+  required String displayName,
 }) async {
   FirebaseOptions? androidOptions;
   FirebaseOptions? iosOptions;

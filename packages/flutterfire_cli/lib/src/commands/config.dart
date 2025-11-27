@@ -251,8 +251,9 @@ class ConfigCommand extends FlutterFireCommand {
         .toList();
   }
 
-  String? get displayName {
-    return argResults![kDisplayNameFlag] as String?;
+  String get displayName {
+    final flagValue = argResults![kDisplayNameFlag] as String?;
+    return flagValue ?? flutterApp!.package.pubSpec.name;
   }
 
   bool get applyGradlePlugins {

@@ -32,10 +32,10 @@ extension FirebaseDartOptions on FirebaseOptions {
     String platform = kWeb,
     required String? token,
     required String? serviceAccount,
-    required String? displayName,
+    required String displayName,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
-      displayName: displayName ?? flutterApp.package.pubSpec.name,
+      displayName: displayName,
       platform: platform,
       project: firebaseProjectId,
       account: firebaseAccount,
