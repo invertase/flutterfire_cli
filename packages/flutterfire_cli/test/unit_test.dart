@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:flutterfire_cli/src/firebase/firebase_app.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -139,6 +140,49 @@ void main() {
         () => validateAndroidPackageName('123.com.example.app'),
         throwsA(isA<ValidationException>()),
       );
+    });
+  });
+
+  group('FirebaseApp displayName handling', () {
+    test('FirebaseApp.fromJson correctly parses displayName from JSON', () {
+      final json = {
+        'platform': 'ANDROID',
+        'appId': '1:123456:android:abc',
+        'displayName': 'My Cool App',
+        'name': 'projects/test/apps/abc',
+        'packageName': 'com.example.app',
+      };
+
+      final app = FirebaseApp.fromJson(json);
+
+      expect(app.displayName, 'My Cool App');
+      expect(app.name, 'projects/test/apps/abc');
+      expect(app.platform, 'android');
+      expect(app.packageNameOrBundleIdentifier, 'com.example.app');
+    });
+
+    test('FirebaseApp.fromJson handles null or missing displayName', () {
+      // Test with null displayName
+      final jsonWithNull = {
+        'platform': 'IOS',
+        'appId': '1:123456:ios:xyz',
+        'displayName': null,
+        'name': 'projects/test/apps/xyz',
+        'bundleId': 'com.example.app',
+      };
+
+      final appWithNull = FirebaseApp.fromJson(jsonWithNull);
+      expect(appWithNull.displayName, null);
+
+      // Test with missing displayName field
+      final jsonWithoutField = {
+        'platform': 'WEB',
+        'appId': '1:123456:web:def',
+        'name': 'projects/test/apps/def',
+      };
+
+      final appWithoutField = FirebaseApp.fromJson(jsonWithoutField);
+      expect(appWithoutField.displayName, null);
     });
   });
 
