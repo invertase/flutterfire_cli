@@ -217,6 +217,65 @@ String rubyScriptForTestingDebugSymbolScriptExists(
 ''';
 }
 
+String rubyScriptForCheckingScriptOrdering(
+  String projectPath,
+  String platform, {
+  String targetName = 'Runner',
+  String bundleScriptName = 'FlutterFire: "flutterfire bundle-service-file"',
+  String debugSymbolScriptName =
+      'FlutterFire: "flutterfire upload-crashlytics-symbols"',
+}) {
+  final xcodeProjectPath = p.join(projectPath, platform, 'Runner.xcodeproj');
+  return '''
+require 'xcodeproj'
+xcodeFile='$xcodeProjectPath'
+bundleScriptName='$bundleScriptName'
+debugSymbolScriptName='$debugSymbolScriptName'
+targetName='$targetName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+target = project.targets.find { |target| target.name == targetName }
+
+if (target)
+  # Find both scripts
+  bundlePhase = target.shell_script_build_phases().find do |item|
+    if defined? item && item.name
+      item.name == bundleScriptName
+    end
+  end
+  
+  debugSymbolPhase = target.shell_script_build_phases().find do |item|
+    if defined? item && item.name
+      item.name == debugSymbolScriptName
+    end
+  end
+  
+  # Both scripts must exist
+  if (bundlePhase.nil?)
+    abort("failed, bundle-service-file script not found")
+  end
+  
+  if (debugSymbolPhase.nil?)
+    abort("failed, upload-crashlytics-symbols script not found")
+  end
+  
+  # Get all build phases to check ordering
+  allPhases = target.build_phases
+  bundleIndex = allPhases.index(bundlePhase)
+  debugSymbolIndex = allPhases.index(debugSymbolPhase)
+  
+  # bundle-service-file must come before upload-crashlytics-symbols
+  if (bundleIndex >= debugSymbolIndex)
+    abort("failed, bundle-service-file script (index: #{bundleIndex}) must come before upload-crashlytics-symbols script (index: #{debugSymbolIndex})")
+  end
+  
+  \$stdout.write("success")
+else
+  abort("failed, #{targetName} target not found.")
+end
+''';
+}
+
 Future<File> findFileInDirectory(
   String directoryPath,
   String fileName,
