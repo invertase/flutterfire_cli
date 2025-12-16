@@ -390,6 +390,7 @@ String _debugSymbolsScript(
 require 'xcodeproj'
 xcodeFile='${getXcodeProjectPath(platform)}'
 runScriptName='$debugSymbolScriptName'
+bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
 
@@ -412,19 +413,78 @@ ${isDevDependency ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} uplo
 
 for target in project.targets
   if (target.name == '$target')
+    # Find existing debug symbols phase
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
       end
     end
+    
+    # Find bundle-service-file phase to determine insertion position
+    bundlePhase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == bundleScriptName
+      end
+    end
 
     if phase.nil?
+      # Create new phase
       phase = target.new_shell_script_build_phase(runScriptName)
       phase.shell_script = bashScript
+      
+      # If bundle-service-file exists, ensure debug symbols is placed right after it
+      if (!bundlePhase.nil?)
+        # Get all build phases
+        allPhases = target.build_phases
+        bundleIndex = allPhases.index(bundlePhase)
+        currentDebugIndex = allPhases.index(phase)
+        
+        # If debug symbols is not right after bundle-service-file, reorder
+        if (currentDebugIndex != bundleIndex + 1)
+          # Remove from current position
+          target.build_phases.delete(phase)
+          # Insert right after bundle-service-file
+          target.build_phases.insert(bundleIndex + 1, phase)
+        end
+      end
+      
       project.save()
     elsif phase.shell_script != bashScript
+      # Update existing phase
       phase.shell_script = bashScript
+      
+      # Ensure correct ordering: debug symbols should be right after bundle-service-file
+      if (!bundlePhase.nil?)
+        allPhases = target.build_phases
+        bundleIndex = allPhases.index(bundlePhase)
+        debugIndex = allPhases.index(phase)
+        
+        # If debug symbols is not right after bundle-service-file, reorder
+        if (debugIndex != bundleIndex + 1)
+          # Remove from current position
+          target.build_phases.delete(phase)
+          # Insert right after bundle-service-file
+          target.build_phases.insert(bundleIndex + 1, phase)
+        end
+      end
+      
       project.save()
+    else
+      # Script exists and content is correct, but check ordering
+      if (!bundlePhase.nil?)
+        allPhases = target.build_phases
+        bundleIndex = allPhases.index(bundlePhase)
+        debugIndex = allPhases.index(phase)
+        
+        # If debug symbols is not right after bundle-service-file, reorder
+        if (debugIndex != bundleIndex + 1)
+          # Remove from current position
+          target.build_phases.delete(phase)
+          # Insert right after bundle-service-file
+          target.build_phases.insert(bundleIndex + 1, phase)
+          project.save()
+        end
+      end
     end
   end
 end
