@@ -72,7 +72,8 @@ Future<String> createFlutterProject() async {
 
   if (pbxprojResult.exitCode != 0) {
     throw Exception(
-        'Failed to set iOS deployment target: ${pbxprojResult.stderr}');
+      'Failed to set iOS deployment target: ${pbxprojResult.stderr}',
+    );
   }
 
   return flutterProjectPath;
