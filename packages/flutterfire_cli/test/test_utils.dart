@@ -57,23 +57,35 @@ Future<String> createFlutterProject() async {
 
   // Set iOS minimum deployment target to 15.0
   const iosVersion = '15.0';
-  final pbxprojPath =
-      p.join(flutterProjectPath, 'ios', 'Runner.xcodeproj', 'project.pbxproj');
+
+  // Update project.pbxproj
   final pbxprojResult = await Process.run(
     'sed',
     [
       '-i',
       '',
       's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
-      pbxprojPath,
+      'ios/Runner.xcodeproj/project.pbxproj',
     ],
-    runInShell: true,
+    workingDirectory: flutterProjectPath,
   );
 
   if (pbxprojResult.exitCode != 0) {
     throw Exception(
       'Failed to set iOS deployment target: ${pbxprojResult.stderr}',
     );
+  }
+
+  // Update Podfile if it exists
+  final podfilePath = p.join(flutterProjectPath, 'ios', 'Podfile');
+  final podfile = File(podfilePath);
+  if (podfile.existsSync()) {
+    var podfileContent = podfile.readAsStringSync();
+    podfileContent = podfileContent.replaceFirst(
+      RegExp("platform :ios, '[0-9.]+'"),
+      "platform :ios, '$iosVersion'",
+    );
+    podfile.writeAsStringSync(podfileContent);
   }
 
   return flutterProjectPath;
