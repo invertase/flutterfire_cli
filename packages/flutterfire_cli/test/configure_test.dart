@@ -10,7 +10,7 @@ import 'test_utils.dart';
 
 void main() {
   // Default group for tests that don't need iOS 15.0
-  group('FlutterFire configure tests', () {
+  group('FlutterFire configure tests - no build', () {
     String? projectPath;
     setUp(() async {
       projectPath = await createFlutterProject();
@@ -1391,7 +1391,7 @@ void main() {
   });
 
   // Separate group for tests that need iOS 15.0
-  group('FlutterFire configure tests (iOS 15.0)', () {
+  group('FlutterFire configure tests - build target (iOS 15.0)', () {
     String? projectPath;
     setUp(() async {
       projectPath = await createFlutterProject(updateiOSBuildTarget: true);
@@ -1471,23 +1471,6 @@ void main() {
           0,
           reason: 'Required FlutterFire scripts not found in project.pbxproj',
         );
-
-        const iosVersion = '13.0';
-        // Update project.pbxproj
-        final pbxprojResult = Process.runSync(
-          'sed',
-          [
-            '-i',
-            '',
-            's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
-            'ios/Runner.xcodeproj/project.pbxproj',
-          ],
-          workingDirectory: projectPath,
-        );
-
-        if (pbxprojResult.exitCode != 0) {
-          fail(pbxprojResult.stderr as String);
-        }
 
         final buildApp = Process.runSync(
           'flutter',
