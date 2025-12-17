@@ -43,7 +43,7 @@ const androidAppGradleUpdate = '''
         // END: FlutterFire Configuration
         ''';
 
-Future<String> createFlutterProject() async {
+Future<String> createFlutterProject({bool updateiOSBuildTarget = false}) async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
   await Process.run(
@@ -55,37 +55,39 @@ Future<String> createFlutterProject() async {
 
   final flutterProjectPath = p.join(tempDir.path, flutterProject);
 
-  // Set iOS minimum deployment target to 15.0
-  const iosVersion = '15.0';
+  if (updateiOSBuildTarget && Platform.isMacOS) {
+    // Set iOS minimum deployment target to 15.0
+    const iosVersion = '15.0';
 
-  // Update project.pbxproj
-  final pbxprojResult = await Process.run(
-    'sed',
-    [
-      '-i',
-      '',
-      's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
-      'ios/Runner.xcodeproj/project.pbxproj',
-    ],
-    workingDirectory: flutterProjectPath,
-  );
-
-  if (pbxprojResult.exitCode != 0) {
-    throw Exception(
-      'Failed to set iOS deployment target: ${pbxprojResult.stderr}',
+    // Update project.pbxproj
+    final pbxprojResult = await Process.run(
+      'sed',
+      [
+        '-i',
+        '',
+        's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/',
+        'ios/Runner.xcodeproj/project.pbxproj',
+      ],
+      workingDirectory: flutterProjectPath,
     );
-  }
 
-  // Update Podfile if it exists
-  final podfilePath = p.join(flutterProjectPath, 'ios', 'Podfile');
-  final podfile = File(podfilePath);
-  if (podfile.existsSync()) {
-    var podfileContent = podfile.readAsStringSync();
-    podfileContent = podfileContent.replaceFirst(
-      RegExp("platform :ios, '[0-9.]+'"),
-      "platform :ios, '$iosVersion'",
-    );
-    podfile.writeAsStringSync(podfileContent);
+    if (pbxprojResult.exitCode != 0) {
+      throw Exception(
+        'Failed to set iOS deployment target: ${pbxprojResult.stderr}',
+      );
+    }
+
+    // Update Podfile if it exists
+    final podfilePath = p.join(flutterProjectPath, 'ios', 'Podfile');
+    final podfile = File(podfilePath);
+    if (podfile.existsSync()) {
+      var podfileContent = podfile.readAsStringSync();
+      podfileContent = podfileContent.replaceFirst(
+        RegExp("platform :ios, '[0-9.]+'"),
+        "platform :ios, '$iosVersion'",
+      );
+      podfile.writeAsStringSync(podfileContent);
+    }
   }
 
   return flutterProjectPath;
