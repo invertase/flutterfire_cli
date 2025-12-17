@@ -107,8 +107,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      - name: Select Xcode version
-        run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app/Contents/Developer
+      - name: Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
       - uses: futureware-tech/simulator-action@v4
         with:
           model: 'iPhone 16'  
