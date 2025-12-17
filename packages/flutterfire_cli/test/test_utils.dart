@@ -43,7 +43,7 @@ const androidAppGradleUpdate = '''
         // END: FlutterFire Configuration
         ''';
 
-Future<String> createFlutterProject() async {
+Future<String> createFlutterProject({bool updateiOSBuildTarget = false}) async {
   final tempDir = Directory.systemTemp.createTempSync();
   const flutterProject = 'flutter_test_cli';
   await Process.run(
@@ -54,6 +54,35 @@ Future<String> createFlutterProject() async {
   );
 
   final flutterProjectPath = p.join(tempDir.path, flutterProject);
+
+  if (updateiOSBuildTarget && Platform.isMacOS) {
+    // Set iOS minimum deployment target to 15.0
+    const iosVersion = '15.0';
+    final pbxprojPath = p.join(
+      flutterProjectPath,
+      'ios',
+      'Runner.xcodeproj',
+      'project.pbxproj',
+    );
+
+    // Update project.pbxproj - use 'g' flag to replace ALL occurrences
+    final pbxprojResult = await Process.run(
+      'sed',
+      [
+        '-i',
+        '',
+        's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $iosVersion;/g',
+        pbxprojPath,
+      ],
+      workingDirectory: flutterProjectPath,
+    );
+
+    if (pbxprojResult.exitCode != 0) {
+      throw Exception(
+        'Failed to set iOS deployment target: ${pbxprojResult.stderr}',
+      );
+    }
+  }
 
   return flutterProjectPath;
 }
