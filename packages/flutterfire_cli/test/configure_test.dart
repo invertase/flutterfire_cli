@@ -1474,16 +1474,23 @@ void main() {
           reason: 'Required FlutterFire scripts not found in project.pbxproj',
         );
 
+        // Find iOS 26.0 simulator and use it
+        final deviceId = findIOS26Simulator();
+        final buildArgs = [
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
+        ];
+        if (deviceId != null) {
+          buildArgs.add('--device-id=$deviceId');
+        }
+
         final buildApp = Process.runSync(
           'flutter',
-          [
-            'build',
-            'ios',
-            '--no-codesign',
-            '--simulator',
-            '--debug',
-            '--verbose',
-          ],
+          buildArgs,
           workingDirectory: projectPath,
           runInShell: true,
         );
@@ -1577,16 +1584,23 @@ void main() {
         }
 
         // Project is created with iOS 15.0 deployment target, no manual update needed
+        // Find iOS 26.0 simulator and use it
+        final deviceId = findIOS26Simulator();
+        final buildArgs = [
+          'build',
+          'ios',
+          '--no-codesign',
+          '--simulator',
+          '--debug',
+          '--verbose',
+        ];
+        if (deviceId != null) {
+          buildArgs.add('--device-id=$deviceId');
+        }
+
         final buildApp = Process.runSync(
           'flutter',
-          [
-            'build',
-            'ios',
-            '--no-codesign',
-            '--simulator',
-            '--debug',
-            '--verbose',
-          ],
+          buildArgs,
           workingDirectory: projectPath,
           runInShell: true,
         );
