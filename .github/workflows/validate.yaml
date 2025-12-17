@@ -109,6 +109,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       - name: Select Xcode version
         run: sudo xcode-select -switch /Applications/Xcode_26.0.1.app/Contents/Developer
+      - uses: futureware-tech/simulator-action@v4
+        with:
+          model: 'iPhone 16'  
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
