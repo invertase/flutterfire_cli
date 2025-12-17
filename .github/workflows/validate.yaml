@@ -83,7 +83,7 @@ jobs:
 
   test_macos:
     runs-on: macos-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
