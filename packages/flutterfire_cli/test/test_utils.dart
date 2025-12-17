@@ -91,59 +91,6 @@ String normalizeLineEndings(String content) {
   return content.replaceAll('\r\n', '\n');
 }
 
-/// Finds an available iPhone 16 simulator device ID.
-/// Returns the device ID if found, or null otherwise.
-String? findIOS26Simulator() {
-  if (!Platform.isMacOS) {
-    return null;
-  }
-
-  try {
-    final result = Process.runSync(
-      'xcrun',
-      ['simctl', 'list', 'devices', 'available', '--json'],
-      runInShell: true,
-    );
-
-    if (result.exitCode != 0) {
-      return null;
-    }
-
-    final jsonData =
-        jsonDecode(result.stdout as String) as Map<String, dynamic>;
-    final devices = jsonData['devices'] as Map<String, dynamic>;
-
-    // Look for iPhone 16 simulators across all iOS runtimes
-    for (final runtimeKey in devices.keys) {
-      if (runtimeKey.toLowerCase().contains('ios')) {
-        final runtimeDevices = devices[runtimeKey] as List<dynamic>;
-        for (final device in runtimeDevices) {
-          final deviceMap = device as Map<String, dynamic>;
-          final name = deviceMap['name'] as String?;
-          if (name != null && name.contains('iPhone 16')) {
-            final state = deviceMap['state'] as String?;
-            if (state == 'Booted' || state == 'Shutdown') {
-              return deviceMap['udid'] as String?;
-            }
-          }
-        }
-        // If no booted/shutdown device, return first iPhone 16 found
-        for (final device in runtimeDevices) {
-          final deviceMap = device as Map<String, dynamic>;
-          final name = deviceMap['name'] as String?;
-          if (name != null && name.contains('iPhone 16')) {
-            return deviceMap['udid'] as String?;
-          }
-        }
-      }
-    }
-  } catch (e) {
-    return null;
-  }
-
-  return null;
-}
-
 bool containsInOrder(String content, List<String> lines) {
   var lastIndex = 0;
 
