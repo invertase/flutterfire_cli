@@ -831,7 +831,8 @@ void main() {
         );
         expect(
           firebaseOptionsContent.contains(
-              'static const FirebaseOptions windows = FirebaseOptions'),
+            'static const FirebaseOptions windows = FirebaseOptions',
+          ),
           isFalse,
         );
       },
@@ -936,7 +937,8 @@ void main() {
         );
         expect(
           firebaseOptionsContent.contains(
-              'static const FirebaseOptions windows = FirebaseOptions'),
+            'static const FirebaseOptions windows = FirebaseOptions',
+          ),
           isFalse,
         );
       },
