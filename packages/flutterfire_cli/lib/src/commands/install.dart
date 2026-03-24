@@ -144,15 +144,15 @@ class InstallCommand extends FlutterFireCommand {
         .where(
           (element) => listAvailablePluginsInVersion.contains(element.name),
         )
-        .map((plugin) => plugin.displayName)
         .toList();
+    final displayNames = choices.map((plugin) => plugin.displayName).toList();
     final defaultSelection = List<bool>.filled(choices.length, false);
     for (final dependency in flutterApp!.package.dependencies) {
-      final enumValue = FlutterFirePlugins.values.firstWhereOrNull(
+      final enumValue = choices.firstWhereOrNull(
         (element) => element.name == dependency,
       );
       if (enumValue != null) {
-        final index = choices.indexOf(enumValue.displayName);
+        final index = choices.indexOf(enumValue);
         defaultSelection[index] = true;
       }
     }
@@ -161,11 +161,12 @@ class InstallCommand extends FlutterFireCommand {
 
     final selectedChoices = promptMultiSelect(
       'Select the Firebase plugins you would like to install',
-      choices,
+      displayNames,
       defaultSelection: defaultSelection,
     );
     for (final index in selectedChoices) {
-      selectedPlugins.add(FlutterFirePlugins.values[index]);
+      // retrieve plugin based on the choices list
+      selectedPlugins.add(choices[index]);
     }
     return selectedPlugins;
   }
