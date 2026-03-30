@@ -52,7 +52,7 @@ jobs:
           FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
 
   test_macos:
-    runs-on: macos-latest
+    runs-on: macos-15
     timeout-minutes: 25
     environment: CI Environment
     env:
@@ -88,7 +88,7 @@ jobs:
           sudo npm i -g firebase-tools
       - name: Select Xcode version
         run: |
-          sudo xcode-select -switch /Applications/Xcode_16.2.app/Contents/Developer
+          sudo xcode-select -switch /Applications/Xcode_16.4.app/Contents/Developer
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
