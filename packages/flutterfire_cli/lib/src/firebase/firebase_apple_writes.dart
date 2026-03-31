@@ -411,6 +411,28 @@ fi
 ${isDevDependency ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
+def ensure_phase_is_after(target, phase, preceding_phase)
+  return if preceding_phase.nil?
+
+  allPhases = target.build_phases
+  precedingIndex = allPhases.index(preceding_phase)
+  phaseIndex = allPhases.index(phase)
+
+  return if precedingIndex.nil? || phaseIndex.nil?
+  return if phaseIndex == precedingIndex + 1
+
+  target.build_phases.delete(phase)
+
+  insertionIndex =
+    if phaseIndex < precedingIndex
+      precedingIndex
+    else
+      precedingIndex + 1
+    end
+
+  target.build_phases.insert(insertionIndex, phase)
+end
+
 for target in project.targets
   if (target.name == '$target')
     # Find existing debug symbols phase
@@ -434,18 +456,7 @@ for target in project.targets
       
       # If bundle-service-file exists, ensure debug symbols is placed right after it
       if (!bundlePhase.nil?)
-        # Get all build phases
-        allPhases = target.build_phases
-        bundleIndex = allPhases.index(bundlePhase)
-        currentDebugIndex = allPhases.index(phase)
-        
-        # If debug symbols is not right after bundle-service-file, reorder
-        if (currentDebugIndex != bundleIndex + 1)
-          # Remove from current position
-          target.build_phases.delete(phase)
-          # Insert right after bundle-service-file
-          target.build_phases.insert(bundleIndex + 1, phase)
-        end
+        ensure_phase_is_after(target, phase, bundlePhase)
       end
       
       project.save()
@@ -455,33 +466,16 @@ for target in project.targets
       
       # Ensure correct ordering: debug symbols should be right after bundle-service-file
       if (!bundlePhase.nil?)
-        allPhases = target.build_phases
-        bundleIndex = allPhases.index(bundlePhase)
-        debugIndex = allPhases.index(phase)
-        
-        # If debug symbols is not right after bundle-service-file, reorder
-        if (debugIndex != bundleIndex + 1)
-          # Remove from current position
-          target.build_phases.delete(phase)
-          # Insert right after bundle-service-file
-          target.build_phases.insert(bundleIndex + 1, phase)
-        end
+        ensure_phase_is_after(target, phase, bundlePhase)
       end
       
       project.save()
     else
       # Script exists and content is correct, but check ordering
       if (!bundlePhase.nil?)
-        allPhases = target.build_phases
-        bundleIndex = allPhases.index(bundlePhase)
-        debugIndex = allPhases.index(phase)
-        
-        # If debug symbols is not right after bundle-service-file, reorder
-        if (debugIndex != bundleIndex + 1)
-          # Remove from current position
-          target.build_phases.delete(phase)
-          # Insert right after bundle-service-file
-          target.build_phases.insert(bundleIndex + 1, phase)
+        currentOrdering = target.build_phases.dup
+        ensure_phase_is_after(target, phase, bundlePhase)
+        if (target.build_phases != currentOrdering)
           project.save()
         end
       end
