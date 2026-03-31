@@ -184,7 +184,7 @@ class FirebaseDartConfigurationWrite {
     _stringBuffer.clear();
     _writeHeader();
     _writeClass();
-    return _stringBuffer.toString();
+    return formatList(_stringBuffer.toString().split('\n')).join('\n');
   }
 
   // ensure only one empty line between each static property
