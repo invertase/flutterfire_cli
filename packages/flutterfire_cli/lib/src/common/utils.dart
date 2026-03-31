@@ -337,13 +337,13 @@ Future<void> writeFirebaseJsonFile(
       ..._generateFlutterMap(),
     };
 
-    final mapJson = json.encode(updatedMap);
+    final mapJson = const JsonEncoder.withIndent('  ').convert(updatedMap);
 
     file.writeAsStringSync(mapJson);
   } else {
     final map = _generateFlutterMap();
 
-    final mapJson = json.encode(map);
+    final mapJson = const JsonEncoder.withIndent('  ').convert(map);
 
     file.writeAsStringSync(mapJson);
   }
@@ -403,7 +403,7 @@ Future<void> writeToFirebaseJson({
     }
   }
 
-  final mapJson = json.encode(decodedMap);
+  final mapJson = const JsonEncoder.withIndent('  ').convert(decodedMap);
 
   file.writeAsStringSync(mapJson);
 }
