@@ -1,3 +1,9 @@
+## 1.3.2
+
+ - **FIX**: ensure that bundle script is placed first for Apple build phases ([#420](https://github.com/invertase/flutterfire_cli/issues/420)). ([769a1487](https://github.com/invertase/flutterfire_cli/commit/769a1487ca633f64a3bbfebec4c8f5f16664bbc4))
+ - **FIX**: `flutterfire configure` command when existing `firebase_options.dart` has a wrong format ([#424](https://github.com/invertase/flutterfire_cli/issues/424)). ([3edb9076](https://github.com/invertase/flutterfire_cli/commit/3edb90762222ea3e1de0cf9de2f7aaa81f5ccabb))
+ - **FIX**: firebase_core folder order by parsing the version ([#410](https://github.com/invertase/flutterfire_cli/issues/410)). ([2cfefc34](https://github.com/invertase/flutterfire_cli/commit/2cfefc345ce9d317dc6a58981db082b51ea77b8d))
+
 ## 1.3.1
 
  - **FIX**: 'Null' is not a subtype of type 'String' in type cast on Linux ([#405](https://github.com/invertase/flutterfire_cli/issues/405)). ([9c8e8438](https://github.com/invertase/flutterfire_cli/commit/9c8e8438bf78cfedd43d2c2ebc234c5a221e062a))
