@@ -635,7 +635,8 @@ void main() {
         fail(result2.stderr as String);
       }
 
-      const iosVersion = '13.0';
+      // Current Firebase iOS packages used by this test require iOS 15.0+.
+      const iosVersion = '15.0';
       // Update project.pbxproj
       final pbxprojResult = Process.runSync(
         'sed',
@@ -1674,7 +1675,8 @@ void main() {
         reason: 'Required FlutterFire scripts not found in project.pbxproj',
       );
 
-      const iosVersion = '13.0';
+      // Current Firebase iOS packages used by this test require iOS 15.0+.
+      const iosVersion = '15.0';
       // Update project.pbxproj
       final pbxprojResult = Process.runSync(
         'sed',

@@ -59,11 +59,8 @@ class FirebaseDartConfigurationWrite {
       );
       outputFile.writeAsStringSync(updatedFileString);
     } else {
-      _writeHeader();
-      _writeClass();
-
       outputFile.createSync(recursive: true);
-      outputFile.writeAsStringSync(_stringBuffer.toString());
+      outputFile.writeAsStringSync(_buildConfigurationFile());
     }
 
     return _firebaseJsonWrites();
@@ -130,14 +127,28 @@ class FirebaseDartConfigurationWrite {
             platform == kWeb ? 'if (kIsWeb)' : 'case TargetPlatform.$platform:',
           ),
         );
-        final unsupportedErrorLineIndex = startIndex + 1;
 
-        if (fileConfigurationLines[unsupportedErrorLineIndex]
-            .contains('UnsupportedError')) {
+        // Existing file does not match generated FlutterFire structure.
+        // Regenerate so configure can recover from template placeholders.
+        if (startIndex == -1) {
+          return _buildConfigurationFile();
+        }
+
+        final unsupportedErrorLineIndex = fileConfigurationLines.indexWhere(
+          (line) =>
+              line.contains('throw UnsupportedError(') ||
+              line.contains('throw UnimplementedError('),
+          startIndex,
+        );
+
+        if (unsupportedErrorLineIndex != -1) {
           final endIndex = fileConfigurationLines.indexWhere(
             (line) => line.contains(');'),
             unsupportedErrorLineIndex,
           );
+          if (endIndex == -1) {
+            return _buildConfigurationFile();
+          }
           fileConfigurationLines.removeRange(
             unsupportedErrorLineIndex,
             endIndex + 1,
@@ -150,7 +161,7 @@ class FirebaseDartConfigurationWrite {
                 : '        return ${platform.toLowerCase()};',
           );
         } else {
-          throw Exception('`UnsupportedError` not found in $platform');
+          return _buildConfigurationFile();
         }
 
         final insertIndex = fileConfigurationLines.lastIndexOf('}');
@@ -167,6 +178,13 @@ class FirebaseDartConfigurationWrite {
     }
 
     return formatList(fileConfigurationLines).join('\n');
+  }
+
+  String _buildConfigurationFile() {
+    _stringBuffer.clear();
+    _writeHeader();
+    _writeClass();
+    return formatList(_stringBuffer.toString().split('\n')).join('\n');
   }
 
   // ensure only one empty line between each static property
