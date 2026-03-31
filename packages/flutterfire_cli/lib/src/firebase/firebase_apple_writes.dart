@@ -390,6 +390,7 @@ String _debugSymbolsScript(
 require 'xcodeproj'
 xcodeFile='${getXcodeProjectPath(platform)}'
 runScriptName='$debugSymbolScriptName'
+bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
 
@@ -410,21 +411,74 @@ fi
 ${isDevDependency ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
+def ensure_phase_is_after(target, phase, preceding_phase)
+  return if preceding_phase.nil?
+
+  allPhases = target.build_phases
+  precedingIndex = allPhases.index(preceding_phase)
+  phaseIndex = allPhases.index(phase)
+
+  return if precedingIndex.nil? || phaseIndex.nil?
+  return if phaseIndex == precedingIndex + 1
+
+  target.build_phases.delete(phase)
+
+  insertionIndex =
+    if phaseIndex < precedingIndex
+      precedingIndex
+    else
+      precedingIndex + 1
+    end
+
+  target.build_phases.insert(insertionIndex, phase)
+end
+
 for target in project.targets
   if (target.name == '$target')
+    # Find existing debug symbols phase
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
       end
     end
+    
+    # Find bundle-service-file phase to determine insertion position
+    bundlePhase = target.shell_script_build_phases().find do |item|
+      if defined? item && item.name
+        item.name == bundleScriptName
+      end
+    end
 
     if phase.nil?
+      # Create new phase
       phase = target.new_shell_script_build_phase(runScriptName)
       phase.shell_script = bashScript
+      
+      # If bundle-service-file exists, ensure debug symbols is placed right after it
+      if (!bundlePhase.nil?)
+        ensure_phase_is_after(target, phase, bundlePhase)
+      end
+      
       project.save()
     elsif phase.shell_script != bashScript
+      # Update existing phase
       phase.shell_script = bashScript
+      
+      # Ensure correct ordering: debug symbols should be right after bundle-service-file
+      if (!bundlePhase.nil?)
+        ensure_phase_is_after(target, phase, bundlePhase)
+      end
+      
       project.save()
+    else
+      # Script exists and content is correct, but check ordering
+      if (!bundlePhase.nil?)
+        currentOrdering = target.build_phases.dup
+        ensure_phase_is_after(target, phase, bundlePhase)
+        if (target.build_phases != currentOrdering)
+          project.save()
+        end
+      end
     end
   end
 end

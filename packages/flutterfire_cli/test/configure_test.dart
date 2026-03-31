@@ -339,6 +339,85 @@ void main() {
   );
 
   test(
+    'flutterfire configure: build configuration - verify script ordering after second configure',
+    () async {
+      // Add crashlytics dependency so debug symbols script gets added
+      final addCrashlyticsResult = Process.runSync(
+        'flutter',
+        ['pub', 'add', 'firebase_crashlytics'],
+        workingDirectory: projectPath,
+      );
+
+      if (addCrashlyticsResult.exitCode != 0) {
+        fail(addCrashlyticsResult.stderr as String);
+      }
+
+      // First configure run
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          '--platforms=macos',
+          '--macos-out=macos/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      // Second configure run - this should trigger reordering if needed
+      final result2 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          '--platforms=macos',
+          '--macos-out=macos/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result2.stderr as String);
+      }
+
+      // Verify script ordering for macOS
+      final scriptOrderCheckMacos = rubyScriptForCheckingScriptOrdering(
+        projectPath!,
+        kMacos,
+      );
+
+      final macosOrderResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptOrderCheckMacos,
+        ],
+        runInShell: true,
+      );
+
+      if (macosOrderResult.exitCode != 0) {
+        fail(macosOrderResult.stderr as String);
+      }
+
+      expect(macosOrderResult.stdout, 'success');
+    },
+    skip: !Platform.isMacOS,
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
+
+  test(
     'flutterfire configure: android - "default" Apple - "target"',
     () async {
       const targetType = 'Runner';
