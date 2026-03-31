@@ -371,68 +371,45 @@ void main() {
         fail(result.stderr as String);
       }
 
-      if (Platform.isMacOS) {
-        // Second configure run - this should trigger reordering if needed
-        final result2 = Process.runSync(
-          'flutterfire',
-          [
-            'configure',
-            '--yes',
-            '--project=$firebaseProjectId',
-            '--platforms=macos',
-            '--macos-out=macos/$buildType',
-            '--macos-build-config=$appleBuildConfiguration',
-          ],
-          workingDirectory: projectPath,
-          runInShell: true,
-        );
+      // Second configure run - this should trigger reordering if needed
+      final result2 = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--project=$firebaseProjectId',
+          '--platforms=macos',
+          '--macos-out=macos/$buildType',
+          '--macos-build-config=$appleBuildConfiguration',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
 
-        if (result2.exitCode != 0) {
-          fail(result2.stderr as String);
-        }
-
-        // Verify script ordering for iOS
-        final scriptOrderCheckIos = rubyScriptForCheckingScriptOrdering(
-          projectPath!,
-          kIos,
-        );
-
-        final iosOrderResult = Process.runSync(
-          'ruby',
-          [
-            '-e',
-            scriptOrderCheckIos,
-          ],
-          runInShell: true,
-        );
-
-        if (iosOrderResult.exitCode != 0) {
-          fail(iosOrderResult.stderr as String);
-        }
-
-        expect(iosOrderResult.stdout, 'success');
-
-        // Verify script ordering for macOS
-        final scriptOrderCheckMacos = rubyScriptForCheckingScriptOrdering(
-          projectPath!,
-          kMacos,
-        );
-
-        final macosOrderResult = Process.runSync(
-          'ruby',
-          [
-            '-e',
-            scriptOrderCheckMacos,
-          ],
-          runInShell: true,
-        );
-
-        if (macosOrderResult.exitCode != 0) {
-          fail(macosOrderResult.stderr as String);
-        }
-
-        expect(macosOrderResult.stdout, 'success');
+      if (result2.exitCode != 0) {
+        fail(result2.stderr as String);
       }
+
+      // Verify script ordering for macOS
+      final scriptOrderCheckMacos = rubyScriptForCheckingScriptOrdering(
+        projectPath!,
+        kMacos,
+      );
+
+      final macosOrderResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptOrderCheckMacos,
+        ],
+        runInShell: true,
+      );
+
+      if (macosOrderResult.exitCode != 0) {
+        fail(macosOrderResult.stderr as String);
+      }
+
+      expect(macosOrderResult.stdout, 'success');
     },
     skip: !Platform.isMacOS,
     timeout: const Timeout(
