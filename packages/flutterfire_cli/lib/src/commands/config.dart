@@ -188,6 +188,12 @@ class ConfigCommand extends FlutterFireCommand {
           'Where to write the `google-services.json` file to be written for android platform. Useful for different flavors',
     );
 
+    argParser.addOption(
+      kFirebaseOutFlag,
+      valueHelp: 'filePath',
+      help: 'The output file path of the `firebase.json` file that will be generated or updated.',
+    );
+
     argParser.addFlag(
       kOverwriteFirebaseOptionsFlag,
       abbr: 'f',
@@ -343,6 +349,12 @@ class ConfigCommand extends FlutterFireCommand {
 
   String get outputFilePath {
     return argResults!['out'] as String;
+  }
+
+  String get firebaseJsonPath {
+    final customPath = argResults![kFirebaseOutFlag] as String?;
+    if (customPath != null) return customPath;
+    return path.join(flutterApp!.package.path, 'firebase.json');
   }
 
   bool get overwriteFirebaseOptions {
@@ -536,8 +548,6 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   Future<bool> checkIfUserRequiresReconfigure() async {
-    final firebaseJsonPath =
-        path.join(flutterApp!.package.path, 'firebase.json');
     final file = File(firebaseJsonPath);
 
     if (file.existsSync()) {
@@ -550,7 +560,7 @@ class ConfigCommand extends FlutterFireCommand {
             );
 
         if (reuseFirebaseJsonValues) {
-          final reconfigure = Reconfigure(flutterApp, token: testAccessToken);
+          final reconfigure = Reconfigure(flutterApp, token: testAccessToken, firebaseJsonPath: firebaseJsonPath);
           reconfigure.logger = logger;
           await reconfigure.run();
           return true;
@@ -705,12 +715,11 @@ class ConfigCommand extends FlutterFireCommand {
         firebaseJsonWrites.add(firebaseJsonWrite);
       }
 
-      // 5. Writes for "firebase.json" file in root of project
+      // 5. Writes for "firebase.json" file
       if (firebaseJsonWrites.isNotEmpty) {
         await writeToFirebaseJson(
           listOfWrites: firebaseJsonWrites,
-          firebaseJsonPath:
-              path.join(flutterApp!.package.path, 'firebase.json'),
+          firebaseJsonPath: firebaseJsonPath,
         );
       }
 

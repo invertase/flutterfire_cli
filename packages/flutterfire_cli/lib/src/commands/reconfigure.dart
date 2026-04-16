@@ -56,9 +56,10 @@ class ConfigFileWrite {
 }
 
 class Reconfigure extends FlutterFireCommand {
-  Reconfigure(FlutterApp? flutterApp, {String? token}) : super(flutterApp) {
+  Reconfigure(FlutterApp? flutterApp, {String? token, String? firebaseJsonPath}) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
     _accessToken = token;
+    _firebaseJsonPath = firebaseJsonPath;
     argParser.addOption(
       'ci-access-token',
       valueHelp: 'ciAccessToken',
@@ -66,7 +67,14 @@ class Reconfigure extends FlutterFireCommand {
       help:
           'Set the access token for making Firebase API requests. Required for CI environment.',
     );
+    argParser.addOption(
+      kFirebaseOutFlag,
+      valueHelp: 'filePath',
+      help: 'The path to the `firebase.json` file.',
+    );
   }
+
+  String? _firebaseJsonPath;
 
   @override
   final String description =
@@ -378,11 +386,14 @@ class Reconfigure extends FlutterFireCommand {
   Future<void> run() async {
     try {
       commandRequiresFlutterApp();
+      final customPath = argResults != null ? argResults![kFirebaseOutFlag] as String? : null;
       final firebaseJson = File(
-        path.join(
-          flutterApp!.package.path,
-          'firebase.json',
-        ),
+        _firebaseJsonPath ??
+            customPath ??
+            path.join(
+              flutterApp!.package.path,
+              'firebase.json',
+            ),
       );
 
       if (!firebaseJson.existsSync()) {

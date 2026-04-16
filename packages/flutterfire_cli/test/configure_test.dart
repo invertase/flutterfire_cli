@@ -1740,4 +1740,52 @@ void main() {
       Duration(minutes: 3),
     ),
   );
+
+  test('flutterfire configure: --firebase-out flag should dictate where firebase.json is written', () async {
+    // Install flutterfire_cli from local path
+    final installDevDependency = Process.runSync(
+      'flutter',
+      [
+        'pub',
+        'add',
+        '--dev',
+        'flutterfire_cli',
+        '--path=${Directory.current.path}',
+      ],
+      workingDirectory: projectPath,
+    );
+
+    if (installDevDependency.exitCode != 0) {
+      fail(installDevDependency.stderr as String);
+    }
+
+    const customFirebaseJsonPath = 'custom/firebase.json';
+    final result = Process.runSync(
+      'dart',
+      [
+        'run',
+        'flutterfire_cli:flutterfire',
+        'configure',
+        '--yes',
+        '--project=$firebaseProjectId',
+        '--platforms=android',
+        '--firebase-out=$customFirebaseJsonPath',
+      ],
+      workingDirectory: projectPath,
+      runInShell: true,
+    );
+
+    if (result.exitCode != 0) {
+      fail(result.stderr as String);
+    }
+
+    // check custom "firebase.json" was created and has correct content
+    final firebaseJsonFile = p.join(projectPath!, 'custom', 'firebase.json');
+    expect(File(firebaseJsonFile).existsSync(), true);
+    
+    final firebaseJsonFileContent = await File(firebaseJsonFile).readAsString();
+    final decodedFirebaseJson = jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
+    
+    expect(decodedFirebaseJson[kFlutter], isNotNull);
+  });
 }
