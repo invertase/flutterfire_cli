@@ -111,10 +111,14 @@ class FirebaseDartConfigurationWrite {
         }
 
         fileConfigurationLines.removeRange(startIndex, endIndex + 1);
+        while (startIndex < fileConfigurationLines.length &&
+            fileConfigurationLines[startIndex].trim().isEmpty) {
+          fileConfigurationLines.removeAt(startIndex);
+        }
 
         // Insert the new platform configuration
         fileConfigurationLines.insertAll(
-          startIndex - 1,
+          startIndex,
           _buildFirebaseOptions(
             options,
             platform.toLowerCase(),
@@ -177,14 +181,16 @@ class FirebaseDartConfigurationWrite {
       }
     }
 
-    return formatList(fileConfigurationLines).join('\n');
+    final result = formatList(fileConfigurationLines).join('\n');
+    return result.endsWith('\n') ? result : '$result\n';
   }
 
   String _buildConfigurationFile() {
     _stringBuffer.clear();
     _writeHeader();
     _writeClass();
-    return formatList(_stringBuffer.toString().split('\n')).join('\n');
+    final result = formatList(_stringBuffer.toString().split('\n')).join('\n');
+    return result.endsWith('\n') ? result : '$result\n';
   }
 
   // ensure only one empty line between each static property
@@ -208,7 +214,6 @@ class FirebaseDartConfigurationWrite {
           .where((entry) => entry.value != null)
           .map((entry) => "    ${entry.key}: '${entry.value}',"),
       '  );', // FirebaseOptions
-      '',
     ];
   }
 
@@ -281,14 +286,8 @@ class FirebaseDartConfigurationWrite {
   }
 
   void _writeClass() {
-    _stringBuffer.writeAll(
-      <String>[
-        'class DefaultFirebaseOptions {',
-        '  static FirebaseOptions get currentPlatform {',
-        '',
-      ],
-      '\n',
-    );
+    _stringBuffer.writeln('class DefaultFirebaseOptions {');
+    _stringBuffer.writeln('  static FirebaseOptions get currentPlatform {');
     _writeCurrentPlatformWeb();
     _stringBuffer.writeln('    switch (defaultTargetPlatform) {');
     _writeCurrentPlatformSwitchAndroid();
@@ -321,6 +320,7 @@ class FirebaseDartConfigurationWrite {
       _buildFirebaseOptions(options, platform),
       '\n',
     );
+    _stringBuffer.writeln();
   }
 
   void _writeThrowUnsupportedForPlatform(String platform, String indentation) {
