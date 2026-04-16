@@ -18,7 +18,6 @@
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
-import 'package:path/path.dart' as path;
 
 import '../common/global.dart';
 import '../common/inputs.dart';
@@ -352,9 +351,7 @@ class ConfigCommand extends FlutterFireCommand {
   }
 
   String get firebaseJsonPath {
-    final customPath = argResults![kFirebaseOutFlag] as String?;
-    if (customPath != null) return customPath;
-    return path.join(flutterApp!.package.path, 'firebase.json');
+    return resolveFirebaseJsonPath(argResults![kFirebaseOutFlag] as String?);
   }
 
   bool get overwriteFirebaseOptions {

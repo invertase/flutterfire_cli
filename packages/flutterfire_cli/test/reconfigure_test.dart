@@ -393,4 +393,77 @@ void main() {
       Duration(minutes: 2),
     ),
   );
+
+  test(
+    'flutterfire reconfigure: should use custom firebase.json path specified by --firebase-out',
+    () async {
+      const customFirebaseJsonPath = 'custom/firebase.json';
+      final scriptPath = p.join(Directory.current.path, 'bin', 'flutterfire.dart');
+      
+      // 1. Run "flutterfire configure" with custom output path
+      final result = Process.runSync(
+        'dart',
+        [
+          scriptPath,
+          'configure',
+          '--yes',
+          '--platforms=android',
+          '--project=$firebaseProjectId',
+          '--firebase-out=$customFirebaseJsonPath',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr);
+      }
+
+      // Verify custom file exists
+      final customFile = File(p.join(projectPath!, 'custom', 'firebase.json'));
+      expect(customFile.existsSync(), true);
+
+      // Delete generated files to force reconfigure to do work
+      final firebaseOptionsPath = p.join(projectPath!, 'lib', 'firebase_options.dart');
+      final androidServiceFilePath = p.join(
+        projectPath!,
+        'android',
+        'app',
+        androidServiceFileName,
+      );
+      
+      if (File(firebaseOptionsPath).existsSync()) {
+        await File(firebaseOptionsPath).delete();
+      }
+      if (File(androidServiceFilePath).existsSync()) {
+        await File(androidServiceFilePath).delete();
+      }
+
+      final accessToken = await generateAccessTokenCI();
+
+      // 2. Run "flutterfire reconfigure" pointing to the custom path
+      final result2 = Process.runSync(
+        'dart',
+        [
+          scriptPath,
+          'reconfigure',
+          '--firebase-out=$customFirebaseJsonPath',
+          if (accessToken != null) '--ci-access-token=$accessToken',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result2.exitCode != 0) {
+        fail(result2.stderr);
+      }
+
+      // Check the files have been recreated
+      expect(File(firebaseOptionsPath).existsSync(), true);
+      expect(File(androidServiceFilePath).existsSync(), true);
+    },
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
 }

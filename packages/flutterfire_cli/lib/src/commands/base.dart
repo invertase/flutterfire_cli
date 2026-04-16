@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:path/path.dart' as path;
 
 import '../common/strings.dart';
 import '../common/utils.dart';
@@ -40,6 +41,25 @@ abstract class FlutterFireCommand extends Command<void> {
 
   String? get accountEmail {
     return argResults!['account'] as String?;
+  }
+
+  /// Resolves the path to the `firebase.json` file.
+  ///
+  /// If a [customPath] is provided, it is returned directly if it is absolute.
+  /// If it is relative, it is resolved relative to the project root (`FlutterApp.package.path`).
+  /// If no [customPath] is provided, it defaults to `firebase.json` in the project root.
+  String resolveFirebaseJsonPath(String? customPath) {
+    if (customPath != null) {
+      // If a custom path was provided, check if it is relative.
+      if (path.isRelative(customPath)) {
+        // Resolve relative paths relative to the project root to ensure consistent behavior.
+        return path.join(flutterApp!.package.path, customPath);
+      }
+      // Use absolute paths as provided.
+      return customPath;
+    }
+    // Default to the standard firebase.json in the project root if no custom path is specified.
+    return path.join(flutterApp!.package.path, 'firebase.json');
   }
 
   void setupDefaultFirebaseCliOptions() {

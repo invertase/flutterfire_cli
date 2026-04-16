@@ -56,7 +56,8 @@ class ConfigFileWrite {
 }
 
 class Reconfigure extends FlutterFireCommand {
-  Reconfigure(FlutterApp? flutterApp, {String? token, String? firebaseJsonPath}) : super(flutterApp) {
+  Reconfigure(FlutterApp? flutterApp, {String? token, String? firebaseJsonPath})
+      : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
     _accessToken = token;
     _firebaseJsonPath = firebaseJsonPath;
@@ -386,15 +387,12 @@ class Reconfigure extends FlutterFireCommand {
   Future<void> run() async {
     try {
       commandRequiresFlutterApp();
-      final customPath = argResults != null ? argResults![kFirebaseOutFlag] as String? : null;
-      final firebaseJson = File(
-        _firebaseJsonPath ??
-            customPath ??
-            path.join(
-              flutterApp!.package.path,
-              'firebase.json',
-            ),
-      );
+      final customPath =
+          argResults != null ? argResults![kFirebaseOutFlag] as String? : null;
+      // Determine the raw path, prioritizing the programmatic path passed from the configure command.
+      final rawPath = _firebaseJsonPath ?? customPath;
+
+      final firebaseJson = File(resolveFirebaseJsonPath(rawPath));
 
       if (!firebaseJson.existsSync()) {
         throw Exception(
