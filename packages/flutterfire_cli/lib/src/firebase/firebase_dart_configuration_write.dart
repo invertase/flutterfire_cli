@@ -177,14 +177,14 @@ class FirebaseDartConfigurationWrite {
       }
     }
 
-    return formatList(fileConfigurationLines).join('\n');
+    return '${formatList(fileConfigurationLines).join('\n')}\n';
   }
 
   String _buildConfigurationFile() {
     _stringBuffer.clear();
     _writeHeader();
     _writeClass();
-    return formatList(_stringBuffer.toString().split('\n')).join('\n');
+    return '${formatList(_stringBuffer.toString().split('\n')).join('\n')}\n';
   }
 
   // ensure only one empty line between each static property
