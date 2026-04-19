@@ -102,7 +102,7 @@ class UpdateCommand extends FlutterFireCommand {
 
     logger.stdout("Running 'flutter pub get'...");
     await Process.run(
-      flutterCmd, //  reused flutterCmd again!
+      flutterCmd,
       ['pub', 'get'],
     );
 
