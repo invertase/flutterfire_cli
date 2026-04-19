@@ -76,28 +76,33 @@ class UpdateCommand extends FlutterFireCommand {
     commandRequiresFlutterApp();
 
     logger.stdout('Cleaning up current workspace ...');
+    final flutterCmd = Platform.isWindows ? 'flutter.bat' : 'flutter';
     await Process.run(
-      'flutter',
+      flutterCmd,
       ['clean'],
     );
-    await Process.run(
-      'rm',
-      ['pubspec.lock'],
-    );
+    if (Platform.isWindows) {
+      await File('pubspec.lock').delete();
+    } else {
+      await Process.run(
+        'rm',
+        ['pubspec.lock'],
+      );
+    }
 
     logger.stdout('Upgrading all firebase plugins to the latest version ...');
     for (final package in flutterfirePackages) {
       // We run each package individually because chaining them
       // will fail at the first package not in the pubspec.
       await Process.run(
-        'flutter',
+        flutterCmd, //  reusing the flutterCmd variable which already made on line 79!
         ['pub', 'upgrade', '--major-versions', package],
       );
     }
 
     logger.stdout("Running 'flutter pub get'...");
     await Process.run(
-      'flutter',
+      flutterCmd, //  reused flutterCmd again!
       ['pub', 'get'],
     );
 
