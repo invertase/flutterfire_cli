@@ -81,13 +81,9 @@ class UpdateCommand extends FlutterFireCommand {
       flutterCmd,
       ['clean'],
     );
-    if (Platform.isWindows) {
-      await File('pubspec.lock').delete();
-    } else {
-      await Process.run(
-        'rm',
-        ['pubspec.lock'],
-      );
+    final pubspecLockFile = File('pubspec.lock');
+    if (pubspecLockFile.existsSync()) {
+      await pubspecLockFile.delete();
     }
 
     logger.stdout('Upgrading all firebase plugins to the latest version ...');
