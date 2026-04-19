@@ -95,7 +95,7 @@ class UpdateCommand extends FlutterFireCommand {
       // We run each package individually because chaining them
       // will fail at the first package not in the pubspec.
       await Process.run(
-        flutterCmd, //  reusing the flutterCmd variable which already made on line 79!
+        flutterCmd,
         ['pub', 'upgrade', '--major-versions', package],
       );
     }
