@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutterfire_cli/src/common/package.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -233,4 +235,114 @@ void main() {
       });
     },
   );
+
+  group('Package class', () {
+    test(
+        'isFlutterPackage returns true if depends on flutter or flutter_localizations',
+        () {
+      final package1 = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  flutter:
+    sdk: flutter
+'''),
+      );
+      expect(package1.isFlutterPackage, isTrue);
+
+      final package2 = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  flutter_localizations:
+    sdk: flutter
+'''),
+      );
+      expect(package2.isFlutterPackage, isTrue);
+
+      final package3 = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  http: ^0.13.0
+'''),
+      );
+      expect(package3.isFlutterPackage, isFalse);
+    });
+
+    test('isFlutterCompatiblePackage returns true if depends on jaspr', () {
+      final package1 = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  jaspr: ^0.23.0
+'''),
+      );
+      expect(package1.isFlutterCompatiblePackage, isTrue);
+
+      final package2 = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  http: ^0.13.0
+'''),
+      );
+      expect(package2.isFlutterCompatiblePackage, isFalse);
+    });
+
+    test(
+        'isFlutterApp returns correctly based on dependencies and plugin definition',
+        () {
+      final flutterApp = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  flutter:
+    sdk: flutter
+'''),
+      );
+      expect(flutterApp.isFlutterApp, isTrue);
+
+      final jasprApp = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  jaspr: ^0.1.0
+'''),
+      );
+      expect(jasprApp.isFlutterApp, isTrue);
+
+      final dartApp = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  http: ^0.13.0
+'''),
+      );
+      expect(dartApp.isFlutterApp, isFalse);
+
+      final flutterPlugin = Package(
+        path: '',
+        pubSpec: Pubspec.parse('''
+name: test_pkg
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  plugin:
+    platforms:
+      android:
+'''),
+      );
+      expect(flutterPlugin.isFlutterApp, isFalse);
+    });
+  });
 }

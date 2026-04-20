@@ -75,14 +75,19 @@ class Package {
   late final bool isFlutterPackage = dependencies.contains('flutter') ||
       dependencies.contains('flutter_localizations');
 
+  /// Returns whether this package is compatible with Flutter plugins, even
+  /// if it doesn't depend on the Flutter SDK directly.
+  ///
+  /// This is currently only true for packages that depend on Jaspr.
+  late final bool isFlutterCompatiblePackage = dependencies.contains('jaspr');
+
   /// Returns whether this package is a Flutter app.
   /// This is determined by ensuring all the following conditions are met:
-  ///  a) the package depends on the Flutter SDK.
+  ///  a) the package depends on the Flutter SDK or is a Flutter compatible package.
   ///  b) the package does not define itself as a Flutter plugin inside pubspec.yaml.
-  ///  c) a lib/main.dart file exists in the package.
   bool get isFlutterApp {
-    // Must directly depend on the Flutter SDK.
-    if (!isFlutterPackage) return false;
+    // Must directly depend on the Flutter SDK or be a Flutter compatible package.
+    if (!isFlutterPackage && !isFlutterCompatiblePackage) return false;
 
     // Must not have a Flutter plugin definition in it's pubspec.yaml.
     if (isFlutterPlugin) return false;
