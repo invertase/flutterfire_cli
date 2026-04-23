@@ -71,7 +71,7 @@ class Reconfigure extends FlutterFireCommand {
     argParser.addOption(
       kFirebaseOutFlag,
       valueHelp: 'filePath',
-      help: 'The path to the `firebase.json` file.',
+      help: 'The path to the `firebase.json` file that will be used for reconfiguration.',
     );
   }
 
