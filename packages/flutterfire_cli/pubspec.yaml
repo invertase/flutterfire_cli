@@ -4,7 +4,8 @@ version: 1.3.2
 homepage: "https://github.com/invertase/flutterfire_cli"
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.6.0
+resolution: workspace
 
 dependencies:
   ansi_styles: ^0.3.2+1

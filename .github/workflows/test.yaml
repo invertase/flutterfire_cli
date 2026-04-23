@@ -39,7 +39,7 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0'
+          melos-version: '7.5.1'
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools  
@@ -82,7 +82,7 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0'
+          melos-version: '7.5.1'
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
@@ -128,7 +128,7 @@ jobs:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '3.0.0'  
+          melos-version: '7.5.1'  
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
         name: Install Node.js 18
         with:
