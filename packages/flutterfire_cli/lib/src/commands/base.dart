@@ -63,8 +63,11 @@ abstract class FlutterFireCommand extends Command<void> {
     );
   }
 
-  void commandRequiresFlutterApp() {
+  void commandRequiresFlutterApp({bool allowRuntimeApp = true}) {
     if (flutterApp == null) {
+      throw FlutterAppRequiredException();
+    }
+    if (!allowRuntimeApp && flutterApp is FlutterRuntimeApp) {
       throw FlutterAppRequiredException();
     }
     _warnUserIfRunningGlobally();
