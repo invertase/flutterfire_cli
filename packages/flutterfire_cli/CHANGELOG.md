@@ -1,3 +1,8 @@
+## 1.4.0
+
+ - **FIX**(cli): ensure generated firebase_options.dart is perfectly formatted ([#437](https://github.com/invertase/flutterfire_cli/issues/437)). ([de2515f9](https://github.com/invertase/flutterfire_cli/commit/de2515f9a3bc92a39d1656ebb2c41f7bbf444203))
+ - **FEAT**: add support for recaptcha_site_key ([#445](https://github.com/invertase/flutterfire_cli/issues/445)). ([01e1dc18](https://github.com/invertase/flutterfire_cli/commit/01e1dc18ba7a2c64df77c1d982b4803286847303))
+
 ## 1.3.2
 
  - **FIX**: ensure that bundle script is placed first for Apple build phases ([#420](https://github.com/invertase/flutterfire_cli/issues/420)). ([769a1487](https://github.com/invertase/flutterfire_cli/commit/769a1487ca633f64a3bbfebec4c8f5f16664bbc4))
