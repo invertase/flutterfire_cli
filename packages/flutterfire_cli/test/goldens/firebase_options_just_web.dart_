@@ -58,5 +58,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: 'sender-id',
     projectId: 'test-project-id',
     measurementId: 'measurement-id',
+    recaptchaSiteKey: 'recaptcha-site-key',
   );
 }

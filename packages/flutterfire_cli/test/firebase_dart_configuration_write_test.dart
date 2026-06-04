@@ -67,6 +67,7 @@ class DefaultFirebaseOptions {
         messagingSenderId: 'sender-id',
         projectId: 'test-project-id',
         measurementId: 'measurement-id',
+        recaptchaSiteKey: 'recaptcha-site-key',
       ),
       verify: (updatedContent) {
         expect(updatedContent, contains('if (kIsWeb) {'));
@@ -86,6 +87,7 @@ class DefaultFirebaseOptions {
         messagingSenderId: 'sender-id',
         projectId: 'test-project-id',
         measurementId: 'measurement-id',
+        recaptchaSiteKey: 'recaptcha-site-key',
       ),
       verify: (updatedContent) {
         final goldenFile = File('test/goldens/firebase_options_just_web.dart_');
@@ -116,6 +118,7 @@ class DefaultFirebaseOptions {
       verify: (updatedContent) {
         expect(updatedContent, contains(');\n}'));
         expect(updatedContent, isNot(contains(');\n\n}')));
+        expect(updatedContent, isNot(contains('recaptchaSiteKey')));
       },
     );
   });
