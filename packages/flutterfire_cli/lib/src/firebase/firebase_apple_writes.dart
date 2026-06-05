@@ -399,12 +399,47 @@ bashScript = %q(
 #!/bin/bash
 PATH="\${PATH}:\$FLUTTER_ROOT/bin:\${PUB_CACHE}/bin:\$HOME/.pub-cache/bin"
 
-if [ -z "\$PODS_ROOT" ] || [ ! -d "\$PODS_ROOT/FirebaseCrashlytics" ]; then
-  # Cannot use "BUILD_DIR%/Build/*" as per Firebase documentation, it points to "flutter-project/build/ios/*" path which doesn't have run script
-  DERIVED_DATA_PATH=\$(echo "\$BUILD_ROOT" | sed -E 's|(.*DerivedData/[^/]+).*|\\1|')
-  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${DERIVED_DATA_PATH}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
-else
+# Locate the firebase-ios-sdk Crashlytics 'run' script.
+#
+# CocoaPods:  \$PODS_ROOT/FirebaseCrashlytics/run
+# SPM:        <derivedDataPath>/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run
+#
+# The derived-data root depends on how Xcode was invoked:
+#   * flutter build ios       -> <flutter project>/build/ios
+#   * Xcode standalone build  -> ~/Library/Developer/Xcode/DerivedData/Runner-XXXXX
+#   * xcodebuild -derivedDataPath <custom> (e.g. fastlane gym) -> <custom>
+#
+# In every case BUILD_DIR has the shape <derivedDataPath>/Build/..., so
+# stripping "/Build/..." from BUILD_DIR (or BUILT_PRODUCTS_DIR / BUILD_ROOT
+# as fallbacks) reliably yields the derived-data root.
+resolve_spm_run_script() {
+  local source="\$1"
+  [ -z "\$source" ] && return 1
+  local root
+  root=\$(printf '%s' "\$source" | sed -E 's|/Build/.*||')
+  local candidate="\${root}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+  if [ -f "\$candidate" ]; then
+    echo "\$candidate"
+    return 0
+  fi
+  return 1
+}
+
+if [ -n "\$PODS_ROOT" ] && [ -d "\$PODS_ROOT/FirebaseCrashlytics" ]; then
   PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/run"
+else
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT=\$(resolve_spm_run_script "\$BUILD_DIR")
+  if [ -z "\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" ]; then
+    PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT=\$(resolve_spm_run_script "\$BUILT_PRODUCTS_DIR")
+  fi
+  if [ -z "\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" ]; then
+    PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT=\$(resolve_spm_run_script "\$BUILD_ROOT")
+  fi
+fi
+
+if [ -z "\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" ] || [ ! -f "\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" ]; then
+  echo "warning: Crashlytics 'run' script not found; skipping symbol upload"
+  exit 0
 fi
 
 # Command to upload symbols script used to upload symbols to Firebase server
