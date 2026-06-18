@@ -620,11 +620,13 @@ class ConfigCommand extends FlutterFireCommand {
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
+        firebaseProjectNumber: selectedFirebaseProject.projectNumber,
         firebaseAccount: accountEmail,
         androidApplicationId: androidApplicationId,
         iosBundleId: iosBundleId,
         macosBundleId: macosBundleId,
         token: token,
+        appCheckAccessToken: testAccessToken,
         serviceAccount: serviceAccount,
         webAppId: webAppId,
         windowsAppId: windowsAppId,

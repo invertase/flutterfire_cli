@@ -26,6 +26,7 @@ class FirebasePlatformOptions {
 Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   required FlutterApp flutterApp,
   required String firebaseProjectId,
+  required String firebaseProjectNumber,
   required bool windows,
   required bool linux,
   required bool web,
@@ -39,6 +40,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? macosBundleId,
   String? windowsAppId,
   String? token,
+  String? appCheckAccessToken,
   String? serviceAccount,
 }) async {
   FirebaseOptions? androidOptions;
@@ -85,9 +87,11 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
     webOptions = await FirebaseDartOptions.forFlutterApp(
       flutterApp,
       firebaseProjectId: firebaseProjectId,
+      firebaseProjectNumber: firebaseProjectNumber,
       firebaseAccount: firebaseAccount,
       webAppId: webAppId,
       token: token,
+      appCheckAccessToken: appCheckAccessToken,
       serviceAccount: serviceAccount,
     );
   }

@@ -61,6 +61,52 @@ firebase.initializeApp({
         expect(options.recaptchaSiteKey, 'test-web-recaptcha-site-key');
       });
 
+      test('adds fetched reCAPTCHA site key to JavaScript format', () {
+        final config = FirebaseAppSdkConfig(
+          fileName: 'firebase-config.js',
+          fileContents: '''
+firebase.initializeApp({
+  "projectId": "test-project",
+  "appId": "1:1234567890:web:abcdef1234567890",
+  "apiKey": "test-api-key",
+  "authDomain": "test-project.firebaseapp.com",
+  "messagingSenderId": "1234567890",
+  "measurementId": "G-ABCDEF1234"
+});''',
+        );
+
+        final options = FirebaseDartOptions.convertConfigToOptions(
+          config,
+          'test-project',
+          recaptchaSiteKey: 'fetched-web-recaptcha-site-key',
+        );
+
+        expect(options.recaptchaSiteKey, 'fetched-web-recaptcha-site-key');
+      });
+
+      test('adds fetched reCAPTCHA site key to JSON format', () {
+        final config = FirebaseAppSdkConfig(
+          fileName: 'firebase-config.json',
+          fileContents: '''
+{
+  "projectId": "test-project",
+  "appId": "1:1234567890:web:abcdef1234567890",
+  "apiKey": "test-api-key",
+  "authDomain": "test-project.firebaseapp.com",
+  "messagingSenderId": "1234567890",
+  "measurementId": "G-ABCDEF1234"
+}''',
+        );
+
+        final options = FirebaseDartOptions.convertConfigToOptions(
+          config,
+          'test-project',
+          recaptchaSiteKey: 'fetched-web-recaptcha-site-key',
+        );
+
+        expect(options.recaptchaSiteKey, 'fetched-web-recaptcha-site-key');
+      });
+
       test('throws FirebaseCommandException for invalid format', () {
         final config = FirebaseAppSdkConfig(
           fileName: 'invalid-config.txt',

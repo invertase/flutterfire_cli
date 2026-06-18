@@ -27,10 +27,12 @@ extension FirebaseDartOptions on FirebaseOptions {
   static Future<FirebaseOptions> forFlutterApp(
     FlutterApp flutterApp, {
     required String firebaseProjectId,
+    String? firebaseProjectNumber,
     String? firebaseAccount,
     String? webAppId,
     String platform = kWeb,
     required String? token,
+    String? appCheckAccessToken,
     required String? serviceAccount,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
@@ -50,13 +52,26 @@ extension FirebaseDartOptions on FirebaseOptions {
       serviceAccount: serviceAccount,
     );
 
-    return convertConfigToOptions(appSdkConfig, firebaseProjectId);
+    final recaptchaSiteKey = platform == kWeb && firebaseProjectNumber != null
+        ? await firebase.getRecaptchaEnterpriseSiteKey(
+            projectNumber: firebaseProjectNumber,
+            appId: firebaseApp.appId,
+            accessToken: appCheckAccessToken,
+          )
+        : null;
+
+    return convertConfigToOptions(
+      appSdkConfig,
+      firebaseProjectId,
+      recaptchaSiteKey: recaptchaSiteKey,
+    );
   }
 
   static FirebaseOptions convertConfigToOptions(
     FirebaseAppSdkConfig appSdkConfig,
-    String firebaseProjectId,
-  ) {
+    String firebaseProjectId, {
+    String? recaptchaSiteKey,
+  }) {
     final jsonBodyRegex = RegExp(
       r'''firebase\.initializeApp\({(?<jsonBody>[\S\s]*)}\);''',
       multiLine: true,
@@ -65,14 +80,23 @@ extension FirebaseDartOptions on FirebaseOptions {
     var jsonBody = '';
     if (match != null) {
       jsonBody = match.namedGroup('jsonBody')!;
+      final configMap = const JsonDecoder().convert('{$jsonBody}') as Map;
       return FirebaseOptions.fromMap(
-        const JsonDecoder().convert('{$jsonBody}') as Map,
+        {
+          ...configMap,
+          if (recaptchaSiteKey != null) 'recaptchaSiteKey': recaptchaSiteKey,
+        },
       );
     } else {
       // Handle new JSON format introduced in Firebase CLI v13.31.0
       // The config is now returned as direct JSON instead of JavaScript format
+      final configMap =
+          const JsonDecoder().convert(appSdkConfig.fileContents) as Map;
       return FirebaseOptions.fromMap(
-        const JsonDecoder().convert(appSdkConfig.fileContents) as Map,
+        {
+          ...configMap,
+          if (recaptchaSiteKey != null) 'recaptchaSiteKey': recaptchaSiteKey,
+        },
       );
     }
   }

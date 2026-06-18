@@ -274,6 +274,62 @@ Future<FirebaseAppSdkConfig> getAppSdkConfig({
   );
 }
 
+Future<String?> getRecaptchaEnterpriseSiteKey({
+  required String projectNumber,
+  required String appId,
+  String? accessToken,
+  http.Client? client,
+}) async {
+  try {
+    accessToken ??= await getAccessToken();
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout(
+        'Firebase App Check:`getRecaptchaEnterpriseSiteKey()`:getAccessToken: $e',
+      );
+    }
+    return null;
+  }
+
+  final httpClient = client ?? http.Client();
+  late http.Response response;
+  try {
+    response = await httpClient.get(
+      Uri.https(
+        'firebaseappcheck.googleapis.com',
+        '/v1/projects/$projectNumber/apps/$appId/recaptchaEnterpriseConfig',
+      ),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+  } catch (e) {
+    if (debugMode) {
+      logger.stdout(
+        'Firebase App Check:`getRecaptchaEnterpriseSiteKey()`:http.get: $e',
+      );
+    }
+    return null;
+  } finally {
+    if (client == null) {
+      httpClient.close();
+    }
+  }
+
+  if (response.statusCode == 200) {
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final siteKey = json['siteKey'] as String?;
+    return siteKey == null || siteKey.isEmpty ? null : siteKey;
+  }
+
+  if (debugMode && response.statusCode != 404) {
+    logger.stdout(
+      'Firebase App Check:`getRecaptchaEnterpriseSiteKey()`: '
+      'statusCode: ${response.statusCode}, response: ${response.body}',
+    );
+  }
+
+  return null;
+}
+
 void _assertFirebaseSupportedPlatform(String platformIdentifier) {
   if (![kAndroid, kWeb, kIos].contains(platformIdentifier)) {
     throw FirebasePlatformNotSupportedException(platformIdentifier);
