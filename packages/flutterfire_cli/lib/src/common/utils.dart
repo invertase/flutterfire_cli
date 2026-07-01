@@ -20,12 +20,12 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
-import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
     show relative, normalize, windows, joinAll, dirname, join;
 
 import '../flutter_app.dart';
 import 'platform.dart';
+import 'prompts.dart' as prompts;
 import 'strings.dart';
 
 /// Key for windows platform.
@@ -147,10 +147,10 @@ bool promptBool(
   String prompt, {
   bool defaultValue = true,
 }) {
-  return interact.Confirm(
-    prompt: prompt,
+  return prompts.promptConfirm(
+    prompt,
     defaultValue: defaultValue,
-  ).interact();
+  );
 }
 
 int promptSelect(
@@ -158,11 +158,11 @@ int promptSelect(
   List<String> choices, {
   int initialIndex = 0,
 }) {
-  return interact.Select(
-    prompt: prompt,
-    options: choices,
+  return prompts.promptSelectIndex(
+    prompt,
+    choices,
     initialIndex: initialIndex,
-  ).interact();
+  );
 }
 
 List<int> promptMultiSelect(
@@ -170,11 +170,11 @@ List<int> promptMultiSelect(
   List<String> choices, {
   List<bool>? defaultSelection,
 }) {
-  return interact.MultiSelect(
-    prompt: prompt,
-    options: choices,
-    defaults: defaultSelection,
-  ).interact();
+  return prompts.promptMultiSelectIndices(
+    prompt,
+    choices,
+    defaultSelection: defaultSelection,
+  );
 }
 
 String promptInput(
@@ -182,8 +182,8 @@ String promptInput(
   String? defaultValue,
   dynamic Function(String)? validator,
 }) {
-  return interact.Input(
-    prompt: prompt,
+  return prompts.promptText(
+    prompt,
     defaultValue: defaultValue,
     validator: (String input) {
       if (validator == null) return true;
@@ -193,19 +193,16 @@ String promptInput(
       }
       if (validatorResult is String) {
         // ignore: only_throw_errors
-        throw interact.ValidationError(validatorResult);
+        throw prompts.ValidationError(validatorResult);
       }
       return false;
     },
-  ).interact();
+  );
 }
 
-interact.SpinnerState? activeSpinnerState;
-interact.SpinnerState spinner(String Function(bool) rightPrompt) {
-  activeSpinnerState = interact.Spinner(
-    icon: AnsiStyles.blue('i'),
-    rightPrompt: rightPrompt,
-  ).interact();
+prompts.SpinnerHandle? activeSpinnerState;
+prompts.SpinnerHandle spinner(String Function(bool) rightPrompt) {
+  activeSpinnerState = prompts.textSpinner(rightPrompt);
   return activeSpinnerState!;
 }
 
