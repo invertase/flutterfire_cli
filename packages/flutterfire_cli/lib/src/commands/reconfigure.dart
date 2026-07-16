@@ -135,6 +135,10 @@ class Reconfigure extends FlutterFireCommand {
     // ios or macos
     String platform,
   ) async {
+    final xcodeProjectPath = getXcodeProjectPath(
+      Directory(flutterApp!.package.path),
+      platform,
+    );
     final appleMapKeys = [
       kFlutter,
       kPlatforms,
@@ -155,6 +159,7 @@ class Reconfigure extends FlutterFireCommand {
         flutterAppPath: flutterApp!.package.path,
         platform: platform,
         logger: logger,
+        xcodeProjectPath: xcodeProjectPath,
         projectConfiguration: ProjectConfiguration.buildConfiguration,
         isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
       );
@@ -196,6 +201,7 @@ class Reconfigure extends FlutterFireCommand {
         flutterAppPath: flutterApp!.package.path,
         platform: platform,
         logger: logger,
+        xcodeProjectPath: xcodeProjectPath,
         projectConfiguration: ProjectConfiguration.defaultConfig,
         isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
       );
@@ -231,6 +237,7 @@ class Reconfigure extends FlutterFireCommand {
           flutterAppPath: flutterApp!.package.path,
           platform: platform,
           logger: logger,
+          xcodeProjectPath: xcodeProjectPath,
           projectConfiguration: ProjectConfiguration.target,
           isDevDependency: flutterApp!.dependsOnPackage('flutterfire_cli'),
         );

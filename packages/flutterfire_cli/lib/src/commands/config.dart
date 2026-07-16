@@ -665,6 +665,7 @@ class ConfigCommand extends FlutterFireCommand {
             buildConfiguration: iosInputs?.buildConfiguration,
             target: iosInputs?.target,
             platform: kIos,
+            xcodeProjectPath: iosInputs!.xcodeProjectPath,
             projectConfiguration: iosInputs!.projectConfiguration,
           );
 
@@ -682,6 +683,7 @@ class ConfigCommand extends FlutterFireCommand {
             buildConfiguration: macosInputs?.buildConfiguration,
             target: macosInputs?.target,
             platform: kMacos,
+            xcodeProjectPath: macosInputs!.xcodeProjectPath,
             projectConfiguration: macosInputs!.projectConfiguration,
           );
 

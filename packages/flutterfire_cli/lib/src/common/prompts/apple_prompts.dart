@@ -43,10 +43,11 @@ String getAppleServiceFile(
 Future<String> promptCheckBuildConfiguration(
   String buildConfiguration,
   String platform,
+  String xcodeProjectPath,
 ) async {
   final buildConfigurations = await findBuildConfigurationsAvailable(
     platform,
-    getXcodeProjectPath(platform),
+    xcodeProjectPath,
   );
 
   if (!buildConfigurations.contains(buildConfiguration)) {
@@ -66,10 +67,13 @@ Future<String> promptCheckBuildConfiguration(
   return buildConfiguration;
 }
 
-Future<String> promptGetBuildConfiguration(String platform) async {
+Future<String> promptGetBuildConfiguration(
+  String platform,
+  String xcodeProjectPath,
+) async {
   final buildConfigurations = await findBuildConfigurationsAvailable(
     platform,
-    getXcodeProjectPath(platform),
+    xcodeProjectPath,
   );
 
   final response = promptSelect(
@@ -80,9 +84,11 @@ Future<String> promptGetBuildConfiguration(String platform) async {
   return buildConfigurations[response];
 }
 
-Future<String> promptGetTarget(String platform) async {
-  final targets =
-      await findTargetsAvailable(platform, getXcodeProjectPath(platform));
+Future<String> promptGetTarget(
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final targets = await findTargetsAvailable(platform, xcodeProjectPath);
 
   final response = promptSelect(
     'Please choose one of the following targets',
@@ -92,9 +98,12 @@ Future<String> promptGetTarget(String platform) async {
   return targets[response];
 }
 
-Future<String> promptCheckTarget(String target, String platform) async {
-  final targets =
-      await findTargetsAvailable(platform, getXcodeProjectPath(platform));
+Future<String> promptCheckTarget(
+  String target,
+  String platform,
+  String xcodeProjectPath,
+) async {
+  final targets = await findTargetsAvailable(platform, xcodeProjectPath);
 
   if (!targets.contains(target)) {
     if (isCI) {

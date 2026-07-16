@@ -227,9 +227,7 @@ String androidAppBuildGradleKtsPathForAppDirectory(Directory directory) {
 
 File xcodeProjectFileInDirectory(Directory directory, String platform) {
   return File(
-    joinAll(
-      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
-    ),
+    join(getXcodeProjectPath(directory, platform), 'project.pbxproj'),
   );
 }
 
@@ -502,11 +500,47 @@ Future<List<String>> findBuildConfigurationsAvailable(
   return buildConfigurations;
 }
 
-String getXcodeProjectPath(String platform) {
-  return join(
-    Directory.current.path,
+String getXcodeProjectPath(Directory directory, String platform) {
+  final platformDirectory = Directory(join(directory.path, platform));
+  final defaultProjectDirectory = Directory(
+    join(platformDirectory.path, 'Runner.xcodeproj'),
+  );
+
+  if (defaultProjectDirectory.existsSync()) {
+    return defaultProjectDirectory.path;
+  }
+
+  if (!platformDirectory.existsSync()) {
+    throw XcodeProjectException(
+      platform,
+      'Unable to find an Xcode project for $platform because ${platformDirectory.path} does not exist.',
+    );
+  }
+
+  final xcodeProjectDirectories = platformDirectory
+      .listSync()
+      .whereType<Directory>()
+      .where((directory) => directory.path.endsWith('.xcodeproj'))
+      .toList()
+    ..sort((a, b) => a.path.compareTo(b.path));
+
+  if (xcodeProjectDirectories.length == 1) {
+    return xcodeProjectDirectories.single.path;
+  }
+
+  if (xcodeProjectDirectories.isEmpty) {
+    throw XcodeProjectException(
+      platform,
+      'Unable to find an Xcode project in ${platformDirectory.path}.',
+    );
+  }
+
+  final projectNames = xcodeProjectDirectories
+      .map((directory) => directory.path.split(Platform.pathSeparator).last)
+      .join(', ');
+  throw XcodeProjectException(
     platform,
-    'Runner.xcodeproj',
+    'Found multiple Xcode projects in ${platformDirectory.path}: $projectNames. Please keep a single Xcode project in this directory.',
   );
 }
 

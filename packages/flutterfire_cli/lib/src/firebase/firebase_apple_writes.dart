@@ -17,6 +17,7 @@ const bundleServiceScriptName =
 Future<FirebaseJsonWrites> appleWrites({
   required String platform,
   required FlutterApp flutterApp,
+  required String xcodeProjectPath,
   required String serviceFilePath,
   required FirebaseOptions platformOptions,
   required Logger logger,
@@ -32,6 +33,7 @@ Future<FirebaseJsonWrites> appleWrites({
         serviceFilePath: serviceFilePath,
         logger: logger,
         platform: platform,
+        xcodeProjectPath: xcodeProjectPath,
         projectConfiguration: projectConfiguration,
         buildConfiguration: buildConfiguration!,
       ).apply();
@@ -43,6 +45,7 @@ Future<FirebaseJsonWrites> appleWrites({
         serviceFilePath: serviceFilePath,
         logger: logger,
         platform: platform,
+        xcodeProjectPath: xcodeProjectPath,
         projectConfiguration: projectConfiguration,
         target: ProjectConfiguration.defaultConfig == projectConfiguration
             ? 'Runner'
@@ -58,6 +61,7 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
     required String serviceFilePath,
     required Logger logger,
     required String platform,
+    required String xcodeProjectPath,
     required ProjectConfiguration projectConfiguration,
     required this.target,
   }) : super(
@@ -66,6 +70,7 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
           serviceFilePath: serviceFilePath,
           logger: logger,
           platform: platform,
+          xcodeProjectPath: xcodeProjectPath,
           projectConfiguration: projectConfiguration,
         );
 
@@ -89,7 +94,7 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
     return '''
 require 'xcodeproj'
 googleFile='$serviceFilePath'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='$xcodeProjectPath'
 targetName='$target'
 
 project = Xcodeproj::Project.open(xcodeFile)
@@ -127,6 +132,7 @@ end
       flutterAppPath: flutterApp.package.path,
       logger: logger,
       platform: platform,
+      xcodeProjectPath: xcodeProjectPath,
       projectConfiguration: projectConfiguration,
       isDevDependency: flutterApp.dependsOnPackage('flutterfire_cli'),
     );
@@ -147,6 +153,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     required String serviceFilePath,
     required Logger logger,
     required String platform,
+    required String xcodeProjectPath,
     required ProjectConfiguration projectConfiguration,
     required this.buildConfiguration,
   }) : super(
@@ -155,6 +162,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
           serviceFilePath: serviceFilePath,
           logger: logger,
           platform: platform,
+          xcodeProjectPath: xcodeProjectPath,
           projectConfiguration: projectConfiguration,
         );
   // e.g. Debug, Profile, Release, etc
@@ -192,7 +200,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
 
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='$xcodeProjectPath'
 runScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -232,6 +240,7 @@ end
       logger: logger,
       projectConfiguration: projectConfiguration,
       platform: platform,
+      xcodeProjectPath: xcodeProjectPath,
       isDevDependency: flutterApp.dependsOnPackage('flutterfire_cli'),
     );
 
@@ -255,10 +264,12 @@ abstract class FirebaseAppleConfiguration {
     required this.serviceFilePath,
     required this.logger,
     required this.platform,
+    required this.xcodeProjectPath,
     required this.projectConfiguration,
   });
   // Either "ios" or "macos"
   final String platform;
+  final String xcodeProjectPath;
   final FlutterApp flutterApp;
   final FirebaseOptions platformOptions;
   final String serviceFilePath;
@@ -308,6 +319,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
   required String flutterAppPath,
   required Logger logger,
   required String platform,
+  required String xcodeProjectPath,
   required ProjectConfiguration projectConfiguration,
   required bool isDevDependency,
 }) async {
@@ -356,6 +368,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
         target,
         projectConfiguration,
         platform,
+        xcodeProjectPath,
         isDevDependency,
       ),
     ]);
@@ -377,6 +390,7 @@ String _debugSymbolsScript(
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,
+  String xcodeProjectPath,
   bool isDevDependency,
 ) {
   final projectType = switch (projectConfiguration) {
@@ -388,7 +402,7 @@ String _debugSymbolsScript(
 
   return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='$xcodeProjectPath'
 runScriptName='$debugSymbolScriptName'
 bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)

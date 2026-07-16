@@ -22,11 +22,13 @@ class AppleInputs {
   AppleInputs({
     this.buildConfiguration,
     this.target,
+    required this.xcodeProjectPath,
     required this.serviceFilePath,
     required this.projectConfiguration,
   });
   final String? buildConfiguration;
   final String? target;
+  final String xcodeProjectPath;
   final String serviceFilePath;
   ProjectConfiguration projectConfiguration;
 }

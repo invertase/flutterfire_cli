@@ -19,14 +19,19 @@ Future<AppleInputs> appleValidation({
   String? targetResponse;
   String? buildConfigurationResponse;
   var configurationResponse = ProjectConfiguration.defaultConfig;
+  final xcodeProjectPath = getXcodeProjectPath(
+    Directory(flutterAppPath),
+    platform,
+  );
 
   if (target == null && buildConfiguration == null && serviceFilePath == null) {
     // Default configuration
     return AppleInputs(
       projectConfiguration: configurationResponse,
       target: 'Runner',
+      xcodeProjectPath: xcodeProjectPath,
       serviceFilePath: path.join(
-        Directory.current.path,
+        flutterAppPath,
         platform,
         'Runner',
         appleServiceFileName,
@@ -77,18 +82,22 @@ Future<AppleInputs> appleValidation({
 
     if (configurationResponse == ProjectConfiguration.target) {
       // User chooses from list of targets
-      targetResponse = await promptGetTarget(platform);
+      targetResponse = await promptGetTarget(platform, xcodeProjectPath);
     }
 
     if (configurationResponse == ProjectConfiguration.buildConfiguration) {
       // User chooses from list of build configurations
-      buildConfigurationResponse = await promptGetBuildConfiguration(platform);
+      buildConfigurationResponse = await promptGetBuildConfiguration(
+        platform,
+        xcodeProjectPath,
+      );
     }
   }
 
   if (serviceFilePath != null && target != null) {
     // Check if target exists
-    targetResponse = await promptCheckTarget(target, platform);
+    targetResponse =
+        await promptCheckTarget(target, platform, xcodeProjectPath);
     configurationResponse = ProjectConfiguration.target;
   }
 
@@ -97,6 +106,7 @@ Future<AppleInputs> appleValidation({
     buildConfigurationResponse = await promptCheckBuildConfiguration(
       buildConfiguration,
       platform,
+      xcodeProjectPath,
     );
     configurationResponse = ProjectConfiguration.buildConfiguration;
   }
@@ -105,6 +115,7 @@ Future<AppleInputs> appleValidation({
     projectConfiguration: configurationResponse,
     buildConfiguration: buildConfigurationResponse,
     target: targetResponse,
+    xcodeProjectPath: xcodeProjectPath,
     serviceFilePath: getAppleServiceFile(
       serviceFilePath,
       platform,

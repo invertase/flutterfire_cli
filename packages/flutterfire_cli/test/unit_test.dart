@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -233,4 +235,87 @@ void main() {
       });
     },
   );
+
+  group('Xcode project path discovery', () {
+    late Directory flutterAppDirectory;
+
+    setUp(() {
+      flutterAppDirectory = Directory.systemTemp.createTempSync();
+    });
+
+    tearDown(() {
+      flutterAppDirectory.deleteSync(recursive: true);
+    });
+
+    test('prefers Runner.xcodeproj when present', () {
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'Renamed.xcodeproj'),
+      ).createSync(recursive: true);
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'Runner.xcodeproj'),
+      ).createSync(recursive: true);
+
+      final xcodeProjectPath = getXcodeProjectPath(
+        flutterAppDirectory,
+        kIos,
+      );
+
+      expect(
+        xcodeProjectPath,
+        path.join(flutterAppDirectory.path, kIos, 'Runner.xcodeproj'),
+      );
+    });
+
+    test('uses a single renamed xcode project', () {
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'Renamed.xcodeproj'),
+      ).createSync(recursive: true);
+
+      final xcodeProjectPath = getXcodeProjectPath(
+        flutterAppDirectory,
+        kIos,
+      );
+      final xcodeProjectFile = xcodeProjectFileInDirectory(
+        flutterAppDirectory,
+        kIos,
+      );
+
+      expect(
+        xcodeProjectPath,
+        path.join(flutterAppDirectory.path, kIos, 'Renamed.xcodeproj'),
+      );
+      expect(
+        xcodeProjectFile.path,
+        path.join(
+          flutterAppDirectory.path,
+          kIos,
+          'Renamed.xcodeproj',
+          'project.pbxproj',
+        ),
+      );
+    });
+
+    test('throws when no xcode project exists', () {
+      Directory(path.join(flutterAppDirectory.path, kIos)).createSync();
+
+      expect(
+        () => getXcodeProjectPath(flutterAppDirectory, kIos),
+        throwsA(isA<XcodeProjectException>()),
+      );
+    });
+
+    test('throws when multiple renamed xcode projects exist', () {
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'One.xcodeproj'),
+      ).createSync(recursive: true);
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'Two.xcodeproj'),
+      ).createSync(recursive: true);
+
+      expect(
+        () => getXcodeProjectPath(flutterAppDirectory, kIos),
+        throwsA(isA<XcodeProjectException>()),
+      );
+    });
+  });
 }
