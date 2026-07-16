@@ -71,8 +71,17 @@ class FlutterApp {
   }
 
   String? _readBundleIdForPlatform(String platform) {
-    final xcodeProjFile =
-        xcodeProjectFileInDirectory(Directory(package.path), platform);
+    // This is just a convenience lookup for a default bundle id, so if the
+    // Xcode project can't be unambiguously resolved (e.g. missing or
+    // multiple .xcodeproj directories) we fall through to manual entry
+    // rather than failing the whole command.
+    File? xcodeProjFile;
+    try {
+      xcodeProjFile =
+          xcodeProjectFileInDirectory(Directory(package.path), platform);
+    } on FlutterFireException {
+      xcodeProjFile = null;
+    }
     final xcodeAppInfoConfigFile =
         xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
     final bundleIdRegex = RegExp(
@@ -93,7 +102,7 @@ class FlutterApp {
       }
     }
 
-    if (xcodeProjFile.existsSync()) {
+    if (xcodeProjFile != null && xcodeProjFile.existsSync()) {
       final fileContents = xcodeProjFile.readAsStringSync();
       // TODO there can be multiple matches, e.g. build variants,
       //      perhaps we should build a set and prompt for a choice?

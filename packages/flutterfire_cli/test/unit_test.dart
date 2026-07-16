@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:flutterfire_cli/src/common/validation.dart';
+import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -317,5 +319,80 @@ void main() {
         throwsA(isA<XcodeProjectException>()),
       );
     });
+
+    test(
+        'throws a PlatformDirectoryDoesNotExistException when the '
+        'platform directory is missing', () {
+      expect(
+        () => getXcodeProjectPath(flutterAppDirectory, kIos),
+        throwsA(isA<PlatformDirectoryDoesNotExistException>()),
+      );
+    });
+  });
+
+  group('Xcode project resolution wired through app validation', () {
+    late Directory flutterAppDirectory;
+
+    setUp(() {
+      flutterAppDirectory = Directory.systemTemp.createTempSync();
+      File(path.join(flutterAppDirectory.path, 'pubspec.yaml'))
+          .writeAsStringSync('''
+name: test_app
+dependencies:
+  flutter:
+    sdk: flutter
+''');
+    });
+
+    tearDown(() {
+      flutterAppDirectory.deleteSync(recursive: true);
+    });
+
+    test('appleValidation resolves a renamed Xcode project', () async {
+      Directory(
+        path.join(flutterAppDirectory.path, kIos, 'MyApp.xcodeproj'),
+      ).createSync(recursive: true);
+
+      final appleInputs = await appleValidation(
+        platform: kIos,
+        flutterAppPath: flutterAppDirectory.path,
+      );
+
+      expect(
+        appleInputs.xcodeProjectPath,
+        path.join(flutterAppDirectory.path, kIos, 'MyApp.xcodeproj'),
+      );
+    });
+
+    test(
+      'appleValidation surfaces a clear error when the platform directory '
+      'is missing',
+      () {
+        expect(
+          () => appleValidation(
+            platform: kIos,
+            flutterAppPath: flutterAppDirectory.path,
+          ),
+          throwsA(isA<PlatformDirectoryDoesNotExistException>()),
+        );
+      },
+    );
+
+    test(
+      'bundle id detection does not throw when the Xcode project is '
+      'ambiguous',
+      () async {
+        Directory(
+          path.join(flutterAppDirectory.path, kIos, 'One.xcodeproj'),
+        ).createSync(recursive: true);
+        Directory(
+          path.join(flutterAppDirectory.path, kIos, 'Two.xcodeproj'),
+        ).createSync(recursive: true);
+
+        final flutterApp = await FlutterApp.load(flutterAppDirectory);
+
+        expect(flutterApp!.iosBundleId, isNull);
+      },
+    );
   });
 }

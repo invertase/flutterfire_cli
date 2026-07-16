@@ -511,18 +511,14 @@ String getXcodeProjectPath(Directory directory, String platform) {
   }
 
   if (!platformDirectory.existsSync()) {
-    throw XcodeProjectException(
-      platform,
-      'Unable to find an Xcode project for $platform because ${platformDirectory.path} does not exist.',
-    );
+    throw PlatformDirectoryDoesNotExistException(platformDirectory.path);
   }
 
   final xcodeProjectDirectories = platformDirectory
       .listSync()
       .whereType<Directory>()
       .where((directory) => directory.path.endsWith('.xcodeproj'))
-      .toList()
-    ..sort((a, b) => a.path.compareTo(b.path));
+      .toList();
 
   if (xcodeProjectDirectories.length == 1) {
     return xcodeProjectDirectories.single.path;
@@ -537,10 +533,11 @@ String getXcodeProjectPath(Directory directory, String platform) {
 
   final projectNames = xcodeProjectDirectories
       .map((directory) => directory.path.split(Platform.pathSeparator).last)
-      .join(', ');
+      .toList()
+    ..sort();
   throw XcodeProjectException(
     platform,
-    'Found multiple Xcode projects in ${platformDirectory.path}: $projectNames. Please keep a single Xcode project in this directory.',
+    'Found multiple Xcode projects in ${platformDirectory.path}: ${projectNames.join(', ')}. Please keep a single Xcode project in this directory.',
   );
 }
 
