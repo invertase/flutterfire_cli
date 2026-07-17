@@ -172,6 +172,76 @@ void main() {
   );
 
   test(
+    'flutterfire configure: renamed iOS Xcode project',
+    () async {
+      const defaultTarget = 'Runner';
+      const renamedXcodeProjectName = 'RenamedRunner.xcodeproj';
+      final renamedXcodeProjectPath = p.join(
+        projectPath!,
+        kIos,
+        renamedXcodeProjectName,
+      );
+      Directory(
+        p.join(projectPath!, kIos, 'Runner.xcodeproj'),
+      ).renameSync(renamedXcodeProjectPath);
+
+      final result = Process.runSync(
+        'flutterfire',
+        [
+          'configure',
+          '--yes',
+          '--platforms=ios',
+          '--project=$firebaseProjectId',
+          '--ios-bundle-id=$appleBundleId',
+        ],
+        workingDirectory: projectPath,
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        fail(result.stderr as String);
+      }
+
+      final iosPath =
+          p.join(projectPath!, kIos, defaultTarget, appleServiceFileName);
+      await testAppleServiceFileValues(iosPath);
+
+      final firebaseJsonFile = p.join(projectPath!, 'firebase.json');
+      final firebaseJsonFileContent =
+          await File(firebaseJsonFile).readAsString();
+      final decodedFirebaseJson =
+          jsonDecode(firebaseJsonFileContent) as Map<String, dynamic>;
+
+      checkAppleFirebaseJsonValues(
+        decodedFirebaseJson,
+        [kFlutter, kPlatforms, kIos, kDefaultConfig],
+        '$kIos/$defaultTarget/$appleServiceFileName',
+      );
+
+      final scriptToCheckIosPbxprojFile =
+          rubyScriptForTestingDefaultConfigure(renamedXcodeProjectPath);
+      final iosResult = Process.runSync(
+        'ruby',
+        [
+          '-e',
+          scriptToCheckIosPbxprojFile,
+        ],
+        runInShell: true,
+      );
+
+      if (iosResult.exitCode != 0) {
+        fail(iosResult.stderr as String);
+      }
+
+      expect(iosResult.stdout, 'success');
+    },
+    skip: !Platform.isMacOS,
+    timeout: const Timeout(
+      Duration(minutes: 2),
+    ),
+  );
+
+  test(
     'flutterfire configure: android - "build configuration" Apple - "build configuration"',
     () async {
       final result = Process.runSync(
