@@ -26,7 +26,7 @@ import 'package:flutterfire_cli/version.g.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 Future<void> main(List<String> arguments) async {
-  if (arguments.contains('--version') || arguments.contains('-v')) {
+  if (isCliVersionRequest(arguments)) {
     print(cliVersion);
     // No version checks on CIs.
     if (utils.isCI) return;
@@ -74,3 +74,11 @@ Future<void> main(List<String> arguments) async {
     rethrow;
   }
 }
+
+/// Whether the arguments request the FlutterFire CLI version.
+///
+/// Only a standalone version flag belongs to the CLI. Subcommands may define
+/// their own version option, such as the BoM version accepted by `install`.
+bool isCliVersionRequest(List<String> arguments) =>
+    arguments.length == 1 &&
+    (arguments.single == '--version' || arguments.single == '-v');
