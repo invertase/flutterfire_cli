@@ -105,6 +105,12 @@ extension FirebaseAndroidOptions on FirebaseOptions {
           .asStringOrNull(),
       storageBucket: pick(appSdkConfigMap, 'project_info', 'storage_bucket')
           .asStringOrNull(),
+      recaptchaSiteKey: pick(
+            clientMap,
+            'client_info',
+            'recaptcha_site_key',
+          ).asStringOrNull() ??
+          pick(clientMap, 'recaptcha_site_key').asStringOrNull(),
     );
   }
 }

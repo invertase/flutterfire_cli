@@ -102,6 +102,8 @@ extension FirebaseAppleOptions on FirebaseOptions {
           pick(appSdkConfigMap, 'ANDROID_CLIENT_ID').asStringOrNull(),
       iosClientId: pick(appSdkConfigMap, 'CLIENT_ID').asStringOrNull(),
       iosBundleId: pick(appSdkConfigMap, 'BUNDLE_ID').asStringOrNull(),
+      recaptchaSiteKey:
+          pick(appSdkConfigMap, 'RECAPTCHA_SITE_KEY').asStringOrNull(),
       // TODO: Unknown as to where these fields are located, not showing on plist files
       // trackingId: null,
       // appGroupId: null,

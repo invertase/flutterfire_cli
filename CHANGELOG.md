@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.4.0`](#flutterfire_cli---v140)
+
+---
+
+#### `flutterfire_cli` - `v1.4.0`
+
+ - **FIX**(cli): ensure generated firebase_options.dart is perfectly formatted ([#437](https://github.com/invertase/flutterfire_cli/issues/437)). ([de2515f9](https://github.com/invertase/flutterfire_cli/commit/de2515f9a3bc92a39d1656ebb2c41f7bbf444203))
+ - **FEAT**: add support for recaptcha_site_key ([#445](https://github.com/invertase/flutterfire_cli/issues/445)). ([01e1dc18](https://github.com/invertase/flutterfire_cli/commit/01e1dc18ba7a2c64df77c1d982b4803286847303))
+
+
 ## 2026-03-31
 
 ### Changes

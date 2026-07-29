@@ -645,7 +645,9 @@ void main() {
       );
 
       if (buildApp.exitCode != 0) {
-        fail(buildApp.stderr as String);
+        fail(
+          'stdout:\n${buildApp.stdout}\n\nstderr:\n${buildApp.stderr}',
+        );
       }
 
       expect(
@@ -686,7 +688,9 @@ void main() {
       );
 
       if (buildAppSPM.exitCode != 0) {
-        fail(buildAppSPM.stderr as String);
+        fail(
+          'stdout:\n${buildAppSPM.stdout}\n\nstderr:\n${buildAppSPM.stderr}',
+        );
       }
 
       expect(
@@ -1685,7 +1689,9 @@ void main() {
       );
 
       if (buildApp.exitCode != 0) {
-        fail(buildApp.stderr as String);
+        fail(
+          'stdout:\n${buildApp.stdout}\n\nstderr:\n${buildApp.stderr}',
+        );
       }
 
       expect(
@@ -1726,7 +1732,9 @@ void main() {
       );
 
       if (buildAppSPM.exitCode != 0) {
-        fail(buildAppSPM.stderr as String);
+        fail(
+          'stdout:\n${buildAppSPM.stdout}\n\nstderr:\n${buildAppSPM.stderr}',
+        );
       }
 
       expect(

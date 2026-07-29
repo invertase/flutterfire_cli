@@ -16,6 +16,8 @@ jobs:
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: '7.5.1'
       - name: "Analyze"
         uses: invertase/github-action-dart-analyzer@v1
         with:
@@ -31,5 +33,7 @@ jobs:
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: '7.5.1'
       - name: "Check formatting"
         run: melos run format-check
