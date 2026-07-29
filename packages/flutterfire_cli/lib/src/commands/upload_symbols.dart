@@ -364,6 +364,16 @@ class UploadCrashlyticsSymbols extends FlutterFireCommand {
     final buildConfiguration =
         buildDirectory.existsSync() ? 'Release' : 'Debug';
 
+    if (!File(uploadSymbolsScriptPath).existsSync()) {
+      throw Exception(
+        'Could not find the Crashlytics upload symbols script at '
+        '"$uploadSymbolsScriptPath". This usually means CocoaPods or Swift '
+        'Package Manager has not finished installing "FirebaseCrashlytics" '
+        'yet, or it was installed to an unexpected location. Try cleaning '
+        'and rebuilding the project.',
+      );
+    }
+
     // Validation script
     final validationScript = await Process.run(
       uploadSymbolsScriptPath,
