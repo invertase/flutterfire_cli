@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-08-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.4.1`](#flutterfire_cli---v141)
+
+---
+
+#### `flutterfire_cli` - `v1.4.1`
+
+ - **FIX**: stop generating reCAPTCHA site key in Firebase options ([#454](https://github.com/invertase/flutterfire_cli/issues/454)). ([0685d1cb](https://github.com/invertase/flutterfire_cli/commit/0685d1cb34ede011cb8a8f5c0f2b1271acc90ecc))
+ - **FIX**: macOS CI - locate Crashlytics upload-symbols script under Flutter's SPM checkout path ([#453](https://github.com/invertase/flutterfire_cli/issues/453)). ([3ff55fd6](https://github.com/invertase/flutterfire_cli/commit/3ff55fd6a6dbec2b4749955d564e6492035a701c))
+
+
 ## 2026-06-04
 
 ### Changes
