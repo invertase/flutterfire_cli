@@ -15,8 +15,7 @@ firebase.initializeApp({
   "apiKey": "test-api-key",
   "authDomain": "test-project.firebaseapp.com",
   "messagingSenderId": "1234567890",
-  "measurementId": "G-ABCDEF1234",
-  "recaptchaSiteKey": "test-web-recaptcha-site-key"
+  "measurementId": "G-ABCDEF1234"
 });''',
         );
 
@@ -30,7 +29,6 @@ firebase.initializeApp({
         expect(options.apiKey, 'test-api-key');
         expect(options.messagingSenderId, '1234567890');
         expect(options.measurementId, 'G-ABCDEF1234');
-        expect(options.recaptchaSiteKey, 'test-web-recaptcha-site-key');
       });
 
       test('parses new JSON format correctly', () {
@@ -43,8 +41,7 @@ firebase.initializeApp({
   "apiKey": "test-api-key",
   "authDomain": "test-project.firebaseapp.com",
   "messagingSenderId": "1234567890",
-  "measurementId": "G-ABCDEF1234",
-  "recaptchaSiteKey": "test-web-recaptcha-site-key"
+  "measurementId": "G-ABCDEF1234"
 }''',
         );
 
@@ -58,7 +55,6 @@ firebase.initializeApp({
         expect(options.apiKey, 'test-api-key');
         expect(options.messagingSenderId, '1234567890');
         expect(options.measurementId, 'G-ABCDEF1234');
-        expect(options.recaptchaSiteKey, 'test-web-recaptcha-site-key');
       });
 
       test('throws FirebaseCommandException for invalid format', () {
