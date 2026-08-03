@@ -30,7 +30,6 @@ class FirebaseOptions {
     this.databaseURL,
     this.storageBucket,
     this.measurementId,
-    this.recaptchaSiteKey,
     // ios specific
     this.trackingId,
     this.deepLinkURLScheme,
@@ -60,7 +59,6 @@ class FirebaseOptions {
         databaseURL = map['databaseURL'] as String?,
         storageBucket = map['storageBucket'] as String?,
         measurementId = map['measurementId'] as String?,
-        recaptchaSiteKey = map['recaptchaSiteKey'] as String?,
         trackingId = map['trackingId'] as String?,
         deepLinkURLScheme = map['deepLinkURLScheme'] as String?,
         androidClientId = map['androidClientId'] as String?,
@@ -99,9 +97,6 @@ class FirebaseOptions {
 
   /// The project measurement ID value used on web platforms with analytics.
   final String? measurementId;
-
-  /// The reCAPTCHA site key used for App Check.
-  final String? recaptchaSiteKey;
 
   /// The tracking ID for Google Analytics, for example "UA-12345678-1", used to
   /// configure Google Analytics.
@@ -158,7 +153,6 @@ class FirebaseOptions {
       'databaseURL': databaseURL,
       'storageBucket': storageBucket,
       'measurementId': measurementId,
-      'recaptchaSiteKey': recaptchaSiteKey,
       'trackingId': trackingId,
       'deepLinkURLScheme': deepLinkURLScheme,
       'androidClientId': androidClientId,
