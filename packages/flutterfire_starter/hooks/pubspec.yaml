@@ -5,5 +5,5 @@ environment:
 resolution: workspace
 
 dependencies:
-  flutterfire_cli: ^1.4.0
+  flutterfire_cli: ^1.4.1
   mason: ^0.1.2

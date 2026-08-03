@@ -1,3 +1,8 @@
+## 1.4.1
+
+ - **FIX**: stop generating reCAPTCHA site key in Firebase options ([#454](https://github.com/invertase/flutterfire_cli/issues/454)). ([0685d1cb](https://github.com/invertase/flutterfire_cli/commit/0685d1cb34ede011cb8a8f5c0f2b1271acc90ecc))
+ - **FIX**: macOS CI - locate Crashlytics upload-symbols script under Flutter's SPM checkout path ([#453](https://github.com/invertase/flutterfire_cli/issues/453)). ([3ff55fd6](https://github.com/invertase/flutterfire_cli/commit/3ff55fd6a6dbec2b4749955d564e6492035a701c))
+
 ## 1.4.0
 
  - **FIX**(cli): ensure generated firebase_options.dart is perfectly formatted ([#437](https://github.com/invertase/flutterfire_cli/issues/437)). ([de2515f9](https://github.com/invertase/flutterfire_cli/commit/de2515f9a3bc92a39d1656ebb2c41f7bbf444203))
