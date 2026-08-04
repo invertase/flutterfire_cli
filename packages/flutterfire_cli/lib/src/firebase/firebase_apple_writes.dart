@@ -402,11 +402,11 @@ PATH="\${PATH}:\$FLUTTER_ROOT/bin:\${PUB_CACHE}/bin:\$HOME/.pub-cache/bin"
 if [ -n "\$PODS_ROOT" ] && [ -f "\$PODS_ROOT/FirebaseCrashlytics/run" ]; then
   # CocoaPods installation.
   PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/run"
-elif [ -n "\$BUILD_DIR" ] && [ -f "\$BUILD_DIR/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" ]; then
-  # Swift Package Manager installation. Flutter resolves Swift Package Manager
-  # checkouts into "\$BUILD_DIR/SourcePackages" (i.e. "<project>/[ios|macos]/build/SourcePackages"),
-  # rather than the Xcode DerivedData directory used for a plain Xcode project.
-  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$BUILD_DIR/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+elif [ -f "\${SRCROOT}/../build/ios/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" ]; then
+  # Swift Package Manager installation. Flutter passes -clonedSourcePackagesDirPath
+  # pointing to "<project>/build/ios/SourcePackages", which is always populated
+  # regardless of Xcode's IDEPackageOnlyUseVersionsFromResolvedFile setting.
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${SRCROOT}/../build/ios/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
 else
   # Fall back to the Xcode DerivedData directory in case Swift Package Manager
   # checkouts are not resolved relative to "\$BUILD_DIR" (older/alternative setups).
