@@ -22,7 +22,7 @@ import 'common/platform.dart';
 import 'common/strings.dart';
 import 'common/utils.dart';
 
-class FlutterApp {
+abstract class FlutterApp {
   FlutterApp({
     required this.package,
   });
@@ -37,13 +37,95 @@ class FlutterApp {
       throw FlutterAppRequiredException();
     }
     final package = await Package.load(appDirectory);
-    if (!package.isFlutterApp) {
-      return null;
+    if (package.isFlutterApp) {
+      return FlutterProjectApp(package: package);
     }
-    return FlutterApp(
-      package: package,
+    if (package.isRuntimeApp) {
+      return FlutterRuntimeApp(package: package);
+    }
+    return null;
+  }
+
+  String? get iosBundleId;
+  String? get macosBundleId;
+  String? get androidApplicationId;
+
+  /// Returns whether the package depends on the given package.
+  bool dependsOnPackage(String packageName) {
+    return package.dependencies.contains(packageName) ||
+        package.devDependencies.contains(packageName);
+  }
+
+  /// Returns whether this Flutter app can run on Android.
+  bool get android;
+
+  /// Returns the directory where the Android platform specific project exists.
+  Directory get androidDirectory {
+    return _platformDirectory(kAndroid);
+  }
+
+  /// Returns whether this Flutter app can run on Web.
+  bool get web;
+
+  /// Returns the directory where the Web platform specific project exists.
+  Directory get webDirectory {
+    return _platformDirectory(kWeb);
+  }
+
+  /// Returns whether this Flutter app can run on Windows.
+  bool get windows;
+
+  /// Returns the directory where the Windows platform specific project exists.
+  Directory get windowsDirectory {
+    return _platformDirectory(kWindows);
+  }
+
+  /// Returns whether this Flutter app can run on MacOS.
+  bool get macos;
+
+  /// Returns the directory where the macOS platform specific project exists.
+  Directory get macosDirectory {
+    return _platformDirectory(kMacos);
+  }
+
+  /// Returns whether this Flutter app can run on iOS.
+  bool get ios;
+
+  /// Returns the directory where the iOS platform specific project exists.
+  Directory get iosDirectory {
+    return _platformDirectory(kIos);
+  }
+
+  /// Returns whether this Flutter app can run on Linux.
+  bool get linux;
+
+  /// Returns the directory where the Linux platform specific project exists.
+  Directory get linuxDirectory {
+    return _platformDirectory(kLinux);
+  }
+
+  Directory _platformDirectory(String platform) {
+    assert(
+      platform == kIos ||
+          platform == kAndroid ||
+          platform == kWeb ||
+          platform == kMacos ||
+          platform == kWindows ||
+          platform == kLinux,
+    );
+    return Directory(
+      '${package.path}${currentPlatform.pathSeparator}$platform',
     );
   }
+
+  String? get cleanBaseCommand;
+  String get pubBaseCommand;
+}
+
+class FlutterProjectApp extends FlutterApp {
+  FlutterProjectApp({
+    required super.package,
+  });
 
   // Cached Android package name if available.
   String? _androidApplicationId;
@@ -51,6 +133,7 @@ class FlutterApp {
   // Cached iOS bundle identifier if available.
   String? _iosBundleId;
 
+  @override
   String? get iosBundleId {
     if (!ios) return null;
     if (_iosBundleId != null) {
@@ -62,6 +145,7 @@ class FlutterApp {
   // Cached macOS bundle identifier if available.
   String? _macosBundleId;
 
+  @override
   String? get macosBundleId {
     if (!macos) return null;
     if (_macosBundleId != null) {
@@ -109,6 +193,7 @@ class FlutterApp {
   /// The Android Application (or Package Name) for this Flutter
   /// application, or null if one could not be detected or the app
   /// does not target Android as a supported platform.
+  @override
   String? get androidApplicationId {
     if (!android) return null;
     if (_androidApplicationId != null) {
@@ -175,93 +260,86 @@ class FlutterApp {
     return _androidApplicationId = applicationId;
   }
 
-  /// Returns whether the package depends on the given package.
-  bool dependsOnPackage(String packageName) {
-    return package.dependencies.contains(packageName) ||
-        package.devDependencies.contains(packageName);
-  }
-
-  /// Returns whether this Flutter app can run on Android.
+  @override
   bool get android {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kAndroid);
   }
 
-  /// Returns the directory where the Android platform specific project exists.
-  Directory get androidDirectory {
-    return _platformDirectory(kAndroid);
-  }
-
-  /// Returns whether this Flutter app can run on Web.
+  @override
   bool get web {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kWeb);
   }
 
-  /// Returns the directory where the Web platform specific project exists.
-  Directory get webDirectory {
-    return _platformDirectory(kWeb);
-  }
-
-  /// Returns whether this Flutter app can run on Windows.
+  @override
   bool get windows {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kWindows);
   }
 
-  /// Returns the directory where the Windows platform specific project exists.
-  Directory get windowsDirectory {
-    return _platformDirectory(kWindows);
-  }
-
-  /// Returns whether this Flutter app can run on MacOS.
+  @override
   bool get macos {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kMacos);
   }
 
-  /// Returns the directory where the macOS platform specific project exists.
-  Directory get macosDirectory {
-    return _platformDirectory(kMacos);
-  }
-
-  /// Returns whether this Flutter app can run on iOS.
+  @override
   bool get ios {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kIos);
   }
 
-  /// Returns the directory where the iOS platform specific project exists.
-  Directory get iosDirectory {
-    return _platformDirectory(kIos);
-  }
-
-  /// Returns whether this Flutter app can run on Linux.
+  @override
   bool get linux {
     if (!package.isFlutterApp) return false;
     return _supportsPlatform(kLinux);
   }
 
-  /// Returns the directory where the Linux platform specific project exists.
-  Directory get linuxDirectory {
-    return _platformDirectory(kLinux);
-  }
-
-  Directory _platformDirectory(String platform) {
-    assert(
-      platform == kIos ||
-          platform == kAndroid ||
-          platform == kWeb ||
-          platform == kMacos ||
-          platform == kWindows ||
-          platform == kLinux,
-    );
-    return Directory(
-      '${package.path}${currentPlatform.pathSeparator}$platform',
-    );
-  }
-
   bool _supportsPlatform(String platform) {
     return _platformDirectory(platform).existsSync();
   }
+
+  @override
+  String? get cleanBaseCommand => 'flutter';
+
+  @override
+  String get pubBaseCommand => 'flutter';
+}
+
+class FlutterRuntimeApp extends FlutterApp {
+  FlutterRuntimeApp({required super.package});
+
+  @override
+  bool get android => false;
+
+  @override
+  String? get androidApplicationId => null;
+
+  @override
+  bool get ios => false;
+
+  @override
+  String? get iosBundleId => null;
+
+  @override
+  bool get linux => false;
+
+  @override
+  bool get macos => false;
+
+  @override
+  String? get macosBundleId => null;
+
+  @override
+  bool get web => true;
+
+  @override
+  bool get windows => false;
+
+  @override
+  String? get cleanBaseCommand => null;
+
+  @override
+  String get pubBaseCommand => 'dart';
 }
