@@ -273,7 +273,7 @@ dependencies:
       expect(package3.isFlutterPackage, isFalse);
     });
 
-    test('isFlutterCompatiblePackage returns true if depends on jaspr', () {
+    test('isRuntimePackage returns true if depends on jaspr', () {
       final package1 = Package(
         path: '',
         pubSpec: Pubspec.parse('''
@@ -282,7 +282,7 @@ dependencies:
   jaspr: ^0.23.0
 '''),
       );
-      expect(package1.isFlutterCompatiblePackage, isTrue);
+      expect(package1.isRuntimePackage, isTrue);
 
       final package2 = Package(
         path: '',
@@ -292,7 +292,7 @@ dependencies:
   http: ^0.13.0
 '''),
       );
-      expect(package2.isFlutterCompatiblePackage, isFalse);
+      expect(package2.isRuntimePackage, isFalse);
     });
 
     test(
@@ -317,7 +317,7 @@ dependencies:
   jaspr: ^0.1.0
 '''),
       );
-      expect(jasprApp.isFlutterApp, isTrue);
+      expect(jasprApp.isFlutterApp, isFalse);
 
       final dartApp = Package(
         path: '',

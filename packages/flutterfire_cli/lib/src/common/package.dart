@@ -94,8 +94,9 @@ class Package {
   /// These are packages that are compatible with Flutter plugins, even
   /// if they don't depend on the Flutter SDK directly.
   ///
-  /// This is currently only true for packages that depend on Jaspr.
-  late final bool isRuntimePackage = dependencies.contains('jaspr');
+  /// This is determined by evaluating [runtimePackageChecks] against this package.
+  late final bool isRuntimePackage =
+      runtimePackageChecks.any((check) => check(this));
 
   bool get isRuntimeApp {
     // Must not be a Flutter package.
@@ -111,3 +112,15 @@ class Package {
   /// This is determined by whether the pubspec contains a flutter.plugin definition.
   bool get isFlutterPlugin => pubSpec.flutter?.containsKey('plugin') ?? false;
 }
+
+/// A list of checks that determine whether a package is a runtime package.
+///
+/// This is used to determine if a package is compatible with Flutter plugins,
+/// even if it doesn't depend on the Flutter SDK directly.
+final List<bool Function(Package)> runtimePackageChecks = [
+  // The Jaspr framework supports flutter-like development and is compatible
+  // with Flutter plugins, so we check for any package that lists Jaspr as a
+  // dependency.
+  (pkg) => pkg.dependencies.contains('jaspr'),
+  // Additional checks may be added here.
+];
