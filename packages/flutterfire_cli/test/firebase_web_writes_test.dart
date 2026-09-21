@@ -118,7 +118,7 @@ void main() {
       );
     });
 
-    test('overwrites a service worker it generated itself', () async {
+    test('refreshes a service worker it generated itself', () async {
       final flutterApp = await _createFlutterApp(
         appDirectory,
         dependsOnMessaging: true,
@@ -141,6 +141,69 @@ void main() {
 
       expect(writtenPath, serviceWorker.path);
       expect(serviceWorker.readAsStringSync(), isNot(contains('1.0.0')));
+    });
+
+    test('keeps the code written below the marker', () async {
+      final flutterApp = await _createFlutterApp(
+        appDirectory,
+        dependsOnMessaging: true,
+      );
+      const handler = '''
+
+messaging.onBackgroundMessage((message) => {
+  console.log('Got a background message', message);
+});
+''';
+      final serviceWorker = File(
+        path.join(
+          appDirectory.path,
+          'web',
+          webMessagingServiceWorkerFileName,
+        ),
+      )..writeAsStringSync(
+          webMessagingServiceWorkerContent(
+            _webOptions,
+            '1.0.0',
+            userSection: handler,
+          ),
+        );
+
+      await writeWebMessagingServiceWorker(
+        flutterApp: flutterApp,
+        webOptions: _webOptions,
+        logger: Logger.standard(),
+      );
+
+      final rewritten = serviceWorker.readAsStringSync();
+      expect(rewritten, endsWith(handler));
+      expect(rewritten, isNot(contains('1.0.0')));
+    });
+
+    test('leaves a generated file edited above the marker alone', () async {
+      final flutterApp = await _createFlutterApp(
+        appDirectory,
+        dependsOnMessaging: true,
+      );
+      final generated = webMessagingServiceWorkerContent(_webOptions, '1.0.0');
+      // The user took the marker out and made the whole file theirs.
+      final edited = generated.substring(0, generated.indexOf('// Your own'));
+      final serviceWorker = File(
+        path.join(
+          appDirectory.path,
+          'web',
+          webMessagingServiceWorkerFileName,
+        ),
+      )..writeAsStringSync(edited);
+
+      expect(
+        await writeWebMessagingServiceWorker(
+          flutterApp: flutterApp,
+          webOptions: _webOptions,
+          logger: Logger.standard(),
+        ),
+        isNull,
+      );
+      expect(serviceWorker.readAsStringSync(), edited);
     });
 
     test('leaves a hand written service worker alone', () async {

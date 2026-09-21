@@ -128,7 +128,15 @@ This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that
 
 `firebase_messaging` needs a service worker at `web/firebase-messaging-sw.js` to receive messages while your web app is in the background, and a service worker cannot read `firebase_options.dart`. When your app depends on `firebase_messaging` and you configure the web platform, FlutterFire CLI writes that file for you with the Firebase configuration of your web app.
 
-A `web/firebase-messaging-sw.js` you wrote yourself is never touched - only files carrying the generated header are rewritten on subsequent runs. To opt out entirely, pass `--no-web-messaging-sw`.
+The generated file ends with a marker:
+
+```js
+// Your own code goes below this line. FlutterFire CLI does not touch it.
+```
+
+Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again refreshes the Firebase configuration above the marker and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one you have edited above the marker, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
+
+Note that `flutterfire reconfigure` does not refresh the service worker; run `flutterfire configure` when you change the Firebase project or web app.
 
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 

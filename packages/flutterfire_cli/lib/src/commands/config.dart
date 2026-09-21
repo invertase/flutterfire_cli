@@ -741,7 +741,11 @@ class ConfigCommand extends FlutterFireCommand {
           firebaseJsonWrites.add(firebaseJsonWrite);
         }
       }
+      // Gated on the Dart configuration file being written: pointing the
+      // service worker at a project the app itself is not configured for would
+      // leave the two disagreeing.
       if (fetchedFirebaseOptions.webOptions != null &&
+          firebaseConfigurationFileInputs.writeConfigurationFile &&
           generateWebMessagingServiceWorker &&
           flutterApp!.dependsOnPackage('firebase_messaging')) {
         final serviceWorkerPath = await writeWebMessagingServiceWorker(
