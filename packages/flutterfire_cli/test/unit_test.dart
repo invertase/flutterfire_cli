@@ -256,5 +256,32 @@ void main() {
 
       expect(argParser.parse([])[kAppDisplayNameFlag], isNull);
     });
+
+    test('rejects an empty name and shell metacharacters', () {
+      for (final name in [
+        '',
+        'Acme & Co',
+        'Acme | Co',
+        r'Acme $Co',
+        'Acme > Co',
+        'Acme < Co',
+        'Acme ^ Co',
+        'Acme "Co"',
+        'Acme `Co`',
+        r'Acme \ Co',
+      ]) {
+        expect(
+          appDisplayNameError(name),
+          isNotNull,
+          reason: 'expected "$name" to be rejected',
+        );
+      }
+    });
+
+    test('accepts an ordinary name', () {
+      expect(appDisplayNameError('My White Label App'), isNull);
+      expect(appDisplayNameError("Bob's App"), isNull);
+      expect(appDisplayNameError('Acme (EU) - v2'), isNull);
+    });
   });
 }

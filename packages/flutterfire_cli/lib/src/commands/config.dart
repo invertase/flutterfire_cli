@@ -122,7 +122,10 @@ class ConfigCommand extends FlutterFireCommand {
       help: 'The display name (nickname) used when registering apps on the '
           'Firebase project, e.g. "My White Label App". The platform is '
           'appended to it, e.g. "My White Label App (ios)". '
-          'Defaults to the "name" of your app in `pubspec.yaml`.',
+          'Defaults to the "name" of your app in `pubspec.yaml`. '
+          'Only applies to apps this command creates: android, iOS and macOS '
+          'apps that already exist are matched on their package name or '
+          'bundle id and keep the name they have.',
     );
 
     argParser.addOption(
@@ -347,8 +350,9 @@ class ConfigCommand extends FlutterFireCommand {
     if (value == null) return null;
 
     final trimmed = value.trim();
-    if (trimmed.isEmpty) {
-      usageException('--$kAppDisplayNameFlag must not be empty.');
+    final error = appDisplayNameError(trimmed);
+    if (error != null) {
+      usageException(error);
     }
 
     return trimmed;
@@ -588,6 +592,12 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     // Has to set during `run()` otherwise `argResults` will be null
     updateDebugMode(argResults!['debug'] as bool);
+
+    // Read outside the try block below, which turns everything it catches into
+    // a message on stderr, so a bad flag still gets the usage output and exit
+    // code the user expects - and gets it before any prompt.
+    final appDisplayName = this.appDisplayName;
+
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();

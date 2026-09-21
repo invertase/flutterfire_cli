@@ -120,7 +120,9 @@ When FlutterFire CLI registers a new app on your Firebase project, it names it a
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --app-display-name="My White Label App"
 ```
 
-This registers the apps as `My White Label App (ios)`, `My White Label App (android)`, and so on. It only affects apps that FlutterFire CLI creates - apps that already exist on the project are matched by bundle ID or package name as before, and are not renamed.
+This registers the apps as `My White Label App (ios)`, `My White Label App (android)`, and so on. It only affects apps that FlutterFire CLI creates: Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID as before, and keep the name they have.
+
+Web and Windows are matched differently, because they have no package name or bundle ID. FlutterFire CLI looks for an app whose display name matches, and for web falls back to the first web app on the project. So on a project that already has a web app, `--app-display-name` reuses that app rather than creating a `My White Label App (web)` one; and on Windows it registers a new app rather than reusing the one named after your pubspec. Pass `--web-app-id` / `--windows-app-id` to pick an existing app explicitly.
 
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
