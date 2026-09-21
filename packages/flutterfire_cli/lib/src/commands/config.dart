@@ -443,7 +443,7 @@ class ConfigCommand extends FlutterFireCommand {
       // No projects to choose from so lets
       // prompt to create straight away.
       if (firebaseProjects.isEmpty) {
-        return _promptCreateFirebaseProject();
+        return await _promptCreateFirebaseProject();
       }
 
       final choices = <String>[
@@ -460,7 +460,7 @@ class ConfigCommand extends FlutterFireCommand {
 
       // Last choice is to create a new project.
       if (selectedChoiceIndex == choices.length - 1) {
-        return _promptCreateFirebaseProject();
+        return await _promptCreateFirebaseProject();
       }
 
       return firebaseProjects[selectedChoiceIndex];
