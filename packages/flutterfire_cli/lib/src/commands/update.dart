@@ -76,28 +76,31 @@ class UpdateCommand extends FlutterFireCommand {
     commandRequiresFlutterApp();
 
     logger.stdout('Cleaning up current workspace ...');
-    await Process.run(
-      'flutter',
-      ['clean'],
-    );
+    if (flutterApp!.cleanBaseCommand case final command?) {
+      await Process.run(
+        command,
+        ['clean'],
+      );
+    }
     await Process.run(
       'rm',
       ['pubspec.lock'],
     );
 
     logger.stdout('Upgrading all firebase plugins to the latest version ...');
+    final command = flutterApp!.pubBaseCommand;
     for (final package in flutterfirePackages) {
       // We run each package individually because chaining them
       // will fail at the first package not in the pubspec.
       await Process.run(
-        'flutter',
+        command,
         ['pub', 'upgrade', '--major-versions', package],
       );
     }
 
-    logger.stdout("Running 'flutter pub get'...");
+    logger.stdout("Running '$command pub get'...");
     await Process.run(
-      'flutter',
+      command,
       ['pub', 'get'],
     );
 
