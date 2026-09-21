@@ -510,6 +510,33 @@ String getXcodeProjectPath(String platform) {
   );
 }
 
+/// The build configurations of [platform] that "firebase.json" already gives a
+/// service file of their own.
+///
+/// An unreadable or missing "firebase.json" tells us nothing about what is
+/// configured, so it yields an empty set rather than an error.
+Future<Set<String>> configuredBuildConfigurations(
+  String flutterAppPath,
+  String platform,
+) async {
+  final firebaseJson = File(join(flutterAppPath, 'firebase.json'));
+
+  if (!firebaseJson.existsSync()) return {};
+
+  try {
+    final decoded = json.decode(await firebaseJson.readAsString()) as Map;
+    final platforms = (decoded[kFlutter] as Map?)?[kPlatforms] as Map?;
+    final buildConfigurations =
+        (platforms?[platform] as Map?)?[kBuildConfiguration] as Map?;
+
+    if (buildConfigurations == null) return {};
+
+    return buildConfigurations.keys.cast<String>().toSet();
+  } catch (_) {
+    return {};
+  }
+}
+
 void validateAppBundleId(
   String bundleId,
   String platform,

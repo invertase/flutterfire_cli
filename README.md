@@ -178,7 +178,11 @@ for macOS:
 flutterfire configure --platforms=macos --macos-bundle-id=your.bundle.id --macos-build-config=Release --macos-out=macos/release/GoogleService-Info.plist
 ```
 
-If you set your project up with the default configuration first, `ios/Runner/GoogleService-Info.plist` was added to the "Copy Bundle Resources" build phase of your `Runner` target. That copy runs after the `bundle-service-file` build phase and overwrites the service file of the build configuration you are building, so your app initializes against the wrong Firebase project. Configuring with `--ios-build-config` or `--macos-build-config` now takes the service file out of "Copy Bundle Resources" for you, and tells you it did. The file itself, and its reference in the Xcode project, are left in place.
+If you set your project up with the default configuration first, `ios/Runner/GoogleService-Info.plist` was added to the "Copy Bundle Resources" build phase of your `Runner` target. It then ends up in your app bundle alongside the service file that the `bundle-service-file` build phase writes for the build configuration you are building, and the two fight over the same file name, so your app can initialize against the wrong Firebase project.
+
+Configuring with `--ios-build-config` or `--macos-build-config` now takes the service file out of "Copy Bundle Resources" for you, and tells you it did. The file itself, and its reference in the Xcode project, are left in place.
+
+If some build configurations still have no service file of their own, the entry is left alone and the uncovered configurations are listed instead — removing it would leave them building with no service file at all. Configure them too and the next run removes it.
 
 ##### target configuration
 

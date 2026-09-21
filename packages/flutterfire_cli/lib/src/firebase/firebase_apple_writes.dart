@@ -225,14 +225,43 @@ end
     ''';
   }
 
-  /// Removes "GoogleService-Info.plist" from the default target's
-  /// "Copy Bundle Resources" build phase.
+  /// Takes "GoogleService-Info.plist" out of the default target's
+  /// "Copy Bundle Resources" build phase, unless a build configuration still
+  /// relies on it.
   ///
-  /// A default configuration run adds the service file there. Once a build
-  /// configuration setup takes over, that copy overwrites the one the
-  /// "bundle-service-file" build phase bundles, so the app silently
-  /// initializes against the wrong Firebase project.
+  /// A default configuration run puts the service file there. It then ends up
+  /// in the app bundle alongside the one the "bundle-service-file" build phase
+  /// writes for the configuration being built, and the two fight over the same
+  /// file name, so the app can initialize against the wrong Firebase project.
+  ///
+  /// A build configuration with no service file of its own has nothing to
+  /// replace it with, though, so removing it there would ship an app with no
+  /// service file at all. Those are reported and the entry is left in place.
   /// See https://github.com/invertase/flutterfire_cli/issues/253
+  Future<void> _updateCopyBundleResources() async {
+    final projectBuildConfigurations = await findBuildConfigurationsAvailable(
+      platform,
+      getXcodeProjectPath(platform),
+    );
+    final configured = <String>{
+      buildConfiguration,
+      ...await configuredBuildConfigurations(flutterApp.package.path, platform),
+    };
+    final uncovered = projectBuildConfigurations
+        .where((configuration) => !configured.contains(configuration))
+        .toList()
+      ..sort();
+
+    if (uncovered.isNotEmpty) {
+      logger.stdout(
+        logKeptServiceFileInCopyBundleResources(platform, uncovered),
+      );
+      return;
+    }
+
+    await _removeServiceFileFromCopyBundleResources();
+  }
+
   Future<void> _removeServiceFileFromCopyBundleResources() async {
     final result = await Process.run('ruby', [
       '-e',
@@ -243,13 +272,15 @@ end
       throw Exception(result.stderr);
     }
 
-    final removedFiles = (result.stdout as String).trim();
+    final removedFiles = (result.stdout as String)
+        .split('\n')
+        .map((file) => file.trim())
+        .where((file) => file.isNotEmpty)
+        .toList();
+
     if (removedFiles.isNotEmpty) {
       logger.stdout(
-        logRemovedServiceFileFromCopyBundleResources(
-          platform,
-          removedFiles.split(','),
-        ),
+        logRemovedServiceFileFromCopyBundleResources(platform, removedFiles),
       );
     }
   }
@@ -280,7 +311,7 @@ if (target)
 
   if (removed.length > 0)
     project.save()
-    \$stdout.write removed.join(',')
+    \$stdout.write removed.join("\\n")
   end
 end
     ''';
@@ -289,7 +320,7 @@ end
   Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
     await _writeGoogleServiceFileToPath();
     await _writeBundleServiceFileScriptToProject();
-    await _removeServiceFileFromCopyBundleResources();
+    await _updateCopyBundleResources();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
       flutterAppPath: flutterApp.package.path,
       logger: logger,
