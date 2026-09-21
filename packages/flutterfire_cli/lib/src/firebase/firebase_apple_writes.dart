@@ -90,9 +90,9 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
   String _addServiceFileToTarget() {
     return '''
 require 'xcodeproj'
-googleFile='$serviceFilePath'
-xcodeFile='${getXcodeProjectPath(platform)}'
-targetName='$target'
+googleFile='${escapeRubySingleQuoted(serviceFilePath)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
+targetName='${escapeRubySingleQuoted(target)}'
 
 project = Xcodeproj::Project.open(xcodeFile)
 target = project.targets.find { |target| target.name == targetName }
@@ -195,7 +195,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
 
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -208,7 +208,7 @@ $command
 )
 
 for target in project.targets 
-  if (target.name == '$defaultTarget')
+  if (target.name == '${escapeRubySingleQuoted(defaultTarget)}')
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
@@ -324,7 +324,6 @@ end
     await _writeBundleServiceFileScriptToProject();
     await _updateCopyBundleResources();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
-      target: await defaultAppleTarget(platform),
       flutterAppPath: flutterApp.package.path,
       logger: logger,
       projectConfiguration: projectConfiguration,
@@ -401,7 +400,10 @@ abstract class FirebaseAppleConfiguration {
 }
 
 Future<bool> addFlutterFireDebugSymbolsScript({
-  required String target,
+  /// The default target is resolved when it is left null, which can mean
+  /// opening the Xcode project. It is only needed once we know the Crashlytics
+  /// script will be written, so callers with nothing to pass leave it out.
+  String? target,
   required String flutterAppPath,
   required Logger logger,
   required String platform,
@@ -450,7 +452,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
     final debugSymbolScript = await Process.run('ruby', [
       '-e',
       _debugSymbolsScript(
-        target,
+        target ?? await defaultAppleTarget(platform),
         projectConfiguration,
         platform,
         isDevDependency,
@@ -486,7 +488,7 @@ String _debugSymbolsScript(
 
   return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$debugSymbolScriptName'
 bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)

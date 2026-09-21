@@ -507,13 +507,21 @@ bool doesNestedMapExist(Map<String, dynamic> map, List<String> keys) {
   });
 }
 
+/// Escapes [value] for interpolation into a single quoted Ruby string.
+///
+/// Target names and project paths are user chosen, and an apostrophe in either
+/// would otherwise produce a Ruby syntax error.
+String escapeRubySingleQuoted(String value) {
+  return value.replaceAll(r'\', r'\\').replaceAll("'", r"\'");
+}
+
 Future<List<String>> findTargetsAvailable(
   String platform,
   String xcodeProjectPath,
 ) async {
   final targetScript = '''
       require 'xcodeproj'
-      xcodeProject='$xcodeProjectPath'
+      xcodeProject='${escapeRubySingleQuoted(xcodeProjectPath)}'
       project = Xcodeproj::Project.open(xcodeProject)
 
       response = Array.new
@@ -549,7 +557,7 @@ Future<List<String>> findBuildConfigurationsAvailable(
 ) async {
   final buildConfigurationScript = '''
       require 'xcodeproj'
-      xcodeProject='$xcodeProjectPath'
+      xcodeProject='${escapeRubySingleQuoted(xcodeProjectPath)}'
 
       project = Xcodeproj::Project.open(xcodeProject)
 
@@ -639,18 +647,36 @@ Future<String> defaultAppleTarget(String platform) async {
   );
 
   // Renaming the project in Xcode renames the application target with it, so
-  // the project name is the best candidate. Fall back to "Runner" for projects
-  // renamed without their target, then to the first non test target.
-  final target = targets.contains(projectName)
-      ? projectName
-      : targets.contains(kDefaultXcodeProjectName)
-          ? kDefaultXcodeProjectName
-          : targets.firstWhere(
-              (target) => !target.endsWith('Tests'),
-              orElse: () => targets.first,
-            );
+  // the project name is the best candidate. A project renamed without its
+  // target still has "Runner".
+  if (targets.contains(projectName)) {
+    return _defaultAppleTargets[platform] = projectName;
+  }
+  if (targets.contains(kDefaultXcodeProjectName)) {
+    return _defaultAppleTargets[platform] = kDefaultXcodeProjectName;
+  }
 
-  return _defaultAppleTargets[platform] = target;
+  // Neither name is there, and guessing would silently attach the Firebase
+  // build phases to whatever comes first - an app extension, for instance,
+  // producing an app that ships without its service file.
+  if (isCI) {
+    throw XcodeProjectException(
+      platform,
+      'Could not work out which target of "$projectName.xcodeproj" is your '
+      '$platform app: no target is named "$projectName" or '
+      '"$kDefaultXcodeProjectName". The targets are ${targets.join(', ')}. '
+      'Please re-run the command with the '
+      '"--${platform == kMacos ? kMacosTargetFlag : kIosTargetFlag}" flag.',
+    );
+  }
+
+  final response = promptSelect(
+    'Could not work out which target of "$projectName.xcodeproj" is your '
+    '$platform app. Please choose one of the following targets',
+    targets,
+  );
+
+  return _defaultAppleTargets[platform] = targets[response];
 }
 
 final Map<String, String> _defaultAppleTargets = {};
@@ -662,16 +688,19 @@ final Map<String, String> _defaultAppleTargets = {};
 /// not always have its source directory renamed with it, so an existing
 /// "Runner" directory wins over a target directory that does not exist yet.
 String defaultAppleSourceDirectory(String platform, String target) {
-  if (target == kDefaultXcodeProjectName) return kDefaultXcodeProjectName;
+  bool directoryExists(String name) =>
+      Directory(join(Directory.current.path, platform, name)).existsSync();
 
-  final targetDirectory =
-      Directory(join(Directory.current.path, platform, target));
-  if (targetDirectory.existsSync()) return target;
+  if (directoryExists(target)) return target;
 
-  final runnerDirectory = Directory(
-    join(Directory.current.path, platform, kDefaultXcodeProjectName),
-  );
-  if (runnerDirectory.existsSync()) return kDefaultXcodeProjectName;
+  // The project and its source directory can be renamed without the target, or
+  // the other way around, so neither name is guaranteed to be on disk.
+  if (directoryExists(kDefaultXcodeProjectName)) {
+    return kDefaultXcodeProjectName;
+  }
+
+  final projectName = xcodeProjectNameInDirectory(Directory.current, platform);
+  if (directoryExists(projectName)) return projectName;
 
   return target;}
 

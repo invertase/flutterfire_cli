@@ -111,6 +111,14 @@ void main() {
     });
   });
 
+  group('escapeRubySingleQuoted()', () {
+    test('escapes apostrophes and backslashes', () {
+      expect(escapeRubySingleQuoted("Bob's App"), r"Bob\'s App");
+      expect(escapeRubySingleQuoted(r'C:\apps'), r'C:\\apps');
+      expect(escapeRubySingleQuoted('Runner'), 'Runner');
+    });
+  });
+
   group('defaultAppleSourceDirectory()', () {
     late Directory previousDirectory;
 
@@ -135,6 +143,19 @@ void main() {
           .createSync(recursive: true);
 
       expect(defaultAppleSourceDirectory(kIos, 'MyApp'), 'Runner');
+    });
+
+    test('falls back to the project directory for a "Runner" target', () {
+      // The project and its source directory were renamed, the target was not.
+      createXcodeProject(kIos, 'MyApp');
+      Directory(path.join(appDirectory.path, kIos, 'MyApp'))
+          .createSync(recursive: true);
+
+      expect(defaultAppleSourceDirectory(kIos, 'Runner'), 'MyApp');
+    });
+
+    test('uses the target name when nothing is on disk yet', () {
+      expect(defaultAppleSourceDirectory(kIos, 'MyApp'), 'MyApp');
     });
   });
 }
