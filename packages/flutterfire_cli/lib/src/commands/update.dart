@@ -93,16 +93,28 @@ class UpdateCommand extends FlutterFireCommand {
     commandRequiresFlutterApp();
 
     logger.stdout('Cleaning up current workspace ...');
+    // A failed clean (a locked "build" directory, for instance) is not worth
+    // giving up the update over, but it should not pass unnoticed either.
     final cleanResult = await _runFlutter(['clean']);
     if (cleanResult.exitCode != 0) {
-      throw FlutterCommandException('flutter clean', cleanResult);
+      logger.stderr(
+        FlutterCommandException('flutter clean', cleanResult).toString(),
+      );
     }
 
     final pubspecLock = File(
       path.join(flutterApp!.package.path, 'pubspec.lock'),
     );
     if (pubspecLock.existsSync()) {
-      pubspecLock.deleteSync();
+      try {
+        pubspecLock.deleteSync();
+      } on FileSystemException catch (e) {
+        logger.stderr(
+          'Could not delete ${pubspecLock.path}: ${e.osError?.message ?? e.message}. '
+          'The plugins are upgraded with "--major-versions", so this only '
+          'means some transitive dependencies may not be upgraded.',
+        );
+      }
     }
 
     logger.stdout('Upgrading all firebase plugins to the latest version ...');
