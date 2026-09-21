@@ -5,6 +5,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 import '../flutter_app.dart';
@@ -224,9 +225,71 @@ end
     ''';
   }
 
+  /// Removes "GoogleService-Info.plist" from the default target's
+  /// "Copy Bundle Resources" build phase.
+  ///
+  /// A default configuration run adds the service file there. Once a build
+  /// configuration setup takes over, that copy overwrites the one the
+  /// "bundle-service-file" build phase bundles, so the app silently
+  /// initializes against the wrong Firebase project.
+  /// See https://github.com/invertase/flutterfire_cli/issues/253
+  Future<void> _removeServiceFileFromCopyBundleResources() async {
+    final result = await Process.run('ruby', [
+      '-e',
+      _removeServiceFileFromCopyBundleResourcesScript(),
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr);
+    }
+
+    final removedFiles = (result.stdout as String).trim();
+    if (removedFiles.isNotEmpty) {
+      logger.stdout(
+        logRemovedServiceFileFromCopyBundleResources(
+          platform,
+          removedFiles.split(','),
+        ),
+      );
+    }
+  }
+
+  String _removeServiceFileFromCopyBundleResourcesScript() {
+    return '''
+require 'xcodeproj'
+xcodeFile='${getXcodeProjectPath(platform)}'
+serviceFileName='$appleServiceFileName'
+project = Xcodeproj::Project.open(xcodeFile)
+
+target = project.targets.find { |target| target.name == 'Runner' }
+
+if (target)
+  removed = Array.new
+
+  # Collect first, the build phase cannot be mutated while it is iterated.
+  serviceFiles = target.resources_build_phase.files.select do |file|
+    if file.file_ref && file.file_ref.path.is_a?(String)
+      File.basename(file.file_ref.path) == serviceFileName
+    end
+  end
+
+  serviceFiles.each do |file|
+    removed << file.file_ref.path
+    file.remove_from_project()
+  end
+
+  if (removed.length > 0)
+    project.save()
+    \$stdout.write removed.join(',')
+  end
+end
+    ''';
+  }
+
   Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
     await _writeGoogleServiceFileToPath();
     await _writeBundleServiceFileScriptToProject();
+    await _removeServiceFileFromCopyBundleResources();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
       flutterAppPath: flutterApp.package.path,
       logger: logger,

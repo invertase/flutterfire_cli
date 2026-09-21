@@ -55,6 +55,18 @@ const logSkippingDebugSymbolScript =
     'Skipping upload "Crashlytic\'s debug symbols script" build phase. Note: this is not '
     'recommended if you use Crashlytics in your app.';
 
+/// Logs when the service file is taken out of the "Copy Bundle Resources"
+/// build phase as part of a build configuration setup.
+String logRemovedServiceFileFromCopyBundleResources(
+  String platform,
+  List<String> removedFiles,
+) =>
+    'Removed ${removedFiles.map((file) => file.cyan).join(', ')} from the '
+    '"Copy Bundle Resources" build phase of your $platform project. It would '
+    'otherwise overwrite the "$appleServiceFileName" bundled for the build '
+    'configuration you are building, and your app would initialize against '
+    'the wrong Firebase project.';
+
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
     'Firebase configuration file ${outputFilePath.cyan} generated '
