@@ -24,7 +24,7 @@ Future<FirebaseJsonWrites> appleWrites({
   required ProjectConfiguration projectConfiguration,
   String? target,
   String? buildConfiguration,
-}) {
+}) async {
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
       return FirebaseAppleBuildConfiguration(
@@ -46,7 +46,7 @@ Future<FirebaseJsonWrites> appleWrites({
         platform: platform,
         projectConfiguration: projectConfiguration,
         target: ProjectConfiguration.defaultConfig == projectConfiguration
-            ? 'Runner'
+            ? target ?? await defaultAppleTarget(platform)
             : target!,
       ).apply();
   }
@@ -70,7 +70,8 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
           projectConfiguration: projectConfiguration,
         );
 
-  // Default Flutter project has the target name "Runner"
+  // Default Flutter project has the target name "Runner", but the Xcode
+  // project and its target can be renamed.
   final String target;
 
   Future<void> _writeGoogleServiceFileToTargetProject() async {
@@ -162,7 +163,8 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   final String buildConfiguration;
 
   Future<void> _writeBundleServiceFileScriptToProject() async {
-    final addBuildPhaseScript = _bundleServiceFileScript();
+    final addBuildPhaseScript =
+        _bundleServiceFileScript(await defaultAppleTarget(platform));
 
     // Add "bundle-service-file" script to Build Phases in Xcode project
     final resultBuildPhase = await Process.run('ruby', [
@@ -179,7 +181,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     }
   }
 
-  String _bundleServiceFileScript() {
+  String _bundleServiceFileScript(String defaultTarget) {
     String? command;
     if (platform == kMacos) {
       // macOS is bundled in Contents/Resources directory
@@ -206,7 +208,7 @@ $command
 )
 
 for target in project.targets 
-  if (target.name == 'Runner')
+  if (target.name == '$defaultTarget')
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
@@ -322,6 +324,7 @@ end
     await _writeBundleServiceFileScriptToProject();
     await _updateCopyBundleResources();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
+      target: await defaultAppleTarget(platform),
       flutterAppPath: flutterApp.package.path,
       logger: logger,
       projectConfiguration: projectConfiguration,
@@ -398,7 +401,7 @@ abstract class FirebaseAppleConfiguration {
 }
 
 Future<bool> addFlutterFireDebugSymbolsScript({
-  String target = 'Runner',
+  required String target,
   required String flutterAppPath,
   required Logger logger,
   required String platform,
@@ -467,7 +470,8 @@ Future<bool> addFlutterFireDebugSymbolsScript({
 }
 
 String _debugSymbolsScript(
-  // Always "Runner" for "build configuration" setup
+  // The default target ("Runner", unless the Xcode project was renamed) for a
+  // "build configuration" setup
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,

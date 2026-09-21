@@ -22,7 +22,15 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
-    show relative, normalize, windows, joinAll, dirname, join;
+    show
+        basename,
+        relative,
+        normalize,
+        windows,
+        joinAll,
+        dirname,
+        join,
+        withoutExtension;
 
 import '../flutter_app.dart';
 import 'platform.dart';
@@ -42,6 +50,9 @@ const String kIos = 'ios';
 
 /// Key for APK (Android) platform.
 const String kAndroid = 'android';
+
+/// The name Flutter gives the Xcode project and its application target.
+const String kDefaultXcodeProjectName = 'Runner';
 
 /// Key for Web platform.
 const String kWeb = 'web';
@@ -225,18 +236,85 @@ String androidAppBuildGradleKtsPathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle.kts']);
 }
 
+/// The name of the Xcode project for [platform], without the ".xcodeproj"
+/// extension.
+///
+/// Flutter names it "Runner", but the Xcode project can be renamed since
+/// Flutter 3.13, so it is read from disk rather than assumed.
+/// See https://github.com/invertase/flutterfire_cli/issues/217
+String xcodeProjectNameInDirectory(Directory directory, String platform) {
+  final platformDirectory = Directory(joinAll([directory.path, platform]));
+
+  if (platformDirectory.existsSync()) {
+    final xcodeProjects = platformDirectory
+        .listSync()
+        .whereType<Directory>()
+        .map((entity) => basename(entity.path))
+        .where((name) => name.endsWith('.xcodeproj'))
+        .toList()
+      ..sort();
+
+    // A renamed project keeps the Flutter layout otherwise, so if "Runner"
+    // is still there it is the one to use.
+    if (!xcodeProjects.contains('$kDefaultXcodeProjectName.xcodeproj') &&
+        xcodeProjects.length == 1) {
+      return withoutExtension(xcodeProjects.first);
+    }
+
+    if (xcodeProjects.length > 1 &&
+        !xcodeProjects.contains('$kDefaultXcodeProjectName.xcodeproj')) {
+      throw XcodeProjectException(
+        platform,
+        'Found more than one Xcode project in your "$platform" directory '
+        '(${xcodeProjects.join(', ')}) and none of them is named '
+        '"$kDefaultXcodeProjectName.xcodeproj", so the FlutterFire CLI cannot '
+        'tell which one belongs to your Flutter app.',
+      );
+    }
+  }
+
+  return kDefaultXcodeProjectName;
+}
+
 File xcodeProjectFileInDirectory(Directory directory, String platform) {
   return File(
     joinAll(
-      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
+      [
+        directory.path,
+        platform,
+        '${xcodeProjectNameInDirectory(directory, platform)}.xcodeproj',
+        'project.pbxproj',
+      ],
     ),
   );
 }
 
 File xcodeAppInfoConfigFileInDirectory(Directory directory, String platform) {
+  final appInfoConfigFile = File(
+    joinAll(
+      [
+        directory.path,
+        platform,
+        xcodeProjectNameInDirectory(directory, platform),
+        'Configs',
+        'AppInfo.xcconfig',
+      ],
+    ),
+  );
+
+  if (appInfoConfigFile.existsSync()) return appInfoConfigFile;
+
+  // The Xcode project can be renamed without renaming the source directory it
+  // sits next to, in which case "AppInfo.xcconfig" is still under "Runner".
   return File(
     joinAll(
-      [directory.path, platform, 'Runner', 'Configs', 'AppInfo.xcconfig'],
+      [
+        directory.path,
+        platform,
+        kDefaultXcodeProjectName,
+        'Configs',
+        'AppInfo.xcconfig',
+      ],
     ),
   );
 }
@@ -503,10 +581,12 @@ Future<List<String>> findBuildConfigurationsAvailable(
 }
 
 String getXcodeProjectPath(String platform) {
+  final currentDirectory = Directory.current;
+
   return join(
-    Directory.current.path,
+    currentDirectory.path,
     platform,
-    'Runner.xcodeproj',
+    '${xcodeProjectNameInDirectory(currentDirectory, platform)}.xcodeproj',
   );
 }
 
@@ -536,6 +616,64 @@ Future<Set<String>> configuredBuildConfigurations(
     return {};
   }
 }
+
+/// The target the FlutterFire CLI configures when the user does not pick one.
+///
+/// Flutter names both the Xcode project and its application target "Runner",
+/// but either can be renamed, so a renamed project is inspected rather than
+/// assumed. See https://github.com/invertase/flutterfire_cli/issues/217
+Future<String> defaultAppleTarget(String platform) async {
+  final cachedTarget = _defaultAppleTargets[platform];
+  if (cachedTarget != null) return cachedTarget;
+
+  final projectName = xcodeProjectNameInDirectory(Directory.current, platform);
+
+  // Untouched Flutter project, no need to open it to know the target.
+  if (projectName == kDefaultXcodeProjectName) {
+    return _defaultAppleTargets[platform] = kDefaultXcodeProjectName;
+  }
+
+  final targets = await findTargetsAvailable(
+    platform,
+    getXcodeProjectPath(platform),
+  );
+
+  // Renaming the project in Xcode renames the application target with it, so
+  // the project name is the best candidate. Fall back to "Runner" for projects
+  // renamed without their target, then to the first non test target.
+  final target = targets.contains(projectName)
+      ? projectName
+      : targets.contains(kDefaultXcodeProjectName)
+          ? kDefaultXcodeProjectName
+          : targets.firstWhere(
+              (target) => !target.endsWith('Tests'),
+              orElse: () => targets.first,
+            );
+
+  return _defaultAppleTargets[platform] = target;
+}
+
+final Map<String, String> _defaultAppleTargets = {};
+
+/// The directory the default "GoogleService-Info.plist" is written to, relative
+/// to the platform directory.
+///
+/// Flutter names it after the target ("ios/Runner"), but a renamed project does
+/// not always have its source directory renamed with it, so an existing
+/// "Runner" directory wins over a target directory that does not exist yet.
+String defaultAppleSourceDirectory(String platform, String target) {
+  if (target == kDefaultXcodeProjectName) return kDefaultXcodeProjectName;
+
+  final targetDirectory =
+      Directory(join(Directory.current.path, platform, target));
+  if (targetDirectory.existsSync()) return target;
+
+  final runnerDirectory = Directory(
+    join(Directory.current.path, platform, kDefaultXcodeProjectName),
+  );
+  if (runnerDirectory.existsSync()) return kDefaultXcodeProjectName;
+
+  return target;}
 
 void validateAppBundleId(
   String bundleId,

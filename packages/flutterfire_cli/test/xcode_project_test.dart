@@ -1,0 +1,140 @@
+import 'dart:io';
+
+import 'package:flutterfire_cli/src/common/strings.dart';
+import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
+
+void main() {
+  late Directory appDirectory;
+
+  setUp(() {
+    appDirectory = Directory.systemTemp.createTempSync('flutterfire_cli_apple');
+  });
+
+  tearDown(() {
+    appDirectory.deleteSync(recursive: true);
+  });
+
+  void createXcodeProject(String platform, String projectName) {
+    Directory(
+      path.join(appDirectory.path, platform, '$projectName.xcodeproj'),
+    ).createSync(recursive: true);
+  }
+
+  group('xcodeProjectNameInDirectory()', () {
+    test('finds the default "Runner" project', () {
+      createXcodeProject(kIos, 'Runner');
+
+      expect(xcodeProjectNameInDirectory(appDirectory, kIos), 'Runner');
+    });
+
+    test('finds a renamed project', () {
+      createXcodeProject(kIos, 'MyApp');
+
+      expect(xcodeProjectNameInDirectory(appDirectory, kIos), 'MyApp');
+    });
+
+    test('prefers "Runner" when several projects exist', () {
+      createXcodeProject(kMacos, 'Runner');
+      createXcodeProject(kMacos, 'MyApp');
+
+      expect(xcodeProjectNameInDirectory(appDirectory, kMacos), 'Runner');
+    });
+
+    test('throws when several renamed projects exist', () {
+      createXcodeProject(kIos, 'MyApp');
+      createXcodeProject(kIos, 'MyOtherApp');
+
+      expect(
+        () => xcodeProjectNameInDirectory(appDirectory, kIos),
+        throwsA(isA<XcodeProjectException>()),
+      );
+    });
+
+    test('falls back to "Runner" when the platform directory is missing', () {
+      expect(xcodeProjectNameInDirectory(appDirectory, kIos), 'Runner');
+    });
+  });
+
+  group('xcodeProjectFileInDirectory()', () {
+    test('points at the renamed project\'s "project.pbxproj"', () {
+      createXcodeProject(kIos, 'MyApp');
+
+      expect(
+        xcodeProjectFileInDirectory(appDirectory, kIos).path,
+        path.join(
+          appDirectory.path,
+          kIos,
+          'MyApp.xcodeproj',
+          'project.pbxproj',
+        ),
+      );
+    });
+  });
+
+  group('xcodeAppInfoConfigFileInDirectory()', () {
+    test('reads "AppInfo.xcconfig" from the renamed source directory', () {
+      createXcodeProject(kMacos, 'MyApp');
+      final appInfo = File(
+        path.join(
+          appDirectory.path,
+          kMacos,
+          'MyApp',
+          'Configs',
+          'AppInfo.xcconfig',
+        ),
+      )..createSync(recursive: true);
+
+      expect(
+        xcodeAppInfoConfigFileInDirectory(appDirectory, kMacos).path,
+        appInfo.path,
+      );
+    });
+
+    test('falls back to "Runner" when only the project was renamed', () {
+      createXcodeProject(kMacos, 'MyApp');
+      final appInfo = File(
+        path.join(
+          appDirectory.path,
+          kMacos,
+          'Runner',
+          'Configs',
+          'AppInfo.xcconfig',
+        ),
+      )..createSync(recursive: true);
+
+      expect(
+        xcodeAppInfoConfigFileInDirectory(appDirectory, kMacos).path,
+        appInfo.path,
+      );
+    });
+  });
+
+  group('defaultAppleSourceDirectory()', () {
+    late Directory previousDirectory;
+
+    setUp(() {
+      previousDirectory = Directory.current;
+      Directory.current = appDirectory;
+    });
+
+    tearDown(() {
+      Directory.current = previousDirectory;
+    });
+
+    test('uses the target directory when it exists', () {
+      Directory(path.join(appDirectory.path, kIos, 'MyApp'))
+          .createSync(recursive: true);
+
+      expect(defaultAppleSourceDirectory(kIos, 'MyApp'), 'MyApp');
+    });
+
+    test('falls back to "Runner" when the target directory does not exist', () {
+      Directory(path.join(appDirectory.path, kIos, 'Runner'))
+          .createSync(recursive: true);
+
+      expect(defaultAppleSourceDirectory(kIos, 'MyApp'), 'Runner');
+    });
+  });
+}

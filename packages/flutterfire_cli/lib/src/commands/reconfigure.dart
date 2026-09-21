@@ -152,6 +152,7 @@ class Reconfigure extends FlutterFireCommand {
 
     if (buildConfigurationsExist) {
       await addFlutterFireDebugSymbolsScript(
+        target: await defaultAppleTarget(platform),
         flutterAppPath: flutterApp!.package.path,
         platform: platform,
         logger: logger,
@@ -192,7 +193,10 @@ class Reconfigure extends FlutterFireCommand {
     );
 
     if (defaultConfigurationExists) {
+      final defaultTarget = await defaultAppleTarget(platform);
+
       await addFlutterFireDebugSymbolsScript(
+        target: defaultTarget,
         flutterAppPath: flutterApp!.package.path,
         platform: platform,
         logger: logger,
@@ -208,7 +212,7 @@ class Reconfigure extends FlutterFireCommand {
           ),
           platform,
         ),
-        '$platform "$appleServiceFileName" file write for default target (Runner)',
+        '$platform "$appleServiceFileName" file write for default target ($defaultTarget)',
       );
     }
     final targetMapKeys = [
