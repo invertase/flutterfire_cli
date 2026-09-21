@@ -114,6 +114,14 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
+When FlutterFire CLI registers a new app on your Firebase project, it names it after the `name` of your app in `pubspec.yaml`, suffixed with the platform, e.g. `my_app (ios)`. If you build several apps from a single code base (white label apps, flavors), every app ends up with the same name in the Firebase console. Use the `--app-display-name` (`-n`) flag to choose the name yourself:
+
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --app-display-name="My White Label App"
+```
+
+This registers the apps as `My White Label App (ios)`, `My White Label App (android)`, and so on. It only affects apps that FlutterFire CLI creates - apps that already exist on the project are matched by bundle ID or package name as before, and are not renamed.
+
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
 ```bash

@@ -116,6 +116,16 @@ class ConfigCommand extends FlutterFireCommand {
     );
 
     argParser.addOption(
+      kAppDisplayNameFlag,
+      valueHelp: 'appDisplayName',
+      abbr: 'n',
+      help: 'The display name (nickname) used when registering apps on the '
+          'Firebase project, e.g. "My White Label App". The platform is '
+          'appended to it, e.g. "My White Label App (ios)". '
+          'Defaults to the "name" of your app in `pubspec.yaml`.',
+    );
+
+    argParser.addOption(
       kTokenFlag,
       valueHelp: 'firebaseToken',
       abbr: 't',
@@ -329,6 +339,19 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     return null;
+  }
+
+  String? get appDisplayName {
+    final value = argResults![kAppDisplayNameFlag] as String?;
+
+    if (value == null) return null;
+
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      usageException('--$kAppDisplayNameFlag must not be empty.');
+    }
+
+    return trimmed;
   }
 
   String? get token {
@@ -620,6 +643,7 @@ class ConfigCommand extends FlutterFireCommand {
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
+        appDisplayName: appDisplayName,
         firebaseAccount: accountEmail,
         androidApplicationId: androidApplicationId,
         iosBundleId: iosBundleId,

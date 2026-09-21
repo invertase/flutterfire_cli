@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutterfire_cli/src/commands/config.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:test/test.dart';
@@ -233,4 +234,27 @@ void main() {
       });
     },
   );
+
+  group('configure --app-display-name', () {
+    test('is parsed from the long form and the "n" abbreviation', () {
+      final argParser = ConfigCommand(null).argParser;
+
+      const longForm = ['--app-display-name=My White Label App'];
+
+      expect(
+        argParser.parse(longForm)[kAppDisplayNameFlag],
+        'My White Label App',
+      );
+      expect(
+        argParser.parse(['-n', 'My White Label App'])[kAppDisplayNameFlag],
+        'My White Label App',
+      );
+    });
+
+    test('defaults to null so the pubspec name is used', () {
+      final argParser = ConfigCommand(null).argParser;
+
+      expect(argParser.parse([])[kAppDisplayNameFlag], isNull);
+    });
+  });
 }

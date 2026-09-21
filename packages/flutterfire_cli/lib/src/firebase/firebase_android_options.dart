@@ -38,6 +38,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     String? androidApplicationId,
     required String firebaseProjectId,
     String? firebaseAccount,
+    String? appDisplayName,
     required String? token,
     required String? serviceAccount,
   }) async {
@@ -56,7 +57,7 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     );
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       packageNameOrBundleIdentifier: selectedAndroidApplicationId,
-      displayName: flutterApp.package.pubSpec.name,
+      displayName: appDisplayName ?? flutterApp.package.pubSpec.name,
       platform: kAndroid,
       project: firebaseProjectId,
       account: firebaseAccount,

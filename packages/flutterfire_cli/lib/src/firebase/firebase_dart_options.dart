@@ -28,13 +28,14 @@ extension FirebaseDartOptions on FirebaseOptions {
     FlutterApp flutterApp, {
     required String firebaseProjectId,
     String? firebaseAccount,
+    String? appDisplayName,
     String? webAppId,
     String platform = kWeb,
     required String? token,
     required String? serviceAccount,
   }) async {
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
-      displayName: flutterApp.package.pubSpec.name,
+      displayName: appDisplayName ?? flutterApp.package.pubSpec.name,
       platform: platform,
       project: firebaseProjectId,
       account: firebaseAccount,

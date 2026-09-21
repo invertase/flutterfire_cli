@@ -79,6 +79,7 @@ const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
+const String kAppDisplayNameFlag = 'app-display-name';
 const String kWindowsAppIdFlag = 'windows-app-id';
 const String kTokenFlag = 'token';
 const String kServiceAccountFlag = 'service-account';
