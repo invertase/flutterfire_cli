@@ -702,7 +702,8 @@ String defaultAppleSourceDirectory(String platform, String target) {
   final projectName = xcodeProjectNameInDirectory(Directory.current, platform);
   if (directoryExists(projectName)) return projectName;
 
-  return target;}
+  return target;
+}
 
 void validateAppBundleId(
   String bundleId,

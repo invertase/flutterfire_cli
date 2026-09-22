@@ -267,7 +267,9 @@ end
   Future<void> _removeServiceFileFromCopyBundleResources() async {
     final result = await Process.run('ruby', [
       '-e',
-      _removeServiceFileFromCopyBundleResourcesScript(),
+      _removeServiceFileFromCopyBundleResourcesScript(
+        await defaultAppleTarget(platform),
+      ),
     ]);
 
     if (result.exitCode != 0) {
@@ -287,14 +289,15 @@ end
     }
   }
 
-  String _removeServiceFileFromCopyBundleResourcesScript() {
+  String _removeServiceFileFromCopyBundleResourcesScript(String defaultTarget) {
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 serviceFileName='$appleServiceFileName'
+targetName='${escapeRubySingleQuoted(defaultTarget)}'
 project = Xcodeproj::Project.open(xcodeFile)
 
-target = project.targets.find { |target| target.name == 'Runner' }
+target = project.targets.find { |target| target.name == targetName }
 
 if (target)
   removed = Array.new
