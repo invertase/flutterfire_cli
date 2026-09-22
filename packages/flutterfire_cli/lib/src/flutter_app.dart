@@ -71,10 +71,21 @@ class FlutterApp {
   }
 
   String? _readBundleIdForPlatform(String platform) {
-    final xcodeProjFile =
-        xcodeProjectFileInDirectory(Directory(package.path), platform);
-    final xcodeAppInfoConfigFile =
-        xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
+    final File xcodeProjFile;
+    final File xcodeAppInfoConfigFile;
+
+    try {
+      xcodeProjFile =
+          xcodeProjectFileInDirectory(Directory(package.path), platform);
+      xcodeAppInfoConfigFile =
+          xcodeAppInfoConfigFileInDirectory(Directory(package.path), platform);
+    } on FlutterFireException {
+      // Auto detection is a convenience: when the Xcode project cannot be
+      // pinned down (several of them, say), fall back to asking for the bundle
+      // id rather than taking the whole command down. This runs on Windows and
+      // Linux too, where none of the Xcode writes happen.
+      return null;
+    }
     final bundleIdRegex = RegExp(
       r'''^[\s]*PRODUCT_BUNDLE_IDENTIFIER\s=\s(?<bundleId>[A-Za-z\d_\-\.]+)[;]*$''',
       multiLine: true,

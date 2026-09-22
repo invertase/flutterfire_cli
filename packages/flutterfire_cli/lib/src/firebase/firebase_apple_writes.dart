@@ -24,7 +24,7 @@ Future<FirebaseJsonWrites> appleWrites({
   required ProjectConfiguration projectConfiguration,
   String? target,
   String? buildConfiguration,
-}) {
+}) async {
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
       return FirebaseAppleBuildConfiguration(
@@ -46,7 +46,7 @@ Future<FirebaseJsonWrites> appleWrites({
         platform: platform,
         projectConfiguration: projectConfiguration,
         target: ProjectConfiguration.defaultConfig == projectConfiguration
-            ? 'Runner'
+            ? target ?? await defaultAppleTarget(platform)
             : target!,
       ).apply();
   }
@@ -70,7 +70,8 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
           projectConfiguration: projectConfiguration,
         );
 
-  // Default Flutter project has the target name "Runner"
+  // Default Flutter project has the target name "Runner", but the Xcode
+  // project and its target can be renamed.
   final String target;
 
   Future<void> _writeGoogleServiceFileToTargetProject() async {
@@ -89,9 +90,9 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
   String _addServiceFileToTarget() {
     return '''
 require 'xcodeproj'
-googleFile='$serviceFilePath'
-xcodeFile='${getXcodeProjectPath(platform)}'
-targetName='$target'
+googleFile='${escapeRubySingleQuoted(serviceFilePath)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
+targetName='${escapeRubySingleQuoted(target)}'
 
 project = Xcodeproj::Project.open(xcodeFile)
 target = project.targets.find { |target| target.name == targetName }
@@ -162,7 +163,8 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   final String buildConfiguration;
 
   Future<void> _writeBundleServiceFileScriptToProject() async {
-    final addBuildPhaseScript = _bundleServiceFileScript();
+    final addBuildPhaseScript =
+        _bundleServiceFileScript(await defaultAppleTarget(platform));
 
     // Add "bundle-service-file" script to Build Phases in Xcode project
     final resultBuildPhase = await Process.run('ruby', [
@@ -179,7 +181,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     }
   }
 
-  String _bundleServiceFileScript() {
+  String _bundleServiceFileScript(String defaultTarget) {
     String? command;
     if (platform == kMacos) {
       // macOS is bundled in Contents/Resources directory
@@ -193,7 +195,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
 
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -206,7 +208,7 @@ $command
 )
 
 for target in project.targets 
-  if (target.name == 'Runner')
+  if (target.name == '${escapeRubySingleQuoted(defaultTarget)}')
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
@@ -265,7 +267,9 @@ end
   Future<void> _removeServiceFileFromCopyBundleResources() async {
     final result = await Process.run('ruby', [
       '-e',
-      _removeServiceFileFromCopyBundleResourcesScript(),
+      _removeServiceFileFromCopyBundleResourcesScript(
+        await defaultAppleTarget(platform),
+      ),
     ]);
 
     if (result.exitCode != 0) {
@@ -285,14 +289,15 @@ end
     }
   }
 
-  String _removeServiceFileFromCopyBundleResourcesScript() {
+  String _removeServiceFileFromCopyBundleResourcesScript(String defaultTarget) {
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 serviceFileName='$appleServiceFileName'
+targetName='${escapeRubySingleQuoted(defaultTarget)}'
 project = Xcodeproj::Project.open(xcodeFile)
 
-target = project.targets.find { |target| target.name == 'Runner' }
+target = project.targets.find { |target| target.name == targetName }
 
 if (target)
   removed = Array.new
@@ -398,7 +403,10 @@ abstract class FirebaseAppleConfiguration {
 }
 
 Future<bool> addFlutterFireDebugSymbolsScript({
-  String target = 'Runner',
+  /// The default target is resolved when it is left null, which can mean
+  /// opening the Xcode project. It is only needed once we know the Crashlytics
+  /// script will be written, so callers with nothing to pass leave it out.
+  String? target,
   required String flutterAppPath,
   required Logger logger,
   required String platform,
@@ -447,7 +455,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
     final debugSymbolScript = await Process.run('ruby', [
       '-e',
       _debugSymbolsScript(
-        target,
+        target ?? await defaultAppleTarget(platform),
         projectConfiguration,
         platform,
         isDevDependency,
@@ -467,7 +475,8 @@ Future<bool> addFlutterFireDebugSymbolsScript({
 }
 
 String _debugSymbolsScript(
-  // Always "Runner" for "build configuration" setup
+  // The default target ("Runner", unless the Xcode project was renamed) for a
+  // "build configuration" setup
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,
@@ -476,13 +485,13 @@ String _debugSymbolsScript(
   final projectType = switch (projectConfiguration) {
     ProjectConfiguration.buildConfiguration =>
       r'--build-configuration=${CONFIGURATION}',
-    ProjectConfiguration.target => '--target=$target',
+    ProjectConfiguration.target => '--target="$target"',
     ProjectConfiguration.defaultConfig => '--default-config=default',
   };
 
   return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$debugSymbolScriptName'
 bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
@@ -545,7 +554,7 @@ def ensure_phase_is_after(target, phase, preceding_phase)
 end
 
 for target in project.targets
-  if (target.name == '$target')
+  if (target.name == '${escapeRubySingleQuoted(target)}')
     # Find existing debug symbols phase
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
