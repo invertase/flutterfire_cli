@@ -114,15 +114,15 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
-When FlutterFire CLI registers a new app on your Firebase project, it names it after the `name` of your app in `pubspec.yaml`, suffixed with the platform, e.g. `my_app (ios)`. If you build several apps from a single code base (white label apps, flavors), every app ends up with the same name in the Firebase console. Use the `--app-display-name` (`-n`) flag to choose the name yourself:
+If you want to specify a display name (i.e. how it appears in the Firebase console), use the `--display-name` (`-n`) flag. It will still have the platform as a suffix (e.g. `--display-name=test` will appear as "test (ios)", "test (web)", etc):
 
 ```bash
-flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --app-display-name="My White Label App"
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
 ```
 
-This registers the apps as `My White Label App (ios)`, `My White Label App (android)`, and so on. It only affects apps that FlutterFire CLI creates: Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID as before, and keep the name they have.
+Without it, apps are named after the `name` in your `pubspec.yaml`, so white label apps and flavors built from one code base all end up with the same name in the console.
 
-Web and Windows are matched differently, because they have no package name or bundle ID. FlutterFire CLI looks for an app whose display name matches, and for web falls back to the first web app on the project. So on a project that already has a web app, `--app-display-name` reuses that app rather than creating a `My White Label App (web)` one; and on Windows it registers a new app rather than reusing the one named after your pubspec. Pass `--web-app-id` / `--windows-app-id` to pick an existing app explicitly.
+This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead - meaning a custom name will not reuse an existing web app. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
 
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 

@@ -79,7 +79,7 @@ const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
-const String kAppDisplayNameFlag = 'app-display-name';
+const String kDisplayNameFlag = 'display-name';
 const String kWindowsAppIdFlag = 'windows-app-id';
 const String kTokenFlag = 'token';
 const String kServiceAccountFlag = 'service-account';
@@ -712,13 +712,13 @@ String defaultAppleSourceDirectory(String platform, String target) {
 /// The name is passed to the Firebase CLI as a process argument, and
 /// `runFirebaseCommand()` runs it through a shell. Dart does not escape shell
 /// metacharacters, and `cmd.exe` would split the command on them.
-String? appDisplayNameError(String displayName) {
+String? displayNameError(String displayName) {
   if (displayName.isEmpty) {
-    return '--$kAppDisplayNameFlag must not be empty.';
+    return '--$kDisplayNameFlag must not be empty.';
   }
 
   if (RegExp(r'''[&|<>^"`$\\]''').hasMatch(displayName)) {
-    return '--$kAppDisplayNameFlag must not contain any of '
+    return '--$kDisplayNameFlag must not contain any of '
         r'''& | < > ^ " ` \ or $. '''
         'Rename the app in the Firebase console if you need one of them.';
   }

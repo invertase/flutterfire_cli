@@ -116,16 +116,15 @@ class ConfigCommand extends FlutterFireCommand {
     );
 
     argParser.addOption(
-      kAppDisplayNameFlag,
-      valueHelp: 'appDisplayName',
+      kDisplayNameFlag,
+      valueHelp: 'displayName',
       abbr: 'n',
-      help: 'The display name (nickname) used when registering apps on the '
-          'Firebase project, e.g. "My White Label App". The platform is '
-          'appended to it, e.g. "My White Label App (ios)". '
-          'Defaults to the "name" of your app in `pubspec.yaml`. '
-          'Only applies to apps this command creates: android, iOS and macOS '
-          'apps that already exist are matched on their package name or '
-          'bundle id and keep the name they have.',
+      help: 'The display name of your app in the Firebase console, e.g. '
+          '"My Cool App". The platform is appended to it, e.g. '
+          '"My Cool App (ios)". Defaults to the "name" of your app in '
+          '`pubspec.yaml`. Only applies to apps this command creates: android, '
+          'iOS and macOS apps that already exist are matched on their package '
+          'name or bundle id and keep the name they have.',
     );
 
     argParser.addOption(
@@ -344,13 +343,15 @@ class ConfigCommand extends FlutterFireCommand {
     return null;
   }
 
-  String? get appDisplayName {
-    final value = argResults![kAppDisplayNameFlag] as String?;
+  /// The name apps are registered under on the Firebase project, with the
+  /// platform appended to it, e.g. "My White Label App (ios)".
+  String get displayName {
+    final value = argResults![kDisplayNameFlag] as String?;
 
-    if (value == null) return null;
+    if (value == null) return flutterApp!.package.pubSpec.name;
 
     final trimmed = value.trim();
-    final error = appDisplayNameError(trimmed);
+    final error = displayNameError(trimmed);
     if (error != null) {
       usageException(error);
     }
@@ -596,7 +597,7 @@ class ConfigCommand extends FlutterFireCommand {
     // Read outside the try block below, which turns everything it catches into
     // a message on stderr, so a bad flag still gets the usage output and exit
     // code the user expects - and gets it before any prompt.
-    final appDisplayName = this.appDisplayName;
+    final displayName = this.displayName;
 
     try {
       commandRequiresFlutterApp();
@@ -653,7 +654,7 @@ class ConfigCommand extends FlutterFireCommand {
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
-        appDisplayName: appDisplayName,
+        displayName: displayName,
         firebaseAccount: accountEmail,
         androidApplicationId: androidApplicationId,
         iosBundleId: iosBundleId,

@@ -235,18 +235,18 @@ void main() {
     },
   );
 
-  group('configure --app-display-name', () {
+  group('configure --display-name', () {
     test('is parsed from the long form and the "n" abbreviation', () {
       final argParser = ConfigCommand(null).argParser;
 
-      const longForm = ['--app-display-name=My White Label App'];
+      const longForm = ['--display-name=My White Label App'];
 
       expect(
-        argParser.parse(longForm)[kAppDisplayNameFlag],
+        argParser.parse(longForm)[kDisplayNameFlag],
         'My White Label App',
       );
       expect(
-        argParser.parse(['-n', 'My White Label App'])[kAppDisplayNameFlag],
+        argParser.parse(['-n', 'My White Label App'])[kDisplayNameFlag],
         'My White Label App',
       );
     });
@@ -254,7 +254,7 @@ void main() {
     test('defaults to null so the pubspec name is used', () {
       final argParser = ConfigCommand(null).argParser;
 
-      expect(argParser.parse([])[kAppDisplayNameFlag], isNull);
+      expect(argParser.parse([])[kDisplayNameFlag], isNull);
     });
 
     test('rejects an empty name and shell metacharacters', () {
@@ -271,7 +271,7 @@ void main() {
         r'Acme \ Co',
       ]) {
         expect(
-          appDisplayNameError(name),
+          displayNameError(name),
           isNotNull,
           reason: 'expected "$name" to be rejected',
         );
@@ -279,9 +279,9 @@ void main() {
     });
 
     test('accepts an ordinary name', () {
-      expect(appDisplayNameError('My White Label App'), isNull);
-      expect(appDisplayNameError("Bob's App"), isNull);
-      expect(appDisplayNameError('Acme (EU) - v2'), isNull);
+      expect(displayNameError('My White Label App'), isNull);
+      expect(displayNameError("Bob's App"), isNull);
+      expect(displayNameError('Acme (EU) - v2'), isNull);
     });
   });
 }
