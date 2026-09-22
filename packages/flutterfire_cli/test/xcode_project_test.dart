@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:flutterfire_cli/src/flutter_app.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -107,6 +108,47 @@ void main() {
       expect(
         xcodeAppInfoConfigFileInDirectory(appDirectory, kMacos).path,
         appInfo.path,
+      );
+    });
+  });
+
+  group('bundle id auto detection', () {
+    Future<FlutterApp> flutterAppIn(Directory directory) async {
+      await File(path.join(directory.path, 'pubspec.yaml')).writeAsString('''
+name: test_app
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+''');
+
+      return (await FlutterApp.load(directory))!;
+    }
+
+    test('falls back to prompting when the project is ambiguous', () async {
+      // Auto detection runs on Windows and Linux too, where none of the Xcode
+      // writes happen, so it must not take the command down.
+      createXcodeProject(kIos, 'MyApp');
+      createXcodeProject(kIos, 'MyOtherApp');
+
+      expect((await flutterAppIn(appDirectory)).iosBundleId, isNull);
+    });
+
+    test('still reads the bundle id from a renamed project', () async {
+      createXcodeProject(kIos, 'MyApp');
+      await File(
+        path.join(
+          appDirectory.path,
+          kIos,
+          'MyApp.xcodeproj',
+          'project.pbxproj',
+        ),
+      ).writeAsString('\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.example.app;');
+
+      expect(
+        (await flutterAppIn(appDirectory)).iosBundleId,
+        'com.example.app',
       );
     });
   });

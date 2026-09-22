@@ -485,7 +485,7 @@ String _debugSymbolsScript(
   final projectType = switch (projectConfiguration) {
     ProjectConfiguration.buildConfiguration =>
       r'--build-configuration=${CONFIGURATION}',
-    ProjectConfiguration.target => '--target=$target',
+    ProjectConfiguration.target => '--target="$target"',
     ProjectConfiguration.defaultConfig => '--default-config=default',
   };
 
@@ -554,7 +554,7 @@ def ensure_phase_is_after(target, phase, preceding_phase)
 end
 
 for target in project.targets
-  if (target.name == '$target')
+  if (target.name == '${escapeRubySingleQuoted(target)}')
     # Find existing debug symbols phase
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
