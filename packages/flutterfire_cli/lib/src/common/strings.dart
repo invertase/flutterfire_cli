@@ -55,6 +55,35 @@ const logSkippingDebugSymbolScript =
     'Skipping upload "Crashlytic\'s debug symbols script" build phase. Note: this is not '
     'recommended if you use Crashlytics in your app.';
 
+/// Logs when the service file is taken out of the "Copy Bundle Resources"
+/// build phase as part of a build configuration setup.
+String logRemovedServiceFileFromCopyBundleResources(
+  String platform,
+  List<String> removedFiles,
+) =>
+    'Removed ${removedFiles.map((file) => file.cyan).join(', ')} from the '
+    '"Copy Bundle Resources" build phase of your $platform project. It would '
+    'otherwise end up in your app bundle alongside the '
+    '"$appleServiceFileName" that the "bundle-service-file" build phase writes '
+    'for the build configuration you are building, and your app could '
+    'initialize against the wrong Firebase project.';
+
+/// Logs when the service file is left in the "Copy Bundle Resources" build
+/// phase because some build configurations have nothing to replace it with.
+String logKeptServiceFileInCopyBundleResources(
+  String platform,
+  List<String> uncoveredBuildConfigurations,
+) =>
+    'Left "$appleServiceFileName" in the "Copy Bundle Resources" build phase '
+    'of your $platform project: '
+    '${uncoveredBuildConfigurations.map((configuration) => configuration.cyan).join(', ')} '
+    '${uncoveredBuildConfigurations.length == 1 ? 'has' : 'have'} no service '
+    'file of their own and would otherwise build with none at all. Configure '
+    '${uncoveredBuildConfigurations.length == 1 ? 'it' : 'them'} too and this '
+    'command will remove the entry, or remove it yourself in Xcode. Until '
+    'then, it can shadow the "$appleServiceFileName" bundled for the build '
+    'configuration you are building.';
+
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
     'Firebase configuration file ${outputFilePath.cyan} generated '
