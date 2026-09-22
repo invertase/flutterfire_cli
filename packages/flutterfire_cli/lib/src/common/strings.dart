@@ -15,6 +15,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:ansi_styles/extension.dart';
 
 /// Link to the Flutter specific documentation on the Firebase website.
@@ -137,6 +139,23 @@ class FirebaseJsonException implements FlutterFireException {
   @override
   String toString() {
     return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values. ${underlyingException ?? ''}';
+  }
+}
+
+/// An exception that is thrown when a Flutter CLI command run by the
+/// FlutterFire CLI fails.
+class FlutterCommandException implements FlutterFireException {
+  FlutterCommandException(this.command, this.result) : super();
+
+  final String command;
+  final ProcessResult result;
+
+  @override
+  String toString() {
+    final output = '${result.stdout}${result.stderr}'.trim();
+
+    return 'FlutterCommandException: "$command" failed with exit code '
+        '${result.exitCode}.${output.isEmpty ? '' : '\n$output'}';
   }
 }
 

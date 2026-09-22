@@ -17,6 +17,10 @@
 
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
+import 'package:path/path.dart' as path;
+
+import '../common/strings.dart';
 import '../flutter_app.dart';
 import 'base.dart';
 
@@ -75,32 +79,76 @@ class UpdateCommand extends FlutterFireCommand {
   Future<void> run() async {
     commandRequiresFlutterApp();
 
-    logger.stdout('Cleaning up current workspace ...');
-    await Process.run(
-      'flutter',
-      ['clean'],
+    await updateFlutterFirePackages(
+      flutterAppPath: flutterApp!.package.path,
+      logger: logger,
     );
-    await Process.run(
-      'rm',
-      ['pubspec.lock'],
-    );
+  }
+}
 
-    logger.stdout('Upgrading all firebase plugins to the latest version ...');
-    for (final package in flutterfirePackages) {
-      // We run each package individually because chaining them
-      // will fail at the first package not in the pubspec.
-      await Process.run(
-        'flutter',
-        ['pub', 'upgrade', '--major-versions', package],
+/// Runs a process. Only exists so the tests can see what `update` invokes
+/// without running Flutter.
+typedef ProcessRunner = Future<ProcessResult> Function(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  bool runInShell,
+});
+
+/// Cleans the workspace and upgrades every FlutterFire plugin the app depends
+/// on to its latest major version.
+Future<void> updateFlutterFirePackages({
+  required String flutterAppPath,
+  required Logger logger,
+  ProcessRunner runProcess = Process.run,
+}) async {
+  /// `runInShell` is required on Windows: the Flutter CLI is `flutter.bat`
+  /// there, and `Process.run` does not resolve it through `PATHEXT`.
+  /// See https://github.com/dart-lang/sdk/issues/31291
+  Future<ProcessResult> runFlutter(List<String> arguments) {
+    return runProcess(
+      'flutter',
+      arguments,
+      workingDirectory: flutterAppPath,
+      runInShell: true,
+    );
+  }
+
+  logger.stdout('Cleaning up current workspace ...');
+  // A failed clean (a locked "build" directory, for instance) is not worth
+  // giving up the update over, but it should not pass unnoticed either.
+  final cleanResult = await runFlutter(['clean']);
+  if (cleanResult.exitCode != 0) {
+    logger.stderr(
+      FlutterCommandException('flutter clean', cleanResult).toString(),
+    );
+  }
+
+  final pubspecLock = File(path.join(flutterAppPath, 'pubspec.lock'));
+  if (pubspecLock.existsSync()) {
+    try {
+      pubspecLock.deleteSync();
+    } on FileSystemException catch (e) {
+      logger.stderr(
+        'Could not delete ${pubspecLock.path}: ${e.osError?.message ?? e.message}. '
+        'The plugins are upgraded with "--major-versions", so this only '
+        'means some transitive dependencies may not be upgraded.',
       );
     }
-
-    logger.stdout("Running 'flutter pub get'...");
-    await Process.run(
-      'flutter',
-      ['pub', 'get'],
-    );
-
-    logger.stdout('Ready to use the latest version of FlutterFire! 🚀');
   }
+
+  logger.stdout('Upgrading all firebase plugins to the latest version ...');
+  for (final package in flutterfirePackages) {
+    // We run each package individually because chaining them
+    // will fail at the first package not in the pubspec.
+    await runFlutter(['pub', 'upgrade', '--major-versions', package]);
+  }
+
+  logger.stdout("Running 'flutter pub get'...");
+  final pubGetResult = await runFlutter(['pub', 'get']);
+  if (pubGetResult.exitCode != 0) {
+    throw FlutterCommandException('flutter pub get', pubGetResult);
+  }
+
+  logger.stdout('Ready to use the latest version of FlutterFire! 🚀');
 }
