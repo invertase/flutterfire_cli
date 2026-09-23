@@ -124,6 +124,20 @@ Without it, apps are named after the `name` in your `pubspec.yaml`, so white lab
 
 This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead - meaning a custom name will not reuse an existing web app. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
 
+### Firebase Cloud Messaging on the web
+
+`firebase_messaging` needs a service worker at `web/firebase-messaging-sw.js` to receive messages while your web app is in the background, and a service worker cannot read `firebase_options.dart`. When your app depends on `firebase_messaging` and you configure the web platform, FlutterFire CLI writes that file for you with the Firebase configuration of your web app.
+
+The generated file ends with a marker:
+
+```js
+// Your own code goes below this line. FlutterFire CLI does not touch it.
+```
+
+Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again refreshes the Firebase configuration above the marker and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one you have edited above the marker, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
+
+Note that `flutterfire reconfigure` does not refresh the service worker; run `flutterfire configure` when you change the Firebase project or web app.
+
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
 ```bash

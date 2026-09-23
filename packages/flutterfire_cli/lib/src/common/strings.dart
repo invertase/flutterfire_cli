@@ -84,6 +84,19 @@ String logKeptServiceFileInCopyBundleResources(
     'then, it can shadow the "$appleServiceFileName" bundled for the build '
     'configuration you are building.';
 
+/// Logs when the Firebase Cloud Messaging service worker is written to `web/`.
+String logWebMessagingServiceWorkerGenerated(String serviceWorkerPath) =>
+    'Firebase Cloud Messaging service worker ${serviceWorkerPath.cyan} '
+    'generated successfully.';
+
+/// Logs when `firebase-messaging-sw.js` in `web/` is hand written, or was
+/// generated but has since been edited above the marker.
+String logSkippingExistingWebMessagingServiceWorker(String serviceWorkerPath) =>
+    'Skipping the Firebase Cloud Messaging service worker: '
+    '${serviceWorkerPath.cyan} is yours, not one FlutterFire CLI can refresh. '
+    'Update the Firebase configuration in it yourself, or delete it and run '
+    'this command again.';
+
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
     'Firebase configuration file ${outputFilePath.cyan} generated '
