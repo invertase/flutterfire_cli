@@ -343,12 +343,13 @@ class ConfigCommand extends FlutterFireCommand {
     return null;
   }
 
-  /// The name apps are registered under on the Firebase project, with the
-  /// platform appended to it, e.g. "My White Label App (ios)".
-  String get displayName {
+  /// The validated `--display-name` value, or null when the flag is not
+  /// passed. `run()` falls back to the pubspec name once it has checked that
+  /// this is a Flutter app.
+  String? get displayName {
     final value = argResults![kDisplayNameFlag] as String?;
 
-    if (value == null) return flutterApp!.package.pubSpec.name;
+    if (value == null) return null;
 
     final trimmed = value.trim();
     final error = displayNameError(trimmed);
@@ -597,10 +598,13 @@ class ConfigCommand extends FlutterFireCommand {
     // Read outside the try block below, which turns everything it catches into
     // a message on stderr, so a bad flag still gets the usage output and exit
     // code the user expects - and gets it before any prompt.
-    final displayName = this.displayName;
+    final displayNameFlag = displayName;
 
     try {
       commandRequiresFlutterApp();
+      // The name apps are registered under on the Firebase project, with the
+      // platform appended to it, e.g. "My White Label App (ios)".
+      final displayName = displayNameFlag ?? flutterApp!.package.pubSpec.name;
       final reconfigured = await checkIfUserRequiresReconfigure();
 
       if (reconfigured) {
