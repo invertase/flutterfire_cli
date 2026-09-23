@@ -116,6 +116,18 @@ class ConfigCommand extends FlutterFireCommand {
     );
 
     argParser.addOption(
+      kDisplayNameFlag,
+      valueHelp: 'displayName',
+      abbr: 'n',
+      help: 'The display name of your app in the Firebase console, e.g. '
+          '"My Cool App". The platform is appended to it, e.g. '
+          '"My Cool App (ios)". Defaults to the "name" of your app in '
+          '`pubspec.yaml`. Only applies to apps this command creates: android, '
+          'iOS and macOS apps that already exist are matched on their package '
+          'name or bundle id and keep the name they have.',
+    );
+
+    argParser.addOption(
       kTokenFlag,
       valueHelp: 'firebaseToken',
       abbr: 't',
@@ -329,6 +341,23 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     return null;
+  }
+
+  /// The validated `--display-name` value, or null when the flag is not
+  /// passed. `run()` falls back to the pubspec name once it has checked that
+  /// this is a Flutter app.
+  String? get displayName {
+    final value = argResults![kDisplayNameFlag] as String?;
+
+    if (value == null) return null;
+
+    final trimmed = value.trim();
+    final error = displayNameError(trimmed);
+    if (error != null) {
+      usageException(error);
+    }
+
+    return trimmed;
   }
 
   String? get token {
@@ -565,8 +594,17 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     // Has to set during `run()` otherwise `argResults` will be null
     updateDebugMode(argResults!['debug'] as bool);
+
+    // Read outside the try block below, which turns everything it catches into
+    // a message on stderr, so a bad flag still gets the usage output and exit
+    // code the user expects - and gets it before any prompt.
+    final displayNameFlag = displayName;
+
     try {
       commandRequiresFlutterApp();
+      // The name apps are registered under on the Firebase project, with the
+      // platform appended to it, e.g. "My White Label App (ios)".
+      final displayName = displayNameFlag ?? flutterApp!.package.pubSpec.name;
       final reconfigured = await checkIfUserRequiresReconfigure();
 
       if (reconfigured) {
@@ -620,6 +658,7 @@ class ConfigCommand extends FlutterFireCommand {
       final fetchedFirebaseOptions = await fetchAllFirebaseOptions(
         flutterApp: flutterApp!,
         firebaseProjectId: selectedFirebaseProject.projectId,
+        displayName: displayName,
         firebaseAccount: accountEmail,
         androidApplicationId: androidApplicationId,
         iosBundleId: iosBundleId,

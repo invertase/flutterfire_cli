@@ -114,6 +114,16 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
+If you want to specify a display name (i.e. how it appears in the Firebase console), use the `--display-name` (`-n`) flag. It will still have the platform as a suffix (e.g. `--display-name=test` will appear as "test (ios)", "test (web)", etc):
+
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
+```
+
+Without it, apps are named after the `name` in your `pubspec.yaml`, so white label apps and flavors built from one code base all end up with the same name in the console.
+
+This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead - meaning a custom name will not reuse an existing web app. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
+
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
 ```bash

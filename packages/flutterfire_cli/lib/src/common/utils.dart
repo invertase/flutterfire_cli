@@ -79,6 +79,7 @@ const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
+const String kDisplayNameFlag = 'display-name';
 const String kWindowsAppIdFlag = 'windows-app-id';
 const String kTokenFlag = 'token';
 const String kServiceAccountFlag = 'service-account';
@@ -703,6 +704,26 @@ String defaultAppleSourceDirectory(String platform, String target) {
   if (directoryExists(projectName)) return projectName;
 
   return target;
+}
+
+/// Returns why [displayName] cannot be used as the display name of a Firebase
+/// app, or null when it can.
+///
+/// The name is passed to the Firebase CLI as a process argument, and
+/// `runFirebaseCommand()` runs it through a shell. Dart does not escape shell
+/// metacharacters, and `cmd.exe` would split the command on them.
+String? displayNameError(String displayName) {
+  if (displayName.isEmpty) {
+    return '--$kDisplayNameFlag must not be empty.';
+  }
+
+  if (RegExp(r'''[&|<>^"`$\\]''').hasMatch(displayName)) {
+    return '--$kDisplayNameFlag must not contain any of '
+        r'''& | < > ^ " ` \ or $. '''
+        'Rename the app in the Firebase console if you need one of them.';
+  }
+
+  return null;
 }
 
 void validateAppBundleId(

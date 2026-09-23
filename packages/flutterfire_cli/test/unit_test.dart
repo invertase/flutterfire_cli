@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutterfire_cli/src/commands/config.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
 import 'package:test/test.dart';
@@ -233,4 +234,54 @@ void main() {
       });
     },
   );
+
+  group('configure --display-name', () {
+    test('is parsed from the long form and the "n" abbreviation', () {
+      final argParser = ConfigCommand(null).argParser;
+
+      const longForm = ['--display-name=My White Label App'];
+
+      expect(
+        argParser.parse(longForm)[kDisplayNameFlag],
+        'My White Label App',
+      );
+      expect(
+        argParser.parse(['-n', 'My White Label App'])[kDisplayNameFlag],
+        'My White Label App',
+      );
+    });
+
+    test('defaults to null so the pubspec name is used', () {
+      final argParser = ConfigCommand(null).argParser;
+
+      expect(argParser.parse([])[kDisplayNameFlag], isNull);
+    });
+
+    test('rejects an empty name and shell metacharacters', () {
+      for (final name in [
+        '',
+        'Acme & Co',
+        'Acme | Co',
+        r'Acme $Co',
+        'Acme > Co',
+        'Acme < Co',
+        'Acme ^ Co',
+        'Acme "Co"',
+        'Acme `Co`',
+        r'Acme \ Co',
+      ]) {
+        expect(
+          displayNameError(name),
+          isNotNull,
+          reason: 'expected "$name" to be rejected',
+        );
+      }
+    });
+
+    test('accepts an ordinary name', () {
+      expect(displayNameError('My White Label App'), isNull);
+      expect(displayNameError("Bob's App"), isNull);
+      expect(displayNameError('Acme (EU) - v2'), isNull);
+    });
+  });
 }
