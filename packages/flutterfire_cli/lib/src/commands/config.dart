@@ -32,6 +32,7 @@ import '../firebase/firebase_apple_writes.dart';
 import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
+import '../firebase/firebase_web_messaging_bundle.dart';
 import '../firebase/firebase_web_writes.dart';
 import '../flutter_app.dart';
 import './reconfigure.dart';
@@ -218,6 +219,16 @@ class ConfigCommand extends FlutterFireCommand {
           'Only generated when your app depends on `firebase_messaging` and web is configured.',
     );
 
+    argParser.addFlag(
+      kBundleWebMessagingServiceWorkerFlag,
+      negatable: false,
+      help:
+          'Bundle the `web/$webMessagingServiceWorkerFileName` service worker with the '
+          'modular Firebase JS SDK instead of loading the compat SDK. Requires Node.js; '
+          'your own worker code then goes in `$webMessagingServiceWorkerUserFileName`. '
+          'Once bundled, the worker is rebuilt by later runs and by `flutterfire update`.',
+    );
+
     argParser.addOption(
       kTestAccessTokenFlag,
       valueHelp: 'testAccessToken',
@@ -372,6 +383,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   bool get generateWebMessagingServiceWorker {
     return argResults![kWebMessagingServiceWorkerFlag] as bool;
+  }
+
+  bool get bundleWebMessagingServiceWorker {
+    return argResults![kBundleWebMessagingServiceWorkerFlag] as bool;
   }
 
   String? get token {
@@ -752,6 +767,7 @@ class ConfigCommand extends FlutterFireCommand {
           flutterApp: flutterApp!,
           webOptions: fetchedFirebaseOptions.webOptions!,
           logger: logger,
+          bundle: bundleWebMessagingServiceWorker,
         );
 
         if (serviceWorkerPath != null) {
