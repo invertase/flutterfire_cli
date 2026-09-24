@@ -433,6 +433,31 @@ class ConfigCommand extends FlutterFireCommand {
       throw FirebaseProjectRequiredException();
     }
 
+    if (selectedProjectId != null) {
+      final fetchingProjectSpinner = spinner(
+        (done) {
+          if (!done) {
+            return 'Checking Firebase project ${AnsiStyles.cyan(selectedProjectId!)}...';
+          }
+          return 'Using Firebase project ${AnsiStyles.cyan(selectedProjectId!)}.';
+        },
+      );
+      try {
+        final selectedProject = await firebase.getProject(
+          account: accountEmail,
+          projectId: selectedProjectId,
+          serviceAccount: serviceAccount,
+          token: token,
+        );
+        fetchingProjectSpinner.done();
+        return selectedProject;
+      } catch (e) {
+        fetchingProjectSpinner.done();
+        if (e is FirebaseProjectNotFoundException) rethrow;
+        throw FirebaseProjectNotFoundException(selectedProjectId);
+      }
+    }
+
     List<FirebaseProject>? firebaseProjects;
 
     final fetchingProjectsSpinner = spinner(
@@ -459,15 +484,6 @@ class ConfigCommand extends FlutterFireCommand {
           .timeout(const Duration(seconds: 40));
 
       fetchingProjectsSpinner.done();
-
-      if (selectedProjectId != null) {
-        return firebaseProjects.firstWhere(
-          (project) => project.projectId == selectedProjectId,
-          orElse: () {
-            throw FirebaseProjectNotFoundException(selectedProjectId!);
-          },
-        );
-      }
 
       // No projects to choose from so lets
       // prompt to create straight away.
