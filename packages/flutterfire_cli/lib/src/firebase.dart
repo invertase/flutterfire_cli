@@ -183,6 +183,34 @@ Future<List<FirebaseProject>> getProjects({
   }
 }
 
+/// Fetch a single Firebase project by id.
+Future<FirebaseProject> getProject({
+  required String projectId,
+  String? account,
+  String? token,
+  String? serviceAccount,
+}) async {
+  try {
+    await getApps(
+      account: account,
+      project: projectId,
+      serviceAccount: serviceAccount,
+      token: token,
+    );
+  } on FirebaseCommandException {
+    throw FirebaseProjectNotFoundException(projectId);
+  }
+
+  return FirebaseProject(
+    displayName: projectId,
+    name: 'projects/$projectId',
+    projectId: projectId,
+    projectNumber: '',
+    resources: const FirebaseProjectResources(),
+    state: 'ACTIVE',
+  );
+}
+
 /// Create a new [FirebaseProject].
 Future<FirebaseProject> createProject({
   required String projectId,
