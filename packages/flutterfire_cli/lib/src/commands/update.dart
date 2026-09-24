@@ -21,6 +21,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import '../common/strings.dart';
+import '../firebase/firebase_web_messaging_bundle.dart';
+import '../firebase/firebase_web_writes.dart';
 import '../flutter_app.dart';
 import 'base.dart';
 
@@ -101,6 +103,7 @@ Future<void> updateFlutterFirePackages({
   required String flutterAppPath,
   required Logger logger,
   ProcessRunner runProcess = Process.run,
+  NpmProcessRunner runNpm = Process.run,
 }) async {
   /// `runInShell` is required on Windows: the Flutter CLI is `flutter.bat`
   /// there, and `Process.run` does not resolve it through `PATHEXT`.
@@ -148,6 +151,21 @@ Future<void> updateFlutterFirePackages({
   final pubGetResult = await runFlutter(['pub', 'get']);
   if (pubGetResult.exitCode != 0) {
     throw FlutterCommandException('flutter pub get', pubGetResult);
+  }
+
+  // The upgrade may have moved `firebase_core_web` to a newer Firebase JS SDK,
+  // which a bundled worker has built in.
+  final serviceWorkerPath = await rebuildBundledWebMessagingServiceWorker(
+    flutterAppPath: flutterAppPath,
+    logger: logger,
+    runProcess: runNpm,
+  );
+  if (serviceWorkerPath != null) {
+    logger.stdout(
+      logWebMessagingServiceWorkerGenerated(
+        path.relative(serviceWorkerPath, from: flutterAppPath),
+      ),
+    );
   }
 
   logger.stdout('Ready to use the latest version of FlutterFire! 🚀');
