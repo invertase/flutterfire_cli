@@ -136,6 +136,18 @@ The generated file ends with a marker:
 
 Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again refreshes the Firebase configuration above the marker and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one you have edited above the marker, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
 
+That worker loads the compat Firebase JS SDK with `importScripts`. To bundle it with the modular SDK instead, pass `--bundle-web-messaging-sw`. This needs Node.js: the worker is built with npm and esbuild in `.dart_tool/`, and falls back to the compat worker when `npm` is not found. The bundle is minified, so your own code goes in `firebase-messaging-sw.user.js` next to your `pubspec.yaml`:
+
+```js
+import { onBackgroundMessage } from 'firebase/messaging/sw';
+
+export default function (messaging) {
+  onBackgroundMessage(messaging, (message) => console.log(message));
+}
+```
+
+Once bundled, the worker is rebuilt by later `flutterfire configure` runs and by `flutterfire update`, which picks up the Firebase JS SDK version of the upgraded plugins. Delete it to go back to the compat worker.
+
 Note that `flutterfire reconfigure` does not refresh the service worker; run `flutterfire configure` when you change the Firebase project or web app.
 
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:

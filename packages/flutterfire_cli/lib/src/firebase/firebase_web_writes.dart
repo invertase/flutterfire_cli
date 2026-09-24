@@ -25,6 +25,7 @@ import 'package:path/path.dart' as path;
 import '../common/strings.dart';
 import '../flutter_app.dart';
 import 'firebase_options.dart';
+import 'firebase_web_messaging_bundle.dart';
 
 /// `firebase_messaging_web` registers this file, from the root of the built
 /// web app, to receive messages while the app is in the background.
@@ -53,11 +54,17 @@ const _fallbackFirebaseJsSdkVersion = '12.19.0';
 /// and the Firebase configuration has to be duplicated into it because a
 /// service worker cannot read `firebase_options.dart`.
 ///
+/// With [bundle], or when the existing worker was bundled, the worker is
+/// built with the modular Firebase JS SDK through npm; otherwise it loads the
+/// compat SDK with `importScripts`, which needs no build step.
+///
 /// Returns the path that was written, or `null` when nothing was written.
 Future<String?> writeWebMessagingServiceWorker({
   required FlutterApp flutterApp,
   required FirebaseOptions webOptions,
   required Logger logger,
+  bool bundle = false,
+  NpmProcessRunner runProcess = Process.run,
 }) async {
   final webDirectory = flutterApp.webDirectory;
   if (!webDirectory.existsSync()) return null;
@@ -67,26 +74,70 @@ Future<String?> writeWebMessagingServiceWorker({
   );
 
   var userSection = '';
+  var wasBundled = false;
 
   if (serviceWorkerFile.existsSync()) {
     final existingContent = await serviceWorkerFile.readAsString();
     final markerIndex = existingContent.indexOf(_userSectionMarker);
+    wasBundled = existingContent.startsWith(_generatedFileHeader) &&
+        WebMessagingServiceWorkerBundleInputs.parse(existingContent) != null;
 
     // Not ours, or ours but edited above the marker: either way the file is
     // the user's now.
-    if (!existingContent.startsWith(_generatedFileHeader) || markerIndex < 0) {
+    if (!existingContent.startsWith(_generatedFileHeader) ||
+        (!wasBundled && markerIndex < 0)) {
       logger.stdout(
         logSkippingExistingWebMessagingServiceWorker(serviceWorkerFile.path),
       );
       return null;
     }
 
-    userSection =
-        existingContent.substring(markerIndex + _userSectionMarker.length);
+    if (!wasBundled) {
+      userSection =
+          existingContent.substring(markerIndex + _userSectionMarker.length);
+    }
   }
 
   final firebaseJsSdkVersion =
       await _firebaseJsSdkVersion(flutterApp.package.path);
+
+  // Once bundled, stays bundled: a re-run without the flag should not swap
+  // the SDK the worker is built on.
+  if (bundle || wasBundled) {
+    // Code below the marker is written against the compat SDK, and the
+    // bundle has nowhere to put it. Leave the file alone rather than drop it.
+    if (userSection.trim().isNotEmpty) {
+      logger.stderr(
+        logWebMessagingServiceWorkerUserCodeBlocksBundle(
+          serviceWorkerFile.path,
+        ),
+      );
+      return null;
+    }
+
+    if (await isNpmAvailable(runProcess: runProcess)) {
+      final bundled = await bundleWebMessagingServiceWorker(
+        flutterAppPath: flutterApp.package.path,
+        outputPath: serviceWorkerFile.path,
+        header: _bundledFileHeader,
+        inputs: WebMessagingServiceWorkerBundleInputs(
+          firebaseConfig: _firebaseConfig(webOptions),
+          firebaseJsSdkVersion: firebaseJsSdkVersion,
+        ),
+        logger: logger,
+        runProcess: runProcess,
+      );
+      return bundled ? serviceWorkerFile.path : null;
+    }
+
+    // Replacing a bundled worker with a compat one would silently stop
+    // running the user's `firebase-messaging-sw.user.js`.
+    if (wasBundled) {
+      logger.stderr(logNpmRequiredToRebuildWebMessagingServiceWorker);
+      return null;
+    }
+    logger.stderr(logNpmMissingForWebMessagingServiceWorkerBundle);
+  }
 
   await serviceWorkerFile.writeAsString(
     webMessagingServiceWorkerContent(
@@ -99,24 +150,79 @@ Future<String?> writeWebMessagingServiceWorker({
   return serviceWorkerFile.path;
 }
 
+/// Rebuilds a bundled service worker against the Firebase JS SDK version the
+/// app now resolves, from the inputs recorded in the worker itself.
+///
+/// Does nothing unless `web/$webMessagingServiceWorkerFileName` is a worker
+/// FlutterFire CLI bundled.
+Future<String?> rebuildBundledWebMessagingServiceWorker({
+  required String flutterAppPath,
+  required Logger logger,
+  NpmProcessRunner runProcess = Process.run,
+}) async {
+  final serviceWorkerFile = File(
+    path.join(flutterAppPath, 'web', webMessagingServiceWorkerFileName),
+  );
+  if (!serviceWorkerFile.existsSync()) return null;
+
+  final content = await serviceWorkerFile.readAsString();
+  final inputs = WebMessagingServiceWorkerBundleInputs.parse(content);
+  if (!content.startsWith(_generatedFileHeader) || inputs == null) return null;
+
+  if (!await isNpmAvailable(runProcess: runProcess)) {
+    logger.stderr(logNpmRequiredToRebuildWebMessagingServiceWorker);
+    return null;
+  }
+
+  final bundled = await bundleWebMessagingServiceWorker(
+    flutterAppPath: flutterAppPath,
+    outputPath: serviceWorkerFile.path,
+    header: _bundledFileHeader,
+    inputs: WebMessagingServiceWorkerBundleInputs(
+      firebaseConfig: inputs.firebaseConfig,
+      firebaseJsSdkVersion: await _firebaseJsSdkVersion(flutterAppPath),
+    ),
+    logger: logger,
+    runProcess: runProcess,
+  );
+  return bundled ? serviceWorkerFile.path : null;
+}
+
+const _bundledFileHeader = '''
+$_generatedFileHeader
+//
+// Service worker used by `firebase_messaging` to receive messages while your
+// web app is in the background, bundled with the modular Firebase JS SDK.
+// Do not edit it: put your own code in `$webMessagingServiceWorkerUserFileName`
+// next to your `pubspec.yaml`, as a default exported function that is given
+// the `Messaging` instance.
+//
+// Rebuilt by `flutterfire configure` and `flutterfire update`. Delete this
+// file to go back to the unbundled worker.
+//
+// See https://firebase.google.com/docs/cloud-messaging/flutter/receive#web''';
+
+Map<String, String> _firebaseConfig(FirebaseOptions webOptions) => {
+      'apiKey': webOptions.apiKey,
+      'appId': webOptions.appId,
+      'messagingSenderId': webOptions.messagingSenderId,
+      'projectId': webOptions.projectId,
+      if (webOptions.authDomain != null) 'authDomain': webOptions.authDomain!,
+      if (webOptions.databaseURL != null)
+        'databaseURL': webOptions.databaseURL!,
+      if (webOptions.storageBucket != null)
+        'storageBucket': webOptions.storageBucket!,
+      if (webOptions.measurementId != null)
+        'measurementId': webOptions.measurementId!,
+    };
+
 @visibleForTesting
 String webMessagingServiceWorkerContent(
   FirebaseOptions webOptions,
   String firebaseJsSdkVersion, {
   String userSection = '',
 }) {
-  final firebaseConfig = <String, String>{
-    'apiKey': webOptions.apiKey,
-    'appId': webOptions.appId,
-    'messagingSenderId': webOptions.messagingSenderId,
-    'projectId': webOptions.projectId,
-    if (webOptions.authDomain != null) 'authDomain': webOptions.authDomain!,
-    if (webOptions.databaseURL != null) 'databaseURL': webOptions.databaseURL!,
-    if (webOptions.storageBucket != null)
-      'storageBucket': webOptions.storageBucket!,
-    if (webOptions.measurementId != null)
-      'measurementId': webOptions.measurementId!,
-  };
+  final firebaseConfig = _firebaseConfig(webOptions);
 
   final cdn = 'https://www.gstatic.com/firebasejs/$firebaseJsSdkVersion';
 
