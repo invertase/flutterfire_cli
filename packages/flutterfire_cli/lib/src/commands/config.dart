@@ -388,11 +388,8 @@ class ConfigCommand extends FlutterFireCommand {
     return argResults!['out'] as String;
   }
 
-  bool get overwriteFirebaseOptions {
-    if (argResults!['overwrite-firebase-options'] == null) {
-      return false;
-    }
-    return argResults!['overwrite-firebase-options'] as bool;
+  bool? get overwriteFirebaseOptions {
+    return argResults!['overwrite-firebase-options'] as bool?;
   }
 
   // Still needed for local CI testing
@@ -665,7 +662,7 @@ class ConfigCommand extends FlutterFireCommand {
       final firebaseConfigurationFileInputs = dartConfigurationFileValidation(
         configurationFilePath: outputFilePath,
         flutterAppPath: flutterApp!.package.path,
-        overwrite: yes || overwriteFirebaseOptions == true,
+        overwrite: yes ? true : overwriteFirebaseOptions,
       );
 
       // 3. Get values for all selected platforms
