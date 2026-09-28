@@ -90,7 +90,7 @@ String logWebMessagingServiceWorkerGenerated(String serviceWorkerPath) =>
     'generated successfully.';
 
 /// Logs when `firebase-messaging-sw.js` in `web/` is hand written, or was
-/// generated but has since been edited above the marker.
+/// generated but its header or marker has since been removed.
 String logSkippingExistingWebMessagingServiceWorker(String serviceWorkerPath) =>
     'Skipping the Firebase Cloud Messaging service worker: '
     '${serviceWorkerPath.cyan} is yours, not one FlutterFire CLI can refresh. '

@@ -72,8 +72,8 @@ Future<String?> writeWebMessagingServiceWorker({
     final existingContent = await serviceWorkerFile.readAsString();
     final markerIndex = existingContent.indexOf(_userSectionMarker);
 
-    // Not ours, or ours but edited above the marker: either way the file is
-    // the user's now.
+    // Not ours, or ours with the header or marker removed: either way the
+    // file is the user's now. Anything else above the marker is regenerated.
     if (!existingContent.startsWith(_generatedFileHeader) || markerIndex < 0) {
       logger.stdout(
         logSkippingExistingWebMessagingServiceWorker(serviceWorkerFile.path),

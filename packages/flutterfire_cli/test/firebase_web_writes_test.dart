@@ -179,7 +179,7 @@ messaging.onBackgroundMessage((message) => {
       expect(rewritten, isNot(contains('1.0.0')));
     });
 
-    test('leaves a generated file edited above the marker alone', () async {
+    test('leaves a generated file without the marker alone', () async {
       final flutterApp = await _createFlutterApp(
         appDirectory,
         dependsOnMessaging: true,
@@ -204,6 +204,40 @@ messaging.onBackgroundMessage((message) => {
         isNull,
       );
       expect(serviceWorker.readAsStringSync(), edited);
+    });
+
+    test('regenerates edits above the marker', () async {
+      final flutterApp = await _createFlutterApp(
+        appDirectory,
+        dependsOnMessaging: true,
+      );
+      const handler = '\nconsole.log("mine");\n';
+      final generated = webMessagingServiceWorkerContent(
+        _webOptions,
+        '1.0.0',
+        userSection: handler,
+      );
+      final markerIndex = generated.indexOf('// Your own');
+      final serviceWorker = File(
+        path.join(
+          appDirectory.path,
+          'web',
+          webMessagingServiceWorkerFileName,
+        ),
+      )..writeAsStringSync(
+          '${generated.substring(0, markerIndex)}// edited above\n'
+          '${generated.substring(markerIndex)}',
+        );
+
+      await writeWebMessagingServiceWorker(
+        flutterApp: flutterApp,
+        webOptions: _webOptions,
+        logger: Logger.standard(),
+      );
+
+      final rewritten = serviceWorker.readAsStringSync();
+      expect(rewritten, isNot(contains('// edited above')));
+      expect(rewritten, endsWith(handler));
     });
 
     test('leaves a hand written service worker alone', () async {

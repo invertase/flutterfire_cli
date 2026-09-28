@@ -134,7 +134,7 @@ The generated file ends with a marker:
 // Your own code goes below this line. FlutterFire CLI does not touch it.
 ```
 
-Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again refreshes the Firebase configuration above the marker and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one you have edited above the marker, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
+Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again regenerates everything above the marker, so do not edit that part, and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one whose header or marker you removed, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
 
 Note that `flutterfire reconfigure` does not refresh the service worker; run `flutterfire configure` when you change the Firebase project or web app.
 
