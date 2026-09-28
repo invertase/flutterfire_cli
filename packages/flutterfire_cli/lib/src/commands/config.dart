@@ -32,6 +32,7 @@ import '../firebase/firebase_apple_writes.dart';
 import '../firebase/firebase_dart_configuration_write.dart';
 import '../firebase/firebase_platform_options.dart';
 import '../firebase/firebase_project.dart';
+import '../firebase/firebase_web_writes.dart';
 import '../flutter_app.dart';
 import './reconfigure.dart';
 import 'base.dart';
@@ -208,6 +209,15 @@ class ConfigCommand extends FlutterFireCommand {
           "Rewrite the service file if you're running 'flutterfire configure' again due to updating project",
     );
 
+    argParser.addFlag(
+      kWebMessagingServiceWorkerFlag,
+      defaultsTo: true,
+      help:
+          'Whether to generate the `web/$webMessagingServiceWorkerFileName` service worker '
+          'required by `firebase_messaging` to receive background messages on the web. '
+          'Only generated when your app depends on `firebase_messaging` and web is configured.',
+    );
+
     argParser.addOption(
       kTestAccessTokenFlag,
       valueHelp: 'testAccessToken',
@@ -358,6 +368,10 @@ class ConfigCommand extends FlutterFireCommand {
     }
 
     return trimmed;
+  }
+
+  bool get generateWebMessagingServiceWorker {
+    return argResults![kWebMessagingServiceWorkerFlag] as bool;
   }
 
   String? get token {
@@ -727,6 +741,28 @@ class ConfigCommand extends FlutterFireCommand {
           firebaseJsonWrites.add(firebaseJsonWrite);
         }
       }
+      // Gated on the Dart configuration file being written: pointing the
+      // service worker at a project the app itself is not configured for would
+      // leave the two disagreeing.
+      if (fetchedFirebaseOptions.webOptions != null &&
+          firebaseConfigurationFileInputs.writeConfigurationFile &&
+          generateWebMessagingServiceWorker &&
+          flutterApp!.dependsOnPackage('firebase_messaging')) {
+        final serviceWorkerPath = await writeWebMessagingServiceWorker(
+          flutterApp: flutterApp!,
+          webOptions: fetchedFirebaseOptions.webOptions!,
+          logger: logger,
+        );
+
+        if (serviceWorkerPath != null) {
+          logger.stdout(
+            logWebMessagingServiceWorkerGenerated(
+              path.relative(serviceWorkerPath, from: flutterApp!.package.path),
+            ),
+          );
+        }
+      }
+
       if (firebaseConfigurationFileInputs.writeConfigurationFile) {
         final firebaseJsonWrite = FirebaseDartConfigurationWrite(
           configurationFilePath:

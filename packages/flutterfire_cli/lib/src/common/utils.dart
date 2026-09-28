@@ -92,6 +92,7 @@ const String kIosOutFlag = 'ios-out';
 const String kMacosOutFlag = 'macos-out';
 const String kAndroidOutFlag = 'android-out';
 const String kOverwriteFirebaseOptionsFlag = 'overwrite-firebase-options';
+const String kWebMessagingServiceWorkerFlag = 'web-messaging-sw';
 const String kTestAccessTokenFlag = 'test-access-token';
 
 enum ProjectConfiguration {
