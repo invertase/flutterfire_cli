@@ -352,6 +352,24 @@ export default function (messaging) {
         webOptions: _webOptions,
         logger: Logger.standard(),
         bundle: true,
+        // Use a private npm cache: the shared one can hold root-owned files
+        // (it does on the GitHub macOS runners), which fails `npm install`
+        // with EACCES.
+        runProcess: (
+          executable,
+          arguments, {
+          workingDirectory,
+          runInShell = false,
+        }) =>
+            Process.run(
+          executable,
+          arguments,
+          workingDirectory: workingDirectory,
+          runInShell: runInShell,
+          environment: {
+            'npm_config_cache': path.join(appDirectory.path, '.npm-cache'),
+          },
+        ),
       );
 
       expect(written, serviceWorker.path);
