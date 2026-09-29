@@ -20,7 +20,6 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 
 import 'common/global.dart';
 import 'common/strings.dart';
@@ -510,43 +509,6 @@ Future<FirebaseApp> createAppleApp({
     ...Map<String, dynamic>.from(result),
     'platform': kIos,
   });
-}
-
-Future<String> getAccessToken() async {
-  // Use refresh token to get access token, cannot simply use access token found in "firebase-tools.json"
-  final homeDir = Platform.isWindows
-      ? Platform.environment['UserProfile']!
-      : Platform.environment['HOME']!;
-  // Path to 'firebase-tools.json'
-  final configPath =
-      path.join(homeDir, '.config', 'configstore', 'firebase-tools.json');
-  final configFile = File(configPath);
-  if (!configFile.existsSync()) {
-    throw Exception(
-      'Failed to find "firebase-tools.json" file, it should be located at "$configPath',
-    );
-  }
-  final map = await configFile.readAsString();
-  final configJson = jsonDecode(map) as Map<String, dynamic>;
-  final tokens = configJson['tokens'] as Map<String, dynamic>;
-  final refreshToken = tokens['refresh_token'] as String;
-
-  final response = await http.post(
-    Uri.parse('https://oauth2.googleapis.com/token'),
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    // Values for obtaining the access token are taken from the Firebase CLI source code: https://github.com/firebase/firebase-tools/blob/b14b5f38fe23da6543778a588811b0e2391427c0/src/api.ts#L18
-    body:
-        'grant_type=refresh_token&client_id=563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com&client_secret=j9iVZfS8kkCEFUPaAeJV0sAi&refresh_token=$refreshToken',
-  );
-
-  if (response.statusCode == 200) {
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    return json['access_token'] as String;
-  } else {
-    throw Exception(
-      'Failed to obtain an access token for making Firebase Management REST API requests. Status code: ${response.statusCode}. Response body: ${response.body}',
-    );
-  }
 }
 
 // Return string value of "GoogleService-Info.plist" or "google-services.json" file for relevant platform

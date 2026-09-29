@@ -107,9 +107,6 @@ class Reconfigure extends FlutterFireCommand {
     Map<String, dynamic> configuration,
     String platform,
   ) async {
-    // We pass access token for CI as the token won't be present in the "firebase-tools.json" file unless you login
-    accessToken ??= await getAccessToken();
-
     final serviceFilePath = configuration[kFileOutput] as String;
     // ignore: cast_nullable_to_non_nullable
     final projectId = configuration[kProjectId] as String;
@@ -117,8 +114,18 @@ class Reconfigure extends FlutterFireCommand {
     final appId = configuration[kAppId] as String;
 
     if (platform == kAndroid || platform == kIos || platform == kMacos) {
-      final serviceFileContent =
-          await getServiceFileContent(projectId, appId, accessToken!, platform);
+      // Go through the Firebase CLI so we use however it is authenticated
+      // (`firebase login`, `FIREBASE_TOKEN`, application default credentials).
+      // An access token is only passed explicitly for CI.
+      final serviceFileContent = accessToken != null
+          ? await getServiceFileContent(
+              projectId,
+              appId,
+              accessToken!,
+              platform,
+            )
+          : (await getAppSdkConfig(appId: appId, platform: platform))
+              .fileContents;
 
       final serviceFilePathAbsolute =
           File(path.join(flutterApp!.package.path, serviceFilePath));
