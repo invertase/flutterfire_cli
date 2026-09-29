@@ -97,6 +97,39 @@ String logSkippingExistingWebMessagingServiceWorker(String serviceWorkerPath) =>
     'Update the Firebase configuration in it yourself, or delete it and run '
     'this command again.';
 
+/// Logs when a compat service worker has code below its marker, which the
+/// bundled worker has no room for.
+String logWebMessagingServiceWorkerUserCodeBlocksBundle(
+  String serviceWorkerPath,
+) =>
+    'Not bundling the Firebase Cloud Messaging service worker: '
+    '${serviceWorkerPath.cyan} has your own code in it, written for the compat '
+    'SDK. Move it to "firebase-messaging-sw.user.js" next to your '
+    'pubspec.yaml, as a default exported function given the Messaging '
+    'instance, then delete the worker and run this command again.';
+
+/// Logs when bundling is asked for without npm, and the compat worker is
+/// written instead.
+const logNpmMissingForWebMessagingServiceWorkerBundle =
+    'npm was not found, so the Firebase Cloud Messaging service worker cannot '
+    'be bundled. Writing the unbundled worker, which loads the compat SDK, '
+    'instead. Install Node.js and run this command again to bundle it.';
+
+/// Logs when a bundled worker needs rebuilding and npm is missing.
+const logNpmRequiredToRebuildWebMessagingServiceWorker =
+    'npm was not found, so the bundled Firebase Cloud Messaging service worker '
+    'was not rebuilt and still has the old Firebase configuration and SDK. '
+    'Install Node.js and run this command again, or delete the worker to go '
+    'back to the unbundled one.';
+
+/// Logs when npm or esbuild fails while bundling the service worker.
+String logWebMessagingServiceWorkerBundleFailed(
+  String command,
+  String output,
+) =>
+    'Could not bundle the Firebase Cloud Messaging service worker: "$command" '
+    'failed.${output.isEmpty ? '' : '\n$output'}';
+
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
     'Firebase configuration file ${outputFilePath.cyan} generated '
