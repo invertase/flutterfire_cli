@@ -26,7 +26,7 @@ import 'package:flutterfire_cli/version.g.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 Future<void> main(List<String> arguments) async {
-  if (arguments.contains('--version') || arguments.contains('-v')) {
+  if (isCliVersionRequest(arguments)) {
     print(cliVersion);
     // No version checks on CIs.
     if (utils.isCI) return;
@@ -72,5 +72,19 @@ Future<void> main(List<String> arguments) async {
   } catch (err) {
     exitCode = 1;
     rethrow;
+  }
+}
+
+/// Whether the arguments request the FlutterFire CLI version.
+///
+/// Read the global flag separately from subcommand options, such as the BoM
+/// version accepted by `install`.
+bool isCliVersionRequest(List<String> arguments) {
+  try {
+    return FlutterFireCommandRunner(null).argParser.parse(arguments)['version']
+        as bool;
+  } on FormatException {
+    // Let the command runner report invalid arguments through its usual path.
+    return false;
   }
 }
