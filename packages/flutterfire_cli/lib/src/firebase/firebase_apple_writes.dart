@@ -5,6 +5,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../firebase/firebase_options.dart';
 import '../flutter_app.dart';
@@ -23,7 +24,7 @@ Future<FirebaseJsonWrites> appleWrites({
   required ProjectConfiguration projectConfiguration,
   String? target,
   String? buildConfiguration,
-}) {
+}) async {
   switch (projectConfiguration) {
     case ProjectConfiguration.buildConfiguration:
       return FirebaseAppleBuildConfiguration(
@@ -45,7 +46,7 @@ Future<FirebaseJsonWrites> appleWrites({
         platform: platform,
         projectConfiguration: projectConfiguration,
         target: ProjectConfiguration.defaultConfig == projectConfiguration
-            ? 'Runner'
+            ? target ?? await defaultAppleTarget(platform)
             : target!,
       ).apply();
   }
@@ -69,7 +70,8 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
           projectConfiguration: projectConfiguration,
         );
 
-  // Default Flutter project has the target name "Runner"
+  // Default Flutter project has the target name "Runner", but the Xcode
+  // project and its target can be renamed.
   final String target;
 
   Future<void> _writeGoogleServiceFileToTargetProject() async {
@@ -88,9 +90,9 @@ class FirebaseAppleTargetConfiguration extends FirebaseAppleConfiguration {
   String _addServiceFileToTarget() {
     return '''
 require 'xcodeproj'
-googleFile='$serviceFilePath'
-xcodeFile='${getXcodeProjectPath(platform)}'
-targetName='$target'
+googleFile='${escapeRubySingleQuoted(serviceFilePath)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
+targetName='${escapeRubySingleQuoted(target)}'
 
 project = Xcodeproj::Project.open(xcodeFile)
 target = project.targets.find { |target| target.name == targetName }
@@ -161,7 +163,8 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
   final String buildConfiguration;
 
   Future<void> _writeBundleServiceFileScriptToProject() async {
-    final addBuildPhaseScript = _bundleServiceFileScript();
+    final addBuildPhaseScript =
+        _bundleServiceFileScript(await defaultAppleTarget(platform));
 
     // Add "bundle-service-file" script to Build Phases in Xcode project
     final resultBuildPhase = await Process.run('ruby', [
@@ -178,7 +181,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
     }
   }
 
-  String _bundleServiceFileScript() {
+  String _bundleServiceFileScript(String defaultTarget) {
     String? command;
     if (platform == kMacos) {
       // macOS is bundled in Contents/Resources directory
@@ -192,7 +195,7 @@ class FirebaseAppleBuildConfiguration extends FirebaseAppleConfiguration {
 
     return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
@@ -205,7 +208,7 @@ $command
 )
 
 for target in project.targets 
-  if (target.name == 'Runner')
+  if (target.name == '${escapeRubySingleQuoted(defaultTarget)}')
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name
         item.name == runScriptName
@@ -224,9 +227,105 @@ end
     ''';
   }
 
+  /// Takes "GoogleService-Info.plist" out of the default target's
+  /// "Copy Bundle Resources" build phase, unless a build configuration still
+  /// relies on it.
+  ///
+  /// A default configuration run puts the service file there. It then ends up
+  /// in the app bundle alongside the one the "bundle-service-file" build phase
+  /// writes for the configuration being built, and the two fight over the same
+  /// file name, so the app can initialize against the wrong Firebase project.
+  ///
+  /// A build configuration with no service file of its own has nothing to
+  /// replace it with, though, so removing it there would ship an app with no
+  /// service file at all. Those are reported and the entry is left in place.
+  /// See https://github.com/invertase/flutterfire_cli/issues/253
+  Future<void> _updateCopyBundleResources() async {
+    final projectBuildConfigurations = await findBuildConfigurationsAvailable(
+      platform,
+      getXcodeProjectPath(platform),
+    );
+    final configured = <String>{
+      buildConfiguration,
+      ...await configuredBuildConfigurations(flutterApp.package.path, platform),
+    };
+    final uncovered = projectBuildConfigurations
+        .where((configuration) => !configured.contains(configuration))
+        .toList()
+      ..sort();
+
+    if (uncovered.isNotEmpty) {
+      logger.stdout(
+        logKeptServiceFileInCopyBundleResources(platform, uncovered),
+      );
+      return;
+    }
+
+    await _removeServiceFileFromCopyBundleResources();
+  }
+
+  Future<void> _removeServiceFileFromCopyBundleResources() async {
+    final result = await Process.run('ruby', [
+      '-e',
+      _removeServiceFileFromCopyBundleResourcesScript(
+        await defaultAppleTarget(platform),
+      ),
+    ]);
+
+    if (result.exitCode != 0) {
+      throw Exception(result.stderr);
+    }
+
+    final removedFiles = (result.stdout as String)
+        .split('\n')
+        .map((file) => file.trim())
+        .where((file) => file.isNotEmpty)
+        .toList();
+
+    if (removedFiles.isNotEmpty) {
+      logger.stdout(
+        logRemovedServiceFileFromCopyBundleResources(platform, removedFiles),
+      );
+    }
+  }
+
+  String _removeServiceFileFromCopyBundleResourcesScript(String defaultTarget) {
+    return '''
+require 'xcodeproj'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
+serviceFileName='$appleServiceFileName'
+targetName='${escapeRubySingleQuoted(defaultTarget)}'
+project = Xcodeproj::Project.open(xcodeFile)
+
+target = project.targets.find { |target| target.name == targetName }
+
+if (target)
+  removed = Array.new
+
+  # Collect first, the build phase cannot be mutated while it is iterated.
+  serviceFiles = target.resources_build_phase.files.select do |file|
+    if file.file_ref && file.file_ref.path.is_a?(String)
+      File.basename(file.file_ref.path) == serviceFileName
+    end
+  end
+
+  serviceFiles.each do |file|
+    removed << file.file_ref.path
+    file.remove_from_project()
+  end
+
+  if (removed.length > 0)
+    project.save()
+    \$stdout.write removed.join("\\n")
+  end
+end
+    ''';
+  }
+
   Future<FirebaseJsonWrites> _buildConfigurationWrites() async {
     await _writeGoogleServiceFileToPath();
     await _writeBundleServiceFileScriptToProject();
+    await _updateCopyBundleResources();
     final debugSymbolScriptAdded = await addFlutterFireDebugSymbolsScript(
       flutterAppPath: flutterApp.package.path,
       logger: logger,
@@ -304,7 +403,10 @@ abstract class FirebaseAppleConfiguration {
 }
 
 Future<bool> addFlutterFireDebugSymbolsScript({
-  String target = 'Runner',
+  /// The default target is resolved when it is left null, which can mean
+  /// opening the Xcode project. It is only needed once we know the Crashlytics
+  /// script will be written, so callers with nothing to pass leave it out.
+  String? target,
   required String flutterAppPath,
   required Logger logger,
   required String platform,
@@ -353,7 +455,7 @@ Future<bool> addFlutterFireDebugSymbolsScript({
     final debugSymbolScript = await Process.run('ruby', [
       '-e',
       _debugSymbolsScript(
-        target,
+        target ?? await defaultAppleTarget(platform),
         projectConfiguration,
         platform,
         isDevDependency,
@@ -373,7 +475,8 @@ Future<bool> addFlutterFireDebugSymbolsScript({
 }
 
 String _debugSymbolsScript(
-  // Always "Runner" for "build configuration" setup
+  // The default target ("Runner", unless the Xcode project was renamed) for a
+  // "build configuration" setup
   String target,
   ProjectConfiguration projectConfiguration,
   String platform,
@@ -382,13 +485,13 @@ String _debugSymbolsScript(
   final projectType = switch (projectConfiguration) {
     ProjectConfiguration.buildConfiguration =>
       r'--build-configuration=${CONFIGURATION}',
-    ProjectConfiguration.target => '--target=$target',
+    ProjectConfiguration.target => '--target="$target"',
     ProjectConfiguration.defaultConfig => '--default-config=default',
   };
 
   return '''
 require 'xcodeproj'
-xcodeFile='${getXcodeProjectPath(platform)}'
+xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$debugSymbolScriptName'
 bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
@@ -451,7 +554,7 @@ def ensure_phase_is_after(target, phase, preceding_phase)
 end
 
 for target in project.targets
-  if (target.name == '$target')
+  if (target.name == '${escapeRubySingleQuoted(target)}')
     # Find existing debug symbols phase
     phase = target.shell_script_build_phases().find do |item|
       if defined? item && item.name

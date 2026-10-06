@@ -31,6 +31,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     bool macos = false,
     required String firebaseProjectId,
     String? firebaseAccount,
+    required String displayName,
     required String? token,
     required String? serviceAccount,
   }) async {
@@ -58,7 +59,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     );
     final firebaseApp = await firebase.findOrCreateFirebaseApp(
       packageNameOrBundleIdentifier: selectedAppleBundleId,
-      displayName: flutterApp.package.pubSpec.name,
+      displayName: displayName,
       platform: platformIdentifier,
       project: firebaseProjectId,
       account: firebaseAccount,

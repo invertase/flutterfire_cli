@@ -15,6 +15,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:ansi_styles/extension.dart';
 
 /// Link to the Flutter specific documentation on the Firebase website.
@@ -52,6 +54,48 @@ const androidServiceFileName = 'google-services.json';
 const logSkippingDebugSymbolScript =
     'Skipping upload "Crashlytic\'s debug symbols script" build phase. Note: this is not '
     'recommended if you use Crashlytics in your app.';
+
+/// Logs when the service file is taken out of the "Copy Bundle Resources"
+/// build phase as part of a build configuration setup.
+String logRemovedServiceFileFromCopyBundleResources(
+  String platform,
+  List<String> removedFiles,
+) =>
+    'Removed ${removedFiles.map((file) => file.cyan).join(', ')} from the '
+    '"Copy Bundle Resources" build phase of your $platform project. It would '
+    'otherwise end up in your app bundle alongside the '
+    '"$appleServiceFileName" that the "bundle-service-file" build phase writes '
+    'for the build configuration you are building, and your app could '
+    'initialize against the wrong Firebase project.';
+
+/// Logs when the service file is left in the "Copy Bundle Resources" build
+/// phase because some build configurations have nothing to replace it with.
+String logKeptServiceFileInCopyBundleResources(
+  String platform,
+  List<String> uncoveredBuildConfigurations,
+) =>
+    'Left "$appleServiceFileName" in the "Copy Bundle Resources" build phase '
+    'of your $platform project: '
+    '${uncoveredBuildConfigurations.map((configuration) => configuration.cyan).join(', ')} '
+    '${uncoveredBuildConfigurations.length == 1 ? 'has' : 'have'} no service '
+    'file of their own and would otherwise build with none at all. Configure '
+    '${uncoveredBuildConfigurations.length == 1 ? 'it' : 'them'} too and this '
+    'command will remove the entry, or remove it yourself in Xcode. Until '
+    'then, it can shadow the "$appleServiceFileName" bundled for the build '
+    'configuration you are building.';
+
+/// Logs when the Firebase Cloud Messaging service worker is written to `web/`.
+String logWebMessagingServiceWorkerGenerated(String serviceWorkerPath) =>
+    'Firebase Cloud Messaging service worker ${serviceWorkerPath.cyan} '
+    'generated successfully.';
+
+/// Logs when `firebase-messaging-sw.js` in `web/` is hand written, or was
+/// generated but its header or marker has since been removed.
+String logSkippingExistingWebMessagingServiceWorker(String serviceWorkerPath) =>
+    'Skipping the Firebase Cloud Messaging service worker: '
+    '${serviceWorkerPath.cyan} is yours, not one FlutterFire CLI can refresh. '
+    'Update the Firebase configuration in it yourself, or delete it and run '
+    'this command again.';
 
 /// Logs when the configure command is completed. Printed apps after are in a table format.
 String logFirebaseConfigGenerated(String outputFilePath) =>
@@ -137,6 +181,23 @@ class FirebaseJsonException implements FlutterFireException {
   @override
   String toString() {
     return 'FirebaseJsonException: Please run "flutterfire configure" to update the `firebase.json` at the root of your Flutter project with correct values. ${underlyingException ?? ''}';
+  }
+}
+
+/// An exception that is thrown when a Flutter CLI command run by the
+/// FlutterFire CLI fails.
+class FlutterCommandException implements FlutterFireException {
+  FlutterCommandException(this.command, this.result) : super();
+
+  final String command;
+  final ProcessResult result;
+
+  @override
+  String toString() {
+    final output = '${result.stdout}${result.stderr}'.trim();
+
+    return 'FlutterCommandException: "$command" failed with exit code '
+        '${result.exitCode}.${output.isEmpty ? '' : '\n$output'}';
   }
 }
 

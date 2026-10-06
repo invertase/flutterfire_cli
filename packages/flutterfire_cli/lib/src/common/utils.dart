@@ -22,7 +22,15 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:ci/ci.dart' as ci;
 import 'package:interact/interact.dart' as interact;
 import 'package:path/path.dart'
-    show relative, normalize, windows, joinAll, dirname, join;
+    show
+        basename,
+        relative,
+        normalize,
+        windows,
+        joinAll,
+        dirname,
+        join,
+        withoutExtension;
 
 import '../flutter_app.dart';
 import 'platform.dart';
@@ -42,6 +50,9 @@ const String kIos = 'ios';
 
 /// Key for APK (Android) platform.
 const String kAndroid = 'android';
+
+/// The name Flutter gives the Xcode project and its application target.
+const String kDefaultXcodeProjectName = 'Runner';
 
 /// Key for Web platform.
 const String kWeb = 'web';
@@ -68,6 +79,7 @@ const String kMacosBundleIdFlag = 'macos-bundle-id';
 const String kAndroidAppIdFlag = 'android-app-id';
 const String kAndroidPackageNameFlag = 'android-package-name';
 const String kWebAppIdFlag = 'web-app-id';
+const String kDisplayNameFlag = 'display-name';
 const String kWindowsAppIdFlag = 'windows-app-id';
 const String kTokenFlag = 'token';
 const String kServiceAccountFlag = 'service-account';
@@ -80,6 +92,7 @@ const String kIosOutFlag = 'ios-out';
 const String kMacosOutFlag = 'macos-out';
 const String kAndroidOutFlag = 'android-out';
 const String kOverwriteFirebaseOptionsFlag = 'overwrite-firebase-options';
+const String kWebMessagingServiceWorkerFlag = 'web-messaging-sw';
 const String kTestAccessTokenFlag = 'test-access-token';
 
 enum ProjectConfiguration {
@@ -225,18 +238,85 @@ String androidAppBuildGradleKtsPathForAppDirectory(Directory directory) {
   return joinAll([directory.path, 'android', 'app', 'build.gradle.kts']);
 }
 
+/// The name of the Xcode project for [platform], without the ".xcodeproj"
+/// extension.
+///
+/// Flutter names it "Runner", but the Xcode project can be renamed since
+/// Flutter 3.13, so it is read from disk rather than assumed.
+/// See https://github.com/invertase/flutterfire_cli/issues/217
+String xcodeProjectNameInDirectory(Directory directory, String platform) {
+  final platformDirectory = Directory(joinAll([directory.path, platform]));
+
+  if (platformDirectory.existsSync()) {
+    final xcodeProjects = platformDirectory
+        .listSync()
+        .whereType<Directory>()
+        .map((entity) => basename(entity.path))
+        .where((name) => name.endsWith('.xcodeproj'))
+        .toList()
+      ..sort();
+
+    // A renamed project keeps the Flutter layout otherwise, so if "Runner"
+    // is still there it is the one to use.
+    if (!xcodeProjects.contains('$kDefaultXcodeProjectName.xcodeproj') &&
+        xcodeProjects.length == 1) {
+      return withoutExtension(xcodeProjects.first);
+    }
+
+    if (xcodeProjects.length > 1 &&
+        !xcodeProjects.contains('$kDefaultXcodeProjectName.xcodeproj')) {
+      throw XcodeProjectException(
+        platform,
+        'Found more than one Xcode project in your "$platform" directory '
+        '(${xcodeProjects.join(', ')}) and none of them is named '
+        '"$kDefaultXcodeProjectName.xcodeproj", so the FlutterFire CLI cannot '
+        'tell which one belongs to your Flutter app.',
+      );
+    }
+  }
+
+  return kDefaultXcodeProjectName;
+}
+
 File xcodeProjectFileInDirectory(Directory directory, String platform) {
   return File(
     joinAll(
-      [directory.path, platform, 'Runner.xcodeproj', 'project.pbxproj'],
+      [
+        directory.path,
+        platform,
+        '${xcodeProjectNameInDirectory(directory, platform)}.xcodeproj',
+        'project.pbxproj',
+      ],
     ),
   );
 }
 
 File xcodeAppInfoConfigFileInDirectory(Directory directory, String platform) {
+  final appInfoConfigFile = File(
+    joinAll(
+      [
+        directory.path,
+        platform,
+        xcodeProjectNameInDirectory(directory, platform),
+        'Configs',
+        'AppInfo.xcconfig',
+      ],
+    ),
+  );
+
+  if (appInfoConfigFile.existsSync()) return appInfoConfigFile;
+
+  // The Xcode project can be renamed without renaming the source directory it
+  // sits next to, in which case "AppInfo.xcconfig" is still under "Runner".
   return File(
     joinAll(
-      [directory.path, platform, 'Runner', 'Configs', 'AppInfo.xcconfig'],
+      [
+        directory.path,
+        platform,
+        kDefaultXcodeProjectName,
+        'Configs',
+        'AppInfo.xcconfig',
+      ],
     ),
   );
 }
@@ -429,13 +509,21 @@ bool doesNestedMapExist(Map<String, dynamic> map, List<String> keys) {
   });
 }
 
+/// Escapes [value] for interpolation into a single quoted Ruby string.
+///
+/// Target names and project paths are user chosen, and an apostrophe in either
+/// would otherwise produce a Ruby syntax error.
+String escapeRubySingleQuoted(String value) {
+  return value.replaceAll(r'\', r'\\').replaceAll("'", r"\'");
+}
+
 Future<List<String>> findTargetsAvailable(
   String platform,
   String xcodeProjectPath,
 ) async {
   final targetScript = '''
       require 'xcodeproj'
-      xcodeProject='$xcodeProjectPath'
+      xcodeProject='${escapeRubySingleQuoted(xcodeProjectPath)}'
       project = Xcodeproj::Project.open(xcodeProject)
 
       response = Array.new
@@ -471,7 +559,7 @@ Future<List<String>> findBuildConfigurationsAvailable(
 ) async {
   final buildConfigurationScript = '''
       require 'xcodeproj'
-      xcodeProject='$xcodeProjectPath'
+      xcodeProject='${escapeRubySingleQuoted(xcodeProjectPath)}'
 
       project = Xcodeproj::Project.open(xcodeProject)
 
@@ -503,11 +591,140 @@ Future<List<String>> findBuildConfigurationsAvailable(
 }
 
 String getXcodeProjectPath(String platform) {
+  final currentDirectory = Directory.current;
+
   return join(
-    Directory.current.path,
+    currentDirectory.path,
     platform,
-    'Runner.xcodeproj',
+    '${xcodeProjectNameInDirectory(currentDirectory, platform)}.xcodeproj',
   );
+}
+
+/// The build configurations of [platform] that "firebase.json" already gives a
+/// service file of their own.
+///
+/// An unreadable or missing "firebase.json" tells us nothing about what is
+/// configured, so it yields an empty set rather than an error.
+Future<Set<String>> configuredBuildConfigurations(
+  String flutterAppPath,
+  String platform,
+) async {
+  final firebaseJson = File(join(flutterAppPath, 'firebase.json'));
+
+  if (!firebaseJson.existsSync()) return {};
+
+  try {
+    final decoded = json.decode(await firebaseJson.readAsString()) as Map;
+    final platforms = (decoded[kFlutter] as Map?)?[kPlatforms] as Map?;
+    final buildConfigurations =
+        (platforms?[platform] as Map?)?[kBuildConfiguration] as Map?;
+
+    if (buildConfigurations == null) return {};
+
+    return buildConfigurations.keys.cast<String>().toSet();
+  } catch (_) {
+    return {};
+  }
+}
+
+/// The target the FlutterFire CLI configures when the user does not pick one.
+///
+/// Flutter names both the Xcode project and its application target "Runner",
+/// but either can be renamed, so a renamed project is inspected rather than
+/// assumed. See https://github.com/invertase/flutterfire_cli/issues/217
+Future<String> defaultAppleTarget(String platform) async {
+  final cachedTarget = _defaultAppleTargets[platform];
+  if (cachedTarget != null) return cachedTarget;
+
+  final projectName = xcodeProjectNameInDirectory(Directory.current, platform);
+
+  // Untouched Flutter project, no need to open it to know the target.
+  if (projectName == kDefaultXcodeProjectName) {
+    return _defaultAppleTargets[platform] = kDefaultXcodeProjectName;
+  }
+
+  final targets = await findTargetsAvailable(
+    platform,
+    getXcodeProjectPath(platform),
+  );
+
+  // Renaming the project in Xcode renames the application target with it, so
+  // the project name is the best candidate. A project renamed without its
+  // target still has "Runner".
+  if (targets.contains(projectName)) {
+    return _defaultAppleTargets[platform] = projectName;
+  }
+  if (targets.contains(kDefaultXcodeProjectName)) {
+    return _defaultAppleTargets[platform] = kDefaultXcodeProjectName;
+  }
+
+  // Neither name is there, and guessing would silently attach the Firebase
+  // build phases to whatever comes first - an app extension, for instance,
+  // producing an app that ships without its service file.
+  if (isCI) {
+    throw XcodeProjectException(
+      platform,
+      'Could not work out which target of "$projectName.xcodeproj" is your '
+      '$platform app: no target is named "$projectName" or '
+      '"$kDefaultXcodeProjectName". The targets are ${targets.join(', ')}. '
+      'Please re-run the command with the '
+      '"--${platform == kMacos ? kMacosTargetFlag : kIosTargetFlag}" flag.',
+    );
+  }
+
+  final response = promptSelect(
+    'Could not work out which target of "$projectName.xcodeproj" is your '
+    '$platform app. Please choose one of the following targets',
+    targets,
+  );
+
+  return _defaultAppleTargets[platform] = targets[response];
+}
+
+final Map<String, String> _defaultAppleTargets = {};
+
+/// The directory the default "GoogleService-Info.plist" is written to, relative
+/// to the platform directory.
+///
+/// Flutter names it after the target ("ios/Runner"), but a renamed project does
+/// not always have its source directory renamed with it, so an existing
+/// "Runner" directory wins over a target directory that does not exist yet.
+String defaultAppleSourceDirectory(String platform, String target) {
+  bool directoryExists(String name) =>
+      Directory(join(Directory.current.path, platform, name)).existsSync();
+
+  if (directoryExists(target)) return target;
+
+  // The project and its source directory can be renamed without the target, or
+  // the other way around, so neither name is guaranteed to be on disk.
+  if (directoryExists(kDefaultXcodeProjectName)) {
+    return kDefaultXcodeProjectName;
+  }
+
+  final projectName = xcodeProjectNameInDirectory(Directory.current, platform);
+  if (directoryExists(projectName)) return projectName;
+
+  return target;
+}
+
+/// Returns why [displayName] cannot be used as the display name of a Firebase
+/// app, or null when it can.
+///
+/// The name is passed to the Firebase CLI as a process argument, and
+/// `runFirebaseCommand()` runs it through a shell. Dart does not escape shell
+/// metacharacters, and `cmd.exe` would split the command on them.
+String? displayNameError(String displayName) {
+  if (displayName.isEmpty) {
+    return '--$kDisplayNameFlag must not be empty.';
+  }
+
+  if (RegExp(r'''[&|<>^"`$\\]''').hasMatch(displayName)) {
+    return '--$kDisplayNameFlag must not contain any of '
+        r'''& | < > ^ " ` \ or $. '''
+        'Rename the app in the Firebase console if you need one of them.';
+  }
+
+  return null;
 }
 
 void validateAppBundleId(

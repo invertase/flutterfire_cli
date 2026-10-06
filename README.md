@@ -114,6 +114,30 @@ Similarly, you may also specify the bundle ID for your Apple applications and th
 flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-package-name=<ANDROID_PACKAGE_NAME> --macos-bundle-id=<MACOS_BUNDLE_ID> --ios-bundle-id=<IOS_BUNDLE_ID>
 ```
 
+If you want to specify a display name (i.e. how it appears in the Firebase console), use the `--display-name` (`-n`) flag. It will still have the platform as a suffix (e.g. `--display-name=test` will appear as "test (ios)", "test (web)", etc):
+
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
+```
+
+Without it, apps are named after the `name` in your `pubspec.yaml`, so white label apps and flavors built from one code base all end up with the same name in the console.
+
+This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead - meaning a custom name will not reuse an existing web app. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
+
+### Firebase Cloud Messaging on the web
+
+`firebase_messaging` needs a service worker at `web/firebase-messaging-sw.js` to receive messages while your web app is in the background, and a service worker cannot read `firebase_options.dart`. When your app depends on `firebase_messaging` and you configure the web platform, FlutterFire CLI writes that file for you with the Firebase configuration of your web app.
+
+The generated file ends with a marker:
+
+```js
+// Your own code goes below this line. FlutterFire CLI does not touch it.
+```
+
+Anything below it is yours - the `onBackgroundMessage` handler [the Firebase documentation asks you to add](https://firebase.google.com/docs/cloud-messaging/flutter/receive#web), for instance. Running `flutterfire configure` again regenerates everything above the marker, so do not edit that part, and keeps everything below it. A `web/firebase-messaging-sw.js` you wrote yourself, or one whose header or marker you removed, is left alone entirely. To opt out, pass `--no-web-messaging-sw`.
+
+Note that `flutterfire reconfigure` does not refresh the service worker; run `flutterfire configure` when you change the Firebase project or web app.
+
 If you wish to be specific about which platforms you want to configure, use the `--platforms` flag:
 
 ```bash
@@ -177,6 +201,12 @@ for macOS:
 ```bash
 flutterfire configure --platforms=macos --macos-bundle-id=your.bundle.id --macos-build-config=Release --macos-out=macos/release/GoogleService-Info.plist
 ```
+
+If you set your project up with the default configuration first, `ios/Runner/GoogleService-Info.plist` was added to the "Copy Bundle Resources" build phase of your `Runner` target. It then ends up in your app bundle alongside the service file that the `bundle-service-file` build phase writes for the build configuration you are building, and the two fight over the same file name, so your app can initialize against the wrong Firebase project.
+
+Configuring with `--ios-build-config` or `--macos-build-config` now takes the service file out of "Copy Bundle Resources" for you, and tells you it did. The file itself, and its reference in the Xcode project, are left in place.
+
+If some build configurations still have no service file of their own, the entry is left alone and the uncovered configurations are listed instead — removing it would leave them building with no service file at all. Configure them too and the next run removes it.
 
 ##### target configuration
 

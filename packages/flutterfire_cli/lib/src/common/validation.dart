@@ -22,13 +22,15 @@ Future<AppleInputs> appleValidation({
 
   if (target == null && buildConfiguration == null && serviceFilePath == null) {
     // Default configuration
+    final defaultTarget = await defaultAppleTarget(platform);
+
     return AppleInputs(
       projectConfiguration: configurationResponse,
-      target: 'Runner',
+      target: defaultTarget,
       serviceFilePath: path.join(
         Directory.current.path,
         platform,
-        'Runner',
+        defaultAppleSourceDirectory(platform, defaultTarget),
         appleServiceFileName,
       ),
     );
