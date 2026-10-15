@@ -212,6 +212,9 @@ class FirebaseDartConfigurationWrite {
       '  static const FirebaseOptions $platform = FirebaseOptions(',
       ...options.asMap.entries
           .where((entry) => entry.value != null)
+          .where(
+            (entry) => platform != kAndroid || entry.key != 'androidClientId',
+          )
           .map((entry) => "    ${entry.key}: '${entry.value}',"),
       '  );', // FirebaseOptions
     ];

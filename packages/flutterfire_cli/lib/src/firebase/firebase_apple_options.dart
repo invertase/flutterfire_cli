@@ -22,6 +22,7 @@ import '../common/utils.dart';
 import '../firebase.dart' as firebase;
 import '../firebase.dart';
 import '../flutter_app.dart';
+import 'firebase_android_options.dart';
 import 'firebase_options.dart';
 
 extension FirebaseAppleOptions on FirebaseOptions {
@@ -34,6 +35,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
     required String displayName,
     required String? token,
     required String? serviceAccount,
+    String? androidSha1,
   }) async {
     final platformIdentifier = macos ? kMacos : kIos;
     var selectedAppleBundleId = appleBundleIdentifier ??
@@ -74,18 +76,35 @@ extension FirebaseAppleOptions on FirebaseOptions {
       serviceAccount: serviceAccount,
     );
 
+    String? resolvedAndroidClientId;
+    if (androidSha1 != null && androidSha1.isNotEmpty) {
+      final Map<Object?, Object?>? androidOAuthClient =
+          await FirebaseAndroidOptions.getAndroidClientIdForProject(
+        projectId: firebaseProjectId,
+        account: firebaseAccount,
+        token: token,
+        serviceAccount: serviceAccount,
+        androidSha1: androidSha1,
+      );
+      if (androidOAuthClient != null) {
+        resolvedAndroidClientId = androidOAuthClient['client_id'] as String?;
+      }
+    }
+
     return convertConfigToOptions(
       appSdkConfig,
       firebaseApp.appId,
       firebaseProjectId,
+      androidClientId: resolvedAndroidClientId,
     );
   }
 
   static FirebaseOptions convertConfigToOptions(
     FirebaseAppSdkConfig appSdkConfig,
     String appId,
-    String firebaseProjectId,
-  ) {
+    String firebaseProjectId, {
+    String? androidClientId,
+  }) {
     final appSdkConfigMap = parsePlist(appSdkConfig.fileContents);
     return FirebaseOptions(
       optionsSourceContent: appSdkConfig.fileContents,
@@ -99,7 +118,7 @@ extension FirebaseAppleOptions on FirebaseOptions {
       databaseURL: pick(appSdkConfigMap, 'DATABASE_URL').asStringOrNull(),
       storageBucket: pick(appSdkConfigMap, 'STORAGE_BUCKET').asStringOrNull(),
       // iOS/macOS specific
-      androidClientId:
+      androidClientId: androidClientId ??
           pick(appSdkConfigMap, 'ANDROID_CLIENT_ID').asStringOrNull(),
       iosClientId: pick(appSdkConfigMap, 'CLIENT_ID').asStringOrNull(),
       iosBundleId: pick(appSdkConfigMap, 'BUNDLE_ID').asStringOrNull(),
