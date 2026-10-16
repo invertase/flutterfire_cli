@@ -97,8 +97,10 @@ the platforms you wish to configure (i.e. android, iOS, macOS, web & windows).
 If you don't want any prompts, you can use the following command:
 
 ```bash
-flutterfire configure --yes --project=<FIREBASE_PROJECT_ID>
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --platforms=android,ios,web
 ```
+
+`--platforms` is optional locally, where `--yes` accepts the detected platforms, but it is mandatory when running on CI.
 
 FlutterFire CLI will auto detect the bundle ID for apple platforms via the `project.pbxproj` file, if there is no existing app associated with the bundle ID in your Firebase console, it will create one, and subsequently write the relevant `GoogleService-Info.plist` file to your project in the default location `ios/Runner/GoogleService-Info.plist` or `macos/Runner/GoogleService-Info.plist`. A similar process occurs on android, FlutterFire CLI uses the application ID in your `app/build.gradle` file and will generate a service file at the default location `android/app/google-services.json`.
 
@@ -122,7 +124,7 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --display-name=test
 
 Without it, apps are named after the `name` in your `pubspec.yaml`, so white label apps and flavors built from one code base all end up with the same name in the console.
 
-This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead - meaning a custom name will not reuse an existing web app. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
+This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead. If no web app has a matching name, the first web app on the project is reused, so a custom name does not guarantee a new web app; Windows creates a new app instead. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
 
 ### Firebase Cloud Messaging on the web
 
@@ -214,12 +216,12 @@ A more advanced configuration for developers more experienced with Xcode develop
 
 for iOS:
 ```bash
-flutterfire configure --platforms=ios --ios-target=ReleaseRunner ios-out=ios/release/GoogleService-Info.plist
+flutterfire configure --platforms=ios --ios-target=ReleaseRunner --ios-out=ios/release/GoogleService-Info.plist
 ```
 
 for macOS:
 ```bash
-flutterfire configure --platforms=macos --macos-target=ReleaseRunner macos-out=macos/release/GoogleService-Info.plist
+flutterfire configure --platforms=macos --macos-target=ReleaseRunner --macos-out=macos/release/GoogleService-Info.plist
 ```
 
 #### web
@@ -264,7 +266,7 @@ A default Flutter app out of the box has three different build modes; debug, pro
 Imagine you want a debug Firebase app configured for iOS, macOS, android & web, you could run the following:
 
 ```bash
-flutterfire configure \ 
+flutterfire configure \
 --yes \
 --project=your-project-id \
 --platforms=ios,macos,android,web \
@@ -283,7 +285,7 @@ flutterfire configure \
 Let's create a release build type for your Flutter app, here's how it might look:
 
 ```bash
-flutterfire configure \ 
+flutterfire configure \
 --yes \
 --project=your-project-id \
 --platforms=ios,macos,android,web \
