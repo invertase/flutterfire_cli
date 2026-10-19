@@ -66,8 +66,7 @@ class UpdateCommand extends FlutterFireCommand {
   final String name = 'update';
 
   @override
-  final String description =
-      'Update the version of firebase plugins in your pubspec '
+  final String description = 'Update the version of firebase plugins in your pubspec '
       'to the latest version and clean your workspace to ensure that everything '
       'works properly.';
 
@@ -80,6 +79,8 @@ class UpdateCommand extends FlutterFireCommand {
     commandRequiresFlutterApp();
 
     await updateFlutterFirePackages(
+      cleanBaseCommand: flutterApp!.cleanBaseCommand,
+      pubBaseCommand: flutterApp!.pubBaseCommand,
       flutterAppPath: flutterApp!.package.path,
       logger: logger,
     );
@@ -98,6 +99,8 @@ typedef ProcessRunner = Future<ProcessResult> Function(
 /// Cleans the workspace and upgrades every FlutterFire plugin the app depends
 /// on to its latest major version.
 Future<void> updateFlutterFirePackages({
+  String? cleanBaseCommand = 'flutter',
+  String pubBaseCommand = 'flutter',
   required String flutterAppPath,
   required Logger logger,
   ProcessRunner runProcess = Process.run,
@@ -105,9 +108,9 @@ Future<void> updateFlutterFirePackages({
   /// `runInShell` is required on Windows: the Flutter CLI is `flutter.bat`
   /// there, and `Process.run` does not resolve it through `PATHEXT`.
   /// See https://github.com/dart-lang/sdk/issues/31291
-  Future<ProcessResult> runFlutter(List<String> arguments) {
+  Future<ProcessResult> runCommand(String command, List<String> arguments) {
     return runProcess(
-      'flutter',
+      command,
       arguments,
       workingDirectory: flutterAppPath,
       runInShell: true,
@@ -115,13 +118,15 @@ Future<void> updateFlutterFirePackages({
   }
 
   logger.stdout('Cleaning up current workspace ...');
-  // A failed clean (a locked "build" directory, for instance) is not worth
-  // giving up the update over, but it should not pass unnoticed either.
-  final cleanResult = await runFlutter(['clean']);
-  if (cleanResult.exitCode != 0) {
-    logger.stderr(
-      FlutterCommandException('flutter clean', cleanResult).toString(),
-    );
+  if (cleanBaseCommand case final command?) {
+    // A failed clean (a locked "build" directory, for instance) is not worth
+    // giving up the update over, but it should not pass unnoticed either.
+    final cleanResult = await runCommand(command, ['clean']);
+    if (cleanResult.exitCode != 0) {
+      logger.stderr(
+        FlutterCommandException('flutter clean', cleanResult).toString(),
+      );
+    }
   }
 
   final pubspecLock = File(path.join(flutterAppPath, 'pubspec.lock'));
@@ -141,11 +146,11 @@ Future<void> updateFlutterFirePackages({
   for (final package in flutterfirePackages) {
     // We run each package individually because chaining them
     // will fail at the first package not in the pubspec.
-    await runFlutter(['pub', 'upgrade', '--major-versions', package]);
+    await runCommand(pubBaseCommand, ['pub', 'upgrade', '--major-versions', package]);
   }
 
-  logger.stdout("Running 'flutter pub get'...");
-  final pubGetResult = await runFlutter(['pub', 'get']);
+  logger.stdout("Running '$pubBaseCommand pub get'...");
+  final pubGetResult = await runCommand(pubBaseCommand, ['pub', 'get']);
   if (pubGetResult.exitCode != 0) {
     throw FlutterCommandException('flutter pub get', pubGetResult);
   }
