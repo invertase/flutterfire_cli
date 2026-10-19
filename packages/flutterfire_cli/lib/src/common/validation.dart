@@ -139,22 +139,26 @@ AndroidInputs androidValidation({
 DartConfigurationFileInputs dartConfigurationFileValidation({
   required String configurationFilePath,
   required String flutterAppPath,
-  required bool overwrite,
+  required bool? overwrite,
 }) {
   final validatedConfigurationFilePath = getFirebaseConfigurationFile(
     configurationFilePath: configurationFilePath,
     flutterAppPath: flutterAppPath,
   );
-  if (isCI && !overwrite) {
+  if (isCI && overwrite == null) {
     throw ValidationException(
       kDart,
-      'Required to overwrite Dart Firebase options configuration file in CI. Use `--overwrite-firebase-options` or `--yes` flag.',
+      'Required to specify whether to overwrite Dart Firebase options configuration file in CI. Use `--overwrite-firebase-options`, `--no-overwrite-firebase-options` or `--yes` flag.',
     );
   }
-  final writeConfigurationFile = overwrite ||
-      promptWriteConfigurationFile(
+  final writeConfigurationFile = switch (overwrite) {
+    true => true,
+    // Never clobber an existing file, but still create one that is missing.
+    false => !File(validatedConfigurationFilePath).existsSync(),
+    null => promptWriteConfigurationFile(
         configurationFilePath: validatedConfigurationFilePath,
-      );
+      ),
+  };
 
   return DartConfigurationFileInputs(
     configurationFilePath: validatedConfigurationFilePath,
