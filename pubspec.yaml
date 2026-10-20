@@ -57,4 +57,22 @@ melos:
         scope:
           - flutterfire_cli
 
+    test:unit:
+      description: Run the offline tests only (no Firebase project, network or `flutterfire` executable needed).
+      run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart run test --reporter expanded --exclude-tags e2e"
+      select-package:
+        dir-exists:
+          - "test/"
+        scope:
+          - flutterfire_cli
+
+    test:e2e:
+      description: Run the end-to-end tests (needs firebase-tools signed in to the test project and an activated `flutterfire`).
+      run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart run test --reporter expanded --tags e2e"
+      select-package:
+        dir-exists:
+          - "test/"
+        scope:
+          - flutterfire_cli
+
     format: dart format -o write .
