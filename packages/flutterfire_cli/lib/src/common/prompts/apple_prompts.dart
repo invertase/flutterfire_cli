@@ -50,10 +50,12 @@ Future<String> promptCheckBuildConfiguration(
   );
 
   if (!buildConfigurations.contains(buildConfiguration)) {
-    if (isCI) {
+    if (isNonInteractive) {
+      final flag =
+          platform == kMacos ? kMacosBuildConfigFlag : kIosBuildConfigFlag;
       throw ValidationException(
         platform,
-        'The build configuration: $buildConfiguration does not exist. Please re-run the command with a valid build configuration.',
+        'The build configuration: $buildConfiguration does not exist. Please re-run the command with a valid "--$flag" flag, one of: ${buildConfigurations.join(', ')}.',
       );
     }
     final response = promptSelect(
@@ -97,10 +99,11 @@ Future<String> promptCheckTarget(String target, String platform) async {
       await findTargetsAvailable(platform, getXcodeProjectPath(platform));
 
   if (!targets.contains(target)) {
-    if (isCI) {
+    if (isNonInteractive) {
+      final flag = platform == kMacos ? kMacosTargetFlag : kIosTargetFlag;
       throw ValidationException(
         platform,
-        'The target $target does not exist. Please re-run the command with a valid target.',
+        'The target $target does not exist. Please re-run the command with a valid "--$flag" flag, one of: ${targets.join(', ')}.',
       );
     }
     final response = promptSelect(
@@ -119,6 +122,12 @@ String promptAppleServiceFilePath({
   required String flag,
   required String flutterAppPath,
 }) {
+  if (isNonInteractive) {
+    throw ValidationException(
+      platform,
+      'A valid path for your $platform "$appleServiceFileName" file is required when configuring $nonInteractiveReason. Please re-run the command with the "--$flag" flag, e.g. "--$flag=$platform/dev".',
+    );
+  }
   final serviceFilePath = promptInput(
     'Enter a path for your $platform "$appleServiceFileName" ("$flag" flag.) relative to the root of your Flutter project. Example input: $platform/dev',
     validator: (String x) {
