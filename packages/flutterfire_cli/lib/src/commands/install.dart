@@ -19,6 +19,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 
 import '../common/utils.dart';
@@ -85,6 +86,42 @@ enum FlutterFirePlugins {
       FlutterFirePlugins.values.map((plugin) => plugin.name).toList();
 }
 
+/// Maps prompt selection indexes to the exact plugin list shown to the user.
+///
+/// The prompt excludes plugins that are unavailable in the selected BoM, so
+/// its indexes must not be applied to the unfiltered [FlutterFirePlugins]
+/// values.
+List<FlutterFirePlugins> pluginsFromSelectionIndexes(
+  List<FlutterFirePlugins> availablePlugins,
+  List<int> selectedIndexes,
+) =>
+    selectedIndexes.map((index) => availablePlugins[index]).toList();
+
+/// Preselects core and installed plugins that are available in this BoM.
+List<bool> defaultPluginSelection(
+  List<FlutterFirePlugins> availablePlugins,
+  Iterable<String> installedPlugins,
+) =>
+    availablePlugins
+        .map(
+          (plugin) =>
+              plugin == FlutterFirePlugins.core ||
+              installedPlugins.contains(plugin.name),
+        )
+        .toList();
+
+/// Returns the BoM version supplied as a positional argument or option.
+///
+/// [ArgResults.rest] contains only positional arguments, unlike
+/// [ArgResults.arguments], which also contains command options.
+String? bomVersionFromArguments(ArgResults arguments) {
+  if (arguments.rest.length == 1) {
+    return arguments.rest.single;
+  }
+
+  return arguments['version'] as String?;
+}
+
 class InstallCommand extends FlutterFireCommand {
   InstallCommand(FlutterApp? flutterApp) : super(flutterApp) {
     setupDefaultFirebaseCliOptions();
@@ -138,36 +175,27 @@ class InstallCommand extends FlutterFireCommand {
       return selectedPlugins;
     }
 
-    final selectedPlugins = <FlutterFirePlugins>[];
     final listAvailablePluginsInVersion = availablePlugins.keys.toList();
-    final choices = FlutterFirePlugins.values
+    // Keep the filtered enum values as well as their labels so prompt indexes
+    // can be resolved against the same list the user sees.
+    final availablePluginChoices = FlutterFirePlugins.values
         .where(
           (element) => listAvailablePluginsInVersion.contains(element.name),
         )
-        .map((plugin) => plugin.displayName)
         .toList();
-    final defaultSelection = List<bool>.filled(choices.length, false);
-    for (final dependency in flutterApp!.package.dependencies) {
-      final enumValue = FlutterFirePlugins.values.firstWhereOrNull(
-        (element) => element.name == dependency,
-      );
-      if (enumValue != null) {
-        final index = choices.indexOf(enumValue.displayName);
-        defaultSelection[index] = true;
-      }
-    }
-    // Firebase Core is always selected
-    defaultSelection[0] = true;
+    final choices =
+        availablePluginChoices.map((plugin) => plugin.displayName).toList();
+    final defaultSelection = defaultPluginSelection(
+      availablePluginChoices,
+      flutterApp!.package.dependencies,
+    );
 
     final selectedChoices = promptMultiSelect(
       'Select the Firebase plugins you would like to install',
       choices,
       defaultSelection: defaultSelection,
     );
-    for (final index in selectedChoices) {
-      selectedPlugins.add(FlutterFirePlugins.values[index]);
-    }
-    return selectedPlugins;
+    return pluginsFromSelectionIndexes(availablePluginChoices, selectedChoices);
   }
 
   Future<Map<String, String>> _getPluginVersionsFromJSON(
@@ -204,13 +232,8 @@ class InstallCommand extends FlutterFireCommand {
   @override
   Future<void> run() async {
     // Get the BoM version number from the arguments
-    late String bomVersion;
-
-    if (argResults?.arguments.length == 1) {
-      bomVersion = argResults!.arguments[0];
-    } else if (argResults?['version'] != null) {
-      bomVersion = argResults!['version'] as String;
-    } else {
+    final bomVersion = bomVersionFromArguments(argResults!);
+    if (bomVersion == null) {
       stderr.writeln(
         'Usage for install command: flutterfire install <version>',
       );
