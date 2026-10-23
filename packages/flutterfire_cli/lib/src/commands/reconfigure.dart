@@ -66,6 +66,12 @@ class Reconfigure extends FlutterFireCommand {
       help:
           'Set the access token for making Firebase API requests. Required for CI environment.',
     );
+    argParser.addOption(
+      'android-sha1',
+      valueHelp: 'sha1',
+      help: 'Filter Android OAuth 2.0 Client IDs by SHA-1 fingerprint '
+          '(supports exact match or wildcard search, e.g. "*ABCD*").',
+    );
   }
 
   @override
@@ -85,6 +91,13 @@ class Reconfigure extends FlutterFireCommand {
     }
 
     return _accessToken;
+  }
+
+  String? get androidSha1 {
+    if (argResults != null) {
+      return argResults!['android-sha1'] as String?;
+    }
+    return null;
   }
 
   set accessToken(String? value) {
@@ -292,6 +305,7 @@ class Reconfigure extends FlutterFireCommand {
                 appSdkConfig,
                 appId,
                 projectId,
+                androidSha1: androidSha1,
               );
               break;
             case kIos:

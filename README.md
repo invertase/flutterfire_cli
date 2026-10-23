@@ -126,6 +126,16 @@ Without it, apps are named after the `name` in your `pubspec.yaml`, so white lab
 
 This only affects apps FlutterFire CLI creates. Android, iOS and macOS apps that already exist on the project are matched by their package name or bundle ID and keep the name they have. Web and Windows have neither, so they are matched on display name instead. If no web app has a matching name, the first web app on the project is reused, so a custom name does not guarantee a new web app; Windows creates a new app instead. Pass `--web-app-id` / `--windows-app-id` to pick one explicitly.
 
+### Filtering Android OAuth 2.0 Client IDs by SHA-1 (`--android-sha1`)
+
+If your Firebase project has multiple Android OAuth 2.0 Client IDs (e.g., for different SHA-1 certificate fingerprints such as debug, release, or Play App Signing), you can filter which client ID is retrieved and populated using the `--android-sha1` flag. 
+
+It supports exact matching as well as wildcard search (`*`, `?`):
+
+```bash
+flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --android-sha1="8120d965673*"
+```
+
 ### Firebase Cloud Messaging on the web
 
 `firebase_messaging` needs a service worker at `web/firebase-messaging-sw.js` to receive messages while your web app is in the background, and a service worker cannot read `firebase_options.dart`. When your app depends on `firebase_messaging` and you configure the web platform, FlutterFire CLI writes that file for you with the Firebase configuration of your web app.
