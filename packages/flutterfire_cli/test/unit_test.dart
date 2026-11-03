@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutterfire_cli/src/commands/config.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:flutterfire_cli/src/common/validation.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -282,6 +285,46 @@ void main() {
       expect(displayNameError('My White Label App'), isNull);
       expect(displayNameError("Bob's App"), isNull);
       expect(displayNameError('Acme (EU) - v2'), isNull);
+    });
+  });
+
+  group('dartConfigurationFileValidation overwrite handling', () {
+    late Directory appDir;
+    const optionsFile = 'firebase_options.dart';
+
+    setUp(() {
+      appDir = Directory.systemTemp.createTempSync('flutterfire_overwrite_');
+      File(p.join(appDir.path, optionsFile)).writeAsStringSync('// existing');
+    });
+
+    tearDown(() => appDir.deleteSync(recursive: true));
+
+    test('overwrite: true writes the file without prompting', () {
+      final inputs = dartConfigurationFileValidation(
+        configurationFilePath: optionsFile,
+        flutterAppPath: appDir.path,
+        overwrite: true,
+      );
+      expect(inputs.writeConfigurationFile, isTrue);
+    });
+
+    test('overwrite: false skips writing the file without prompting', () {
+      final inputs = dartConfigurationFileValidation(
+        configurationFilePath: optionsFile,
+        flutterAppPath: appDir.path,
+        overwrite: false,
+      );
+      expect(inputs.writeConfigurationFile, isFalse);
+    });
+
+    test('overwrite: false still creates the file when it does not exist', () {
+      File(p.join(appDir.path, optionsFile)).deleteSync();
+      final inputs = dartConfigurationFileValidation(
+        configurationFilePath: optionsFile,
+        flutterAppPath: appDir.path,
+        overwrite: false,
+      );
+      expect(inputs.writeConfigurationFile, isTrue);
     });
   });
 }
