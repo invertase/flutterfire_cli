@@ -1,3 +1,9 @@
+// Runs the activated `flutterfire` executable against the Firebase test
+// project, so firebase-tools must be signed in to it (FIREBASE_TOKEN or
+// `firebase login`). See dart_test.yaml.
+@Tags(['e2e'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

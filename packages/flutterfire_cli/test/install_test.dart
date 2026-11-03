@@ -1,3 +1,8 @@
+// Runs the activated `flutterfire` executable and needs network access (BoM
+// list on GitHub, pub.dev). See dart_test.yaml.
+@Tags(['e2e'])
+library;
+
 import 'dart:io';
 
 import 'package:path/path.dart' as p;

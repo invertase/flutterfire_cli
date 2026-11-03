@@ -30,3 +30,6 @@ test_generation_dev/
 pubspec_overrides.yaml
 
 context/
+
+# macOS
+.DS_Store

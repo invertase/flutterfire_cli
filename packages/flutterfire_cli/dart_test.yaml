@@ -1,0 +1,6 @@
+tags:
+  # End-to-end tests: they shell out to the globally activated `flutterfire`
+  # executable, `flutter` and firebase-tools, need network access, and most of
+  # them configure apps in the real Firebase test project (see
+  # test/test_utils.dart). Skip them with `dart test --exclude-tags e2e`.
+  e2e:
