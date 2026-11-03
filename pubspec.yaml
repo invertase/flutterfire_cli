@@ -41,7 +41,7 @@ melos:
           - "*monorepo*"
 
     format-check:
-      run: melos exec -- "find . -iname \"*.dart\" ! -name \"firebase_options.dart\" -exec dart format {} --set-exit-if-changed \;"
+      run: melos exec -- "find . -iname \"*.dart\" ! -name \"firebase_options.dart\" -exec dart format --output=none --set-exit-if-changed {} +"
       description: Run `dart format` checks for all packages.
       select-package:
         ignore:
