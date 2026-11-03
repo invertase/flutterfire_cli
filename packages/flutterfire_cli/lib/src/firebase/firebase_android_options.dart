@@ -45,10 +45,10 @@ extension FirebaseAndroidOptions on FirebaseOptions {
     var selectedAndroidApplicationId =
         androidApplicationId ?? flutterApp.androidApplicationId;
 
-    if (isCI && selectedAndroidApplicationId == null) {
+    if (isNonInteractive && selectedAndroidApplicationId == null) {
       throw ValidationException(
         kAndroid,
-        'A valid application package name is required when configuring on CI. Please use the `--android-package-name` flag',
+        'A valid application package name is required when configuring $nonInteractiveReason. Please use the `--$kAndroidPackageNameFlag` flag',
       );
     }
     selectedAndroidApplicationId ??= promptInput(

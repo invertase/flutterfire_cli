@@ -443,7 +443,7 @@ class ConfigCommand extends FlutterFireCommand {
     var projectListFail = false;
     selectedProjectId ??= await firebase.getDefaultFirebaseProjectId();
 
-    if ((isCI || yes) && selectedProjectId == null) {
+    if ((isNonInteractive || yes) && selectedProjectId == null) {
       throw FirebaseProjectRequiredException();
     }
 
@@ -519,6 +519,8 @@ class ConfigCommand extends FlutterFireCommand {
         logger.stderr(
           'Failed to fetch your Firebase projects. Fetch failed with this: $e',
         );
+        // Nothing to offer without a prompt, the failure is the answer.
+        if (isNonInteractive) rethrow;
         final createProject =
             promptBool('Would you like to create a new Firebase project?');
 
@@ -548,18 +550,27 @@ class ConfigCommand extends FlutterFireCommand {
         kLinux: platforms.contains(kLinux) ||
             platforms.isEmpty && flutterApp!.linux,
     };
+    final selectedPlatformsString = selectedPlatforms.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList()
+        .join(',');
     if (platforms.isNotEmpty || isCI || yes) {
-      final selectedPlatformsString = selectedPlatforms.entries
-          .where((e) => e.value)
-          .map((e) => e.key)
-          .toList()
-          .join(',');
       logger.stdout(
         AnsiStyles.bold(
           '${AnsiStyles.blue('i')} Selected platforms: ${AnsiStyles.green(selectedPlatformsString)}',
         ),
       );
       return selectedPlatforms;
+    }
+    if (isNonInteractive) {
+      throw NonInteractiveException(
+        'Cannot ask which platforms to configure $nonInteractiveReason. Please '
+        're-run the command with the `--$kPlatformsFlag` flag, e.g. '
+        '`--$kPlatformsFlag=android,ios,web`, or with the `--$kYesFlag` flag '
+        'to use the platforms detected in your project: '
+        '${selectedPlatformsString.isEmpty ? 'none' : selectedPlatformsString}.',
+      );
     }
     final answers = promptMultiSelect(
       'Which platforms should your configuration support (use arrow keys & space to select)?',
@@ -587,6 +598,15 @@ class ConfigCommand extends FlutterFireCommand {
       if (argResults != null &&
           (argResults!.arguments.isEmpty || testAccessToken != null)) {
         // If arguments are null, user is probably trying to call `flutterfire reconfigure`
+        if (!testingEnvironment && isNonInteractive) {
+          throw NonInteractiveException(
+            'You have an existing `firebase.json` file, and the FlutterFire '
+            'CLI cannot ask whether to reuse its values $nonInteractiveReason. '
+            'Please run `flutterfire reconfigure` to reuse them, or re-run '
+            '`flutterfire configure` with the flags to configure your project '
+            'with, e.g. `--$kYesFlag --project=<FIREBASE_PROJECT_ID>`.',
+          );
+        }
         final reuseFirebaseJsonValues = testingEnvironment ||
             promptBool(
               'You have an existing `firebase.json` file and possibly already configured your project for Firebase. Would you prefer to reuse the values in your existing `firebase.json` file to configure your project?',
