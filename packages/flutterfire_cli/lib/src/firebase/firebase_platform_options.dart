@@ -41,6 +41,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
   String? windowsAppId,
   String? token,
   String? serviceAccount,
+  String? androidSha1,
 }) async {
   FirebaseOptions? androidOptions;
   FirebaseOptions? iosOptions;
@@ -58,6 +59,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       token: token,
       serviceAccount: serviceAccount,
+      androidSha1: androidSha1,
     );
   }
 
@@ -70,6 +72,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       firebaseAccount: firebaseAccount,
       token: token,
       serviceAccount: serviceAccount,
+      androidSha1: androidSha1,
     );
   }
   if (macos) {
@@ -82,6 +85,7 @@ Future<FirebasePlatformOptions> fetchAllFirebaseOptions({
       macos: true,
       token: token,
       serviceAccount: serviceAccount,
+      androidSha1: androidSha1,
     );
   }
 
