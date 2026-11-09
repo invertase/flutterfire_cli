@@ -1,147 +1,101 @@
 name: all_packages
 on:
   workflow_dispatch:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
   push:
     branches:
       - main
 
-jobs:
-  test_linux:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    environment: CI Environment
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-    steps:
-      - name: Get User Permission
-        id: checkAccess
-        uses: actions-cool/check-user-permission@v2
-        with:
-          require: write
-          username: ${{ github.triggering_actor }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Check User Permission
-        if: steps.checkAccess.outputs.require-result == 'false'
-        run: |
-          echo "${{ github.triggering_actor }} does not have permissions on this repo."
-          echo "Current permission level is ${{ steps.checkAccess.outputs.user-permission }}"
-          echo "Job originally triggered by ${{ github.actor }}"
-          exit 1
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-      - uses: bluefireteam/melos-action@v2
-        with:
-          melos-version: '7.5.1'
-      - name: "Install Firebase CLI"
-        run: |
-          sudo npm i -g firebase-tools  
-      - name: Install FlutterFire
-        run: |
-          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
-      - name: "Run Tests"
-        run: melos run test --no-select
-        env:
-          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
+permissions:
+  contents: read
 
-  test_macos:
-    runs-on: macos-15
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 25
-    environment: CI Environment
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
     steps:
-      - name: Get User Permission
-        id: checkAccess
-        uses: actions-cool/check-user-permission@v2
-        with:
-          require: write
-          username: ${{ github.triggering_actor }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Check User Permission
-        if: steps.checkAccess.outputs.require-result == 'false'
-        run: |
-          echo "${{ github.triggering_actor }} does not have permissions on this repo."
-          echo "Current permission level is ${{ steps.checkAccess.outputs.user-permission }}"
-          echo "Job originally triggered by ${{ github.actor }}"
-          exit 1
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          persist-credentials: false
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
           melos-version: '7.5.1'
-      - name: "Install Firebase CLI"
-        run: |
-          sudo npm i -g firebase-tools
       # firebase-ios-sdk 13 (firebase_crashlytics 6) needs Swift tools 6.2.1,
       # so Xcode 26.1 or later.
       - name: Select Xcode version
+        if: runner.os == 'macOS'
         run: |
           sudo xcode-select -switch /Applications/Xcode_26.3.app/Contents/Developer
       - name: Install FlutterFire
         run: |
-          dart pub global activate --source="path" . --executable="flutterfire" --overwrite        
+          dart pub global activate --source="path" . --executable="flutterfire" --overwrite
       - name: "Run Tests"
-        run: melos run test --no-select
-        env:
-          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
-  
-  test_windows:
-    runs-on: windows-latest
+        if: runner.os != 'Windows'
+        run: melos run test-offline --no-select
+      - name: "Run Tests"
+        if: runner.os == 'Windows'
+        run: cmd /K melos run test-offline --no-select
+
+  test_firebase:
+    name: test_firebase (${{ matrix.os }})
+    # Fork PRs don't get secrets, so these only run on code pushed to this
+    # repository. To run them for a fork PR, push its head to a branch here
+    # and trigger this workflow on that branch.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     environment: CI Environment
     env:
       FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
     steps:
-      - name: Get User Permission
-        id: checkAccess
-        uses: actions-cool/check-user-permission@v2
-        with:
-          require: write
-          username: ${{ github.triggering_actor }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Check User Permission
-        if: steps.checkAccess.outputs.require-result == 'false'
-        run: |
-          echo "${{ github.triggering_actor }} does not have permissions on this repo."
-          echo "Current permission level is ${{ steps.checkAccess.outputs.user-permission }}"
-          echo "Job originally triggered by ${{ github.actor }}"
-          exit 1
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          persist-credentials: false
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
       - uses: bluefireteam/melos-action@v2
         with:
-          melos-version: '7.5.1'  
+          melos-version: '7.5.1'
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
+        if: runner.os == 'Windows'
         name: Install Node.js 18
         with:
           node-version: "18"
       - name: "Install Firebase CLI"
+        if: runner.os != 'Windows'
+        run: |
+          sudo npm i -g firebase-tools
+      - name: "Install Firebase CLI"
+        if: runner.os == 'Windows'
         run: |
           npm i -g firebase-tools
+      # firebase-ios-sdk 13 (firebase_crashlytics 6) needs Swift tools 6.2.1,
+      # so Xcode 26.1 or later.
+      - name: Select Xcode version
+        if: runner.os == 'macOS'
+        run: |
+          sudo xcode-select -switch /Applications/Xcode_26.3.app/Contents/Developer
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite
       - name: "Run Tests"
-        run: cmd /K melos run test --no-select
-        env:
-          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
+        if: runner.os != 'Windows'
+        run: melos run test-firebase --no-select
+      - name: "Run Tests"
+        if: runner.os == 'Windows'
+        run: cmd /K melos run test-firebase --no-select
