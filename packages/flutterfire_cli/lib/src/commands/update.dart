@@ -66,7 +66,8 @@ class UpdateCommand extends FlutterFireCommand {
   final String name = 'update';
 
   @override
-  final String description = 'Update the version of firebase plugins in your pubspec '
+  final String description =
+      'Update the version of firebase plugins in your pubspec '
       'to the latest version and clean your workspace to ensure that everything '
       'works properly.';
 
@@ -146,7 +147,8 @@ Future<void> updateFlutterFirePackages({
   for (final package in flutterfirePackages) {
     // We run each package individually because chaining them
     // will fail at the first package not in the pubspec.
-    await runCommand(pubBaseCommand, ['pub', 'upgrade', '--major-versions', package]);
+    await runCommand(
+        pubBaseCommand, ['pub', 'upgrade', '--major-versions', package]);
   }
 
   logger.stdout("Running '$pubBaseCommand pub get'...");

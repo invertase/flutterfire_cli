@@ -288,7 +288,9 @@ void main() {
   });
 
   group('Package class', () {
-    test('isFlutterPackage returns true if depends on flutter or flutter_localizations', () {
+    test(
+        'isFlutterPackage returns true if depends on flutter or flutter_localizations',
+        () {
       final package1 = Package(
         path: '',
         pubSpec: Pubspec.parse('''
@@ -344,7 +346,9 @@ dependencies:
       expect(package2.isRuntimePackage, isFalse);
     });
 
-    test('isFlutterApp returns correctly based on dependencies and plugin definition', () {
+    test(
+        'isFlutterApp returns correctly based on dependencies and plugin definition',
+        () {
       final flutterApp = Package(
         path: '',
         pubSpec: Pubspec.parse('''
