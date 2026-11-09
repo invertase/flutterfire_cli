@@ -1,3 +1,7 @@
+## 1.4.2
+
+ - **FEAT**: add `--android-sha1` flag to filter Android OAuth 2.0 Client IDs and patch `GoogleService-Info.plist` with wildcard SHA-1 search support.
+
 ## 1.4.1
 
  - **FIX**: stop generating reCAPTCHA site key in Firebase options ([#454](https://github.com/invertase/flutterfire_cli/issues/454)). ([0685d1cb](https://github.com/invertase/flutterfire_cli/commit/0685d1cb34ede011cb8a8f5c0f2b1271acc90ecc))

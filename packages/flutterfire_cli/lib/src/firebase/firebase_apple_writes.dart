@@ -393,10 +393,43 @@ abstract class FirebaseAppleConfiguration {
     return File(serviceFilePath);
   }
 
+  String _updatePlistAndroidClientId(
+    String plistContent,
+    String newAndroidClientId,
+  ) {
+    final regex = RegExp(
+      r'(<key>\s*ANDROID_CLIENT_ID\s*</key>\s*<string>)([^<]*)(</string>)',
+      multiLine: true,
+      dotAll: true,
+    );
+    if (regex.hasMatch(plistContent)) {
+      return plistContent.replaceFirstMapped(regex, (match) {
+        return '${match.group(1)}$newAndroidClientId${match.group(3)}';
+      });
+    } else {
+      final dictCloseRegex = RegExp(r'</dict>\s*</plist>\s*$');
+      if (dictCloseRegex.hasMatch(plistContent)) {
+        return plistContent.replaceFirst(
+          dictCloseRegex,
+          '\t<key>ANDROID_CLIENT_ID</key>\n\t<string>$newAndroidClientId</string>\n</dict>\n</plist>',
+        );
+      }
+    }
+    return plistContent;
+  }
+
   Future<void> _writeGoogleServiceFileToPath() async {
     final file = await _createServiceFileToSpecifiedPath();
 
-    await file.writeAsString(platformOptions.optionsSourceContent);
+    var content = platformOptions.optionsSourceContent;
+    if (platform != kAndroid &&
+        platformOptions.androidClientId != null &&
+        platformOptions.androidClientId!.isNotEmpty) {
+      content =
+          _updatePlistAndroidClientId(content, platformOptions.androidClientId!);
+    }
+
+    await file.writeAsString(content);
   }
 
   Future<FirebaseJsonWrites> apply();
@@ -504,6 +537,15 @@ PATH="\${PATH}:\$FLUTTER_ROOT/bin:\${PUB_CACHE}/bin:\$HOME/.pub-cache/bin"
 if [ -n "\$PODS_ROOT" ] && [ -f "\$PODS_ROOT/FirebaseCrashlytics/run" ]; then
   # CocoaPods installation.
   PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\$PODS_ROOT/FirebaseCrashlytics/run"
+elif [ -f "\${SRCROOT}/../\${FLUTTER_BUILD_DIR:-build}/$platform/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" ]; then
+  # Swift Package Manager installation. Since Flutter 3.44 the SPM checkouts are
+  # cloned into Flutter's build directory via -clonedSourcePackagesDirPath
+  # ("<project>/<build-dir>/$platform/SourcePackages") instead of Xcode's
+  # DerivedData. FLUTTER_BUILD_DIR comes from Generated.xcconfig (honors
+  # "flutter config --build-dir", defaults to "build") and is present for both
+  # regular and archive builds. SRCROOT is the "$platform" dir, so its parent is
+  # the Flutter project root (FLUTTER_APPLICATION_PATH).
+  PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT="\${SRCROOT}/../\${FLUTTER_BUILD_DIR:-build}/$platform/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
 elif [ -n "\$BUILD_DIR" ] && [ -f "\$BUILD_DIR/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" ]; then
   # Swift Package Manager installation. Flutter resolves Swift Package Manager
   # checkouts into "\$BUILD_DIR/SourcePackages" (i.e. "<project>/[ios|macos]/build/SourcePackages"),
