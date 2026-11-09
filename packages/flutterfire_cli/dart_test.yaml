@@ -1,0 +1,3 @@
+tags:
+  # Tests that talk to the Firebase test project and need credentials.
+  firebase:
