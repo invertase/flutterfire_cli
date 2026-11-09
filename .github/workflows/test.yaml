@@ -86,9 +86,11 @@ jobs:
       - name: "Install Firebase CLI"
         run: |
           sudo npm i -g firebase-tools
+      # firebase-ios-sdk 13 (firebase_crashlytics 6) needs Swift tools 6.2.1,
+      # so Xcode 26.1 or later.
       - name: Select Xcode version
         run: |
-          sudo xcode-select -switch /Applications/Xcode_16.4.app/Contents/Developer
+          sudo xcode-select -switch /Applications/Xcode_26.3.app/Contents/Developer
       - name: Install FlutterFire
         run: |
           dart pub global activate --source="path" . --executable="flutterfire" --overwrite        

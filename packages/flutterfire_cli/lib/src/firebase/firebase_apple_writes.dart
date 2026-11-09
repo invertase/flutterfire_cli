@@ -493,7 +493,6 @@ String _debugSymbolsScript(
 require 'xcodeproj'
 xcodeFile='${escapeRubySingleQuoted(getXcodeProjectPath(platform))}'
 runScriptName='$debugSymbolScriptName'
-bundleScriptName='$bundleServiceScriptName'
 project = Xcodeproj::Project.open(xcodeFile)
 
 
@@ -531,26 +530,28 @@ fi
 ${isDevDependency ? 'dart run flutterfire_cli:flutterfire' : 'flutterfire'} upload-crashlytics-symbols --upload-symbols-script-path="\$PATH_TO_CRASHLYTICS_UPLOAD_SCRIPT" --platform=$platform --apple-project-path="\${SRCROOT}" --env-platform-name="\${PLATFORM_NAME}" --env-configuration="\${CONFIGURATION}" --env-project-dir="\${PROJECT_DIR}" --env-built-products-dir="\${BUILT_PRODUCTS_DIR}" --env-dwarf-dsym-folder-path="\${DWARF_DSYM_FOLDER_PATH}" --env-dwarf-dsym-file-name="\${DWARF_DSYM_FILE_NAME}" --env-infoplist-path="\${INFOPLIST_PATH}" $projectType
 )
 
-def ensure_phase_is_after(target, phase, preceding_phase)
-  return if preceding_phase.nil?
+# Based on CrashlyticsInputFiles.xcfilelist in firebase-ios-sdk. The DWARF file
+# (named after the executable by dsymutil) makes Xcode run the phase after
+# dsymutil. Without it, upload-symbols can start on a dSYM that is still being
+# written and hang.
+inputPaths = [
+  '\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}',
+  '\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Info.plist',
+  '\${DWARF_DSYM_FOLDER_PATH}/\${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/\${EXECUTABLE_NAME}',
+  '\$(TARGET_BUILD_DIR)/\$(EXECUTABLE_PATH)',
+]
 
+# The inputs make the phase wait for the dSYM, which waits for the app's
+# Info.plist, which waits for every embedded app extension. A copy phase after
+# this one would close that loop ("Cycle inside Runner"), so keep it last. That
+# also keeps it after the bundle-service-file phase. Xcode appends the embed
+# phase of an extension added later; the next configure moves this phase back.
+def move_to_end(target, phase)
   allPhases = target.build_phases
-  precedingIndex = allPhases.index(preceding_phase)
-  phaseIndex = allPhases.index(phase)
+  return false if allPhases.last.equal?(phase)
 
-  return if precedingIndex.nil? || phaseIndex.nil?
-  return if phaseIndex == precedingIndex + 1
-
-  target.build_phases.delete(phase)
-
-  insertionIndex =
-    if phaseIndex < precedingIndex
-      precedingIndex
-    else
-      precedingIndex + 1
-    end
-
-  target.build_phases.insert(insertionIndex, phase)
+  allPhases.move(phase, allPhases.count - 1)
+  true
 end
 
 for target in project.targets
@@ -561,44 +562,26 @@ for target in project.targets
         item.name == runScriptName
       end
     end
-    
-    # Find bundle-service-file phase to determine insertion position
-    bundlePhase = target.shell_script_build_phases().find do |item|
-      if defined? item && item.name
-        item.name == bundleScriptName
-      end
-    end
 
     if phase.nil?
-      # Create new phase
       phase = target.new_shell_script_build_phase(runScriptName)
+    end
+
+    updated = false
+    if phase.shell_script != bashScript
       phase.shell_script = bashScript
-      
-      # If bundle-service-file exists, ensure debug symbols is placed right after it
-      if (!bundlePhase.nil?)
-        ensure_phase_is_after(target, phase, bundlePhase)
-      end
-      
+      updated = true
+    end
+    if phase.input_paths != inputPaths
+      phase.input_paths = inputPaths
+      updated = true
+    end
+    if move_to_end(target, phase)
+      updated = true
+    end
+
+    if updated
       project.save()
-    elsif phase.shell_script != bashScript
-      # Update existing phase
-      phase.shell_script = bashScript
-      
-      # Ensure correct ordering: debug symbols should be right after bundle-service-file
-      if (!bundlePhase.nil?)
-        ensure_phase_is_after(target, phase, bundlePhase)
-      end
-      
-      project.save()
-    else
-      # Script exists and content is correct, but check ordering
-      if (!bundlePhase.nil?)
-        currentOrdering = target.build_phases.dup
-        ensure_phase_is_after(target, phase, bundlePhase)
-        if (target.build_phases != currentOrdering)
-          project.save()
-        end
-      end
     end
   end
 end
