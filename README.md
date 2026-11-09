@@ -165,6 +165,10 @@ flutterfire configure --yes --project=<FIREBASE_PROJECT_ID> --windows-app-id=<WE
 #### `--project` flag
 - selects the Firebase project and negates the command prompt to choose which Firebase project you wish to use.
 
+#### Running without a terminal
+
+On CI, or when no terminal is attached to stdin (e.g. when a script or an AI coding agent runs the CLI), FlutterFire CLI never prompts. It uses the values passed as flags such as `--yes`, `--project` and `--platforms`, and when it still needs an answer, it exits with an error naming the flag to pass instead of waiting for input that never comes.
+
 
 ### Multi build configuration setup
 
