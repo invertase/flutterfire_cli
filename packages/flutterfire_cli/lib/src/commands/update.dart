@@ -148,7 +148,9 @@ Future<void> updateFlutterFirePackages({
     // We run each package individually because chaining them
     // will fail at the first package not in the pubspec.
     await runCommand(
-        pubBaseCommand, ['pub', 'upgrade', '--major-versions', package]);
+      pubBaseCommand,
+      ['pub', 'upgrade', '--major-versions', package],
+    );
   }
 
   logger.stdout("Running '$pubBaseCommand pub get'...");
