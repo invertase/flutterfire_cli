@@ -28,7 +28,7 @@ Packages with other changes:
  - **FIX**: unbreak the `analyze` job ([#462](https://github.com/invertase/flutterfire_cli/issues/462)). ([2f308a46](https://github.com/invertase/flutterfire_cli/commit/2f308a4628c038fc78d38e432ee6f7abb76239ed))
  - **FEAT**: make the cli compatible with jaspr projects ([#440](https://github.com/invertase/flutterfire_cli/issues/440)). ([3226dd43](https://github.com/invertase/flutterfire_cli/commit/3226dd434b01bde4f27c83650b2f990ee900ccab))
  - **FEAT**: generate `web/firebase-messaging-sw.js` for `firebase_messaging` ([#458](https://github.com/invertase/flutterfire_cli/issues/458)). ([6fd053f0](https://github.com/invertase/flutterfire_cli/commit/6fd053f00b5d047e85b95b49fa56b87e583b7d44))
- - **FEAT**: add `--app-display-name` flag to `flutterfire configure` ([#457](https://github.com/invertase/flutterfire_cli/issues/457)). ([ba609da0](https://github.com/invertase/flutterfire_cli/commit/ba609da08f46d2da3e0944e131f0a1ea9e478b4f))
+ - **FEAT**: add `--display-name` flag to `flutterfire configure` ([#457](https://github.com/invertase/flutterfire_cli/issues/457)). ([ba609da0](https://github.com/invertase/flutterfire_cli/commit/ba609da08f46d2da3e0944e131f0a1ea9e478b4f))
  - **DOCS**: fix outdated and broken examples in the READMEs ([#470](https://github.com/invertase/flutterfire_cli/issues/470)). ([54cde6cc](https://github.com/invertase/flutterfire_cli/commit/54cde6ccc6b6c346c7869a502170d14677aca4e2))
 
 
