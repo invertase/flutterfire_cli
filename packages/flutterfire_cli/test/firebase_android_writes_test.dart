@@ -316,4 +316,153 @@ plugins {
       });
     });
   });
+
+  group('upgradeGoogleServicesPluginVersion', () {
+    const groovySettings = '''
+plugins {
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    id "com.android.application" version "8.3.0" apply false
+    // START: FlutterFire Configuration
+    id "com.google.gms.google-services" version "4.3.15" apply false
+    // END: FlutterFire Configuration
+    id "org.jetbrains.kotlin.android" version "2.3.0" apply false
+}
+
+include ":app"
+''';
+
+    const ktsSettings = '''
+plugins {
+    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+    id("com.android.application") version "8.3.0" apply false
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services") version("4.4.4") apply false
+    // END: FlutterFire Configuration
+    id("org.jetbrains.kotlin.android") version "2.3.0" apply false
+}
+
+include(":app")
+''';
+
+    const ktsInfixSettings = '''
+plugins {
+    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+    id("com.android.application") version "8.3.0" apply false
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services") version "4.4.4" apply false
+    // END: FlutterFire Configuration
+    id("org.jetbrains.kotlin.android") version "2.3.0" apply false
+}
+
+include(":app")
+''';
+
+    test('upgrades an older Groovy DSL pin (4.3.15 -> 4.7.0)', () {
+      final result =
+          upgradeGoogleServicesPluginVersion(groovySettings, '4.7.0');
+
+      expect(
+        result,
+        contains(
+          'id "com.google.gms.google-services" version "4.7.0" apply false',
+        ),
+      );
+      expect(result, isNot(contains('4.3.15')));
+      expect(
+        result.replaceFirst('4.7.0', '4.3.15'),
+        equals(groovySettings),
+      );
+    });
+
+    test('upgrades an older Kotlin DSL pin (4.4.4 -> 4.7.0)', () {
+      final result = upgradeGoogleServicesPluginVersion(
+        ktsSettings,
+        '4.7.0',
+        kotlin: true,
+      );
+
+      expect(
+        result,
+        contains(
+          'id("com.google.gms.google-services") version("4.7.0") apply false',
+        ),
+      );
+      expect(result, isNot(contains('4.4.4')));
+      expect(result.replaceFirst('4.7.0', '4.4.4'), equals(ktsSettings));
+    });
+
+    test('upgrades an older Kotlin DSL infix pin (4.4.4 -> 4.7.0)', () {
+      final result = upgradeGoogleServicesPluginVersion(
+        ktsInfixSettings,
+        '4.7.0',
+        kotlin: true,
+      );
+
+      expect(
+        result,
+        contains(
+          'id("com.google.gms.google-services") version "4.7.0" apply false',
+        ),
+      );
+      expect(result, isNot(contains('4.4.4')));
+      expect(result.replaceFirst('4.7.0', '4.4.4'), equals(ktsInfixSettings));
+    });
+
+    test('preserves single-quote style when upgrading', () {
+      const settings =
+          "id 'com.google.gms.google-services' version '4.3.15' apply false";
+
+      final result = upgradeGoogleServicesPluginVersion(settings, '4.7.0');
+
+      expect(
+        result,
+        equals(
+          "id 'com.google.gms.google-services' version '4.7.0' apply false",
+        ),
+      );
+    });
+
+    test('is a no-op when the pin is already at the target version', () {
+      final result =
+          upgradeGoogleServicesPluginVersion(groovySettings, '4.3.15');
+      expect(result, equals(groovySettings));
+    });
+
+    test('never downgrades a newer pin', () {
+      final result =
+          upgradeGoogleServicesPluginVersion(groovySettings, '4.3.0');
+      expect(result, equals(groovySettings));
+    });
+
+    test('is a no-op when the plugin is not declared', () {
+      const settings = '''
+plugins {
+    id "com.android.application" version "8.3.0" apply false
+}
+''';
+      final result = upgradeGoogleServicesPluginVersion(settings, '4.7.0');
+      expect(result, equals(settings));
+    });
+
+    test('is a no-op for an unparseable target version', () {
+      final result =
+          upgradeGoogleServicesPluginVersion(groovySettings, 'not-a-version');
+      expect(result, equals(groovySettings));
+    });
+
+    test('is idempotent across repeated configure runs', () {
+      final once = upgradeGoogleServicesPluginVersion(groovySettings, '4.7.0');
+      final twice = upgradeGoogleServicesPluginVersion(once, '4.7.0');
+      expect(twice, equals(once));
+    });
+
+    test('does not touch the Groovy pin when asked to upgrade Kotlin DSL', () {
+      final result = upgradeGoogleServicesPluginVersion(
+        groovySettings,
+        '4.7.0',
+        kotlin: true,
+      );
+      expect(result, equals(groovySettings));
+    });
+  });
 }

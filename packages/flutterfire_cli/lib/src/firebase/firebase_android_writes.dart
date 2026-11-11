@@ -92,6 +92,66 @@ final kotlinGoogleServicesPluginPattern = RegExp(
   "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version\\(([\"']\\d+\\.\\d+\\.\\d+[\"'])\\) apply false",
 );
 
+final _kotlinGoogleServicesPluginInfixPattern = RegExp(
+  "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version ([\"']\\d+\\.\\d+\\.\\d+[\"']) apply false",
+);
+
+/// Upgrades an existing `com.google.gms.google-services` plugin declaration in
+/// `android/settings.gradle` (Groovy DSL) or `android/settings.gradle.kts`
+/// (Kotlin DSL, when [kotlin] is `true`) to [targetVersion].
+///
+/// `flutter pub upgrade` bumps the Firebase Android BoM but never touches the
+/// Gradle settings file, so projects configured with an older FlutterFire CLI
+/// keep the Google Services plugin version that was current at that time
+/// (e.g. `4.3.15`). Build-time features such as seamless App Check debug
+/// tokens ship in newer plugin versions, so re-running `flutterfire configure`
+/// must move the pin forward.
+///
+/// The declaration is left untouched when it is absent, already at or above
+/// [targetVersion], or not a parseable semantic version. Only the version
+/// literal is rewritten; the surrounding quoting style is preserved.
+String upgradeGoogleServicesPluginVersion(
+  String settingsContents,
+  String targetVersion, {
+  bool kotlin = false,
+}) {
+  final Version target;
+  try {
+    target = Version.parse(targetVersion);
+  } on FormatException {
+    return settingsContents;
+  }
+
+  final Match? match;
+  if (kotlin) {
+    match = kotlinGoogleServicesPluginPattern.firstMatch(settingsContents) ??
+        _kotlinGoogleServicesPluginInfixPattern.firstMatch(settingsContents);
+  } else {
+    match = googleServicesPluginPattern.firstMatch(settingsContents);
+  }
+  if (match == null) return settingsContents;
+
+  // group(2) is the quoted version literal, e.g. "4.3.15" or '4.3.15'.
+  final quotedVersion = match.group(2)!;
+  final quote = quotedVersion[0];
+  final currentVersionString =
+      quotedVersion.substring(1, quotedVersion.length - 1);
+
+  final Version current;
+  try {
+    current = Version.parse(currentVersionString);
+  } on FormatException {
+    return settingsContents;
+  }
+  if (current >= target) return settingsContents;
+
+  final versionStart = match.start + match.group(0)!.indexOf(quotedVersion);
+  final versionEnd = versionStart + quotedVersion.length;
+  final before = settingsContents.substring(0, versionStart);
+  final after = settingsContents.substring(versionEnd);
+  return '$before$quote$targetVersion$quote$after';
+}
+
 String _applyGradleSettingsDependency(
   String dependency,
   String version, {
@@ -499,7 +559,14 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     final pluginExists = androidGradleSettingsFileContents
         .contains(_androidAppBuildGradleGoogleServicesRegex);
 
-    if (!pluginExists) {
+    if (pluginExists) {
+      // Re-running `flutterfire configure` on an existing project: make sure an
+      // older pin (e.g. 4.3.15) is moved forward to the version this CLI knows.
+      androidGradleSettingsFileContents = upgradeGoogleServicesPluginVersion(
+        androidGradleSettingsFileContents,
+        googleServicesGradlePluginVersion,
+      );
+    } else {
       final pattern = androidApplicationPluginPattern;
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
@@ -922,7 +989,15 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
     final pluginExists = androidGradleSettingsKtsFileContents
         .contains(_androidAppBuildGradleKtsGoogleServicesRegex);
 
-    if (!pluginExists) {
+    if (pluginExists) {
+      // Re-running `flutterfire configure` on an existing project: make sure an
+      // older pin (e.g. 4.3.15) is moved forward to the version this CLI knows.
+      androidGradleSettingsKtsFileContents = upgradeGoogleServicesPluginVersion(
+        androidGradleSettingsKtsFileContents,
+        googleServicesGradlePluginVersion,
+        kotlin: true,
+      );
+    } else {
       final pattern = RegExp(
         r'^.*id\("com\.android\.application"\).*',
         multiLine: true,
