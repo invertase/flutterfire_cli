@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
@@ -92,9 +93,73 @@ final kotlinGoogleServicesPluginPattern = RegExp(
   "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version\\(([\"']\\d+\\.\\d+\\.\\d+[\"'])\\) apply false",
 );
 
-final _kotlinGoogleServicesPluginInfixPattern = RegExp(
-  "id\\(([\"']com\\.google\\.gms\\.google-services[\"'])\\) version ([\"']\\d+\\.\\d+\\.\\d+[\"']) apply false",
+// A `com.google.gms.google-services` declaration in the Groovy DSL, written as
+// `id "..."`, `id '...'` or `id("...")`. Groups 1 and 2 are the quote and the
+// text of the version literal (`version "..."` or `version("...")`) when the
+// declaration has one on the same line.
+final _googleServicesPluginDeclarationPattern = RegExp(
+  r'''\bid[ \t]*\(?[ \t]*['"]com\.google\.gms\.google-services['"][ \t]*\)?(?:[ \t]*\.?[ \t]*version[ \t]*\(?[ \t]*(['"])([^'"\r\n]*)\1)?''',
 );
+
+// The same declaration in the Kotlin DSL, where `id(...)` needs parentheses.
+final _kotlinGoogleServicesPluginDeclarationPattern = RegExp(
+  r'''\bid[ \t]*\([ \t]*['"]com\.google\.gms\.google-services['"][ \t]*\)(?:[ \t]*\.?[ \t]*version[ \t]*\(?[ \t]*(['"])([^'"\r\n]*)\1)?''',
+);
+
+/// Replaces every comment in a Gradle file with whitespace of the same length,
+/// so offsets into the result are also valid for [source].
+///
+/// String literals are left alone, which keeps a `//` inside one (a repository
+/// URL, for example) from being read as the start of a comment.
+String _maskGradleComments(String source) {
+  final buffer = StringBuffer();
+  String? quote;
+  var index = 0;
+
+  while (index < source.length) {
+    final char = source[index];
+    final next = index + 1 < source.length ? source[index + 1] : '';
+
+    if (quote != null) {
+      buffer.write(char);
+      if (char == r'\' && next.isNotEmpty) {
+        buffer.write(next);
+        index += 2;
+        continue;
+      }
+      if (char == quote || char == '\n') quote = null;
+      index++;
+    } else if (char == '"' || char == "'") {
+      quote = char;
+      buffer.write(char);
+      index++;
+    } else if (char == '/' && next == '/') {
+      while (index < source.length && source[index] != '\n') {
+        buffer.write(' ');
+        index++;
+      }
+    } else if (char == '/' && next == '*') {
+      final close = source.indexOf('*/', index + 2);
+      final end = close == -1 ? source.length : close + 2;
+      for (; index < end; index++) {
+        final commentChar = source[index];
+        final isLineBreak = commentChar == '\n' || commentChar == '\r';
+        buffer.write(isLineBreak ? commentChar : ' ');
+      }
+    } else {
+      buffer.write(char);
+      index++;
+    }
+  }
+
+  return buffer.toString();
+}
+
+String _lineContaining(String source, int offset) {
+  final start = source.lastIndexOf('\n', offset) + 1;
+  final end = source.indexOf('\n', offset);
+  return source.substring(start, end == -1 ? source.length : end).trim();
+}
 
 /// Upgrades an existing `com.google.gms.google-services` plugin declaration in
 /// `android/settings.gradle` (Groovy DSL) or `android/settings.gradle.kts`
@@ -107,13 +172,18 @@ final _kotlinGoogleServicesPluginInfixPattern = RegExp(
 /// tokens ship in newer plugin versions, so re-running `flutterfire configure`
 /// must move the pin forward.
 ///
-/// The declaration is left untouched when it is absent, already at or above
-/// [targetVersion], or not a parseable semantic version. Only the version
-/// literal is rewritten; the surrounding quoting style is preserved.
+/// A declaration is left untouched when it is commented out or already at or
+/// above [targetVersion]. Only the text of the version literal is rewritten,
+/// so the quoting style and the rest of the declaration are preserved.
+///
+/// [onUnsupportedDeclaration] is called with the source line of each
+/// declaration whose version is missing or is not a semantic version literal
+/// (a version catalog reference, for example). Those are left untouched too.
 String upgradeGoogleServicesPluginVersion(
   String settingsContents,
   String targetVersion, {
   bool kotlin = false,
+  void Function(String declaration)? onUnsupportedDeclaration,
 }) {
   final Version target;
   try {
@@ -122,34 +192,45 @@ String upgradeGoogleServicesPluginVersion(
     return settingsContents;
   }
 
-  final Match? match;
-  if (kotlin) {
-    match = kotlinGoogleServicesPluginPattern.firstMatch(settingsContents) ??
-        _kotlinGoogleServicesPluginInfixPattern.firstMatch(settingsContents);
-  } else {
-    match = googleServicesPluginPattern.firstMatch(settingsContents);
+  final pattern = kotlin
+      ? _kotlinGoogleServicesPluginDeclarationPattern
+      : _googleServicesPluginDeclarationPattern;
+
+  final buffer = StringBuffer();
+  var copiedUpTo = 0;
+
+  for (final match
+      in pattern.allMatches(_maskGradleComments(settingsContents))) {
+    final currentVersion = match.group(2);
+
+    Version? current;
+    if (currentVersion != null) {
+      try {
+        current = Version.parse(currentVersion);
+      } on FormatException {
+        current = null;
+      }
+    }
+
+    if (currentVersion == null || current == null) {
+      onUnsupportedDeclaration?.call(
+        _lineContaining(settingsContents, match.start),
+      );
+      continue;
+    }
+    if (current >= target) continue;
+
+    // The match ends with the closing quote of the version literal.
+    final versionEnd = match.end - 1;
+    final versionStart = versionEnd - currentVersion.length;
+    buffer
+      ..write(settingsContents.substring(copiedUpTo, versionStart))
+      ..write(targetVersion);
+    copiedUpTo = versionEnd;
   }
-  if (match == null) return settingsContents;
 
-  // group(2) is the quoted version literal, e.g. "4.3.15" or '4.3.15'.
-  final quotedVersion = match.group(2)!;
-  final quote = quotedVersion[0];
-  final currentVersionString =
-      quotedVersion.substring(1, quotedVersion.length - 1);
-
-  final Version current;
-  try {
-    current = Version.parse(currentVersionString);
-  } on FormatException {
-    return settingsContents;
-  }
-  if (current >= target) return settingsContents;
-
-  final versionStart = match.start + match.group(0)!.indexOf(quotedVersion);
-  final versionEnd = versionStart + quotedVersion.length;
-  final before = settingsContents.substring(0, versionStart);
-  final after = settingsContents.substring(versionEnd);
-  return '$before$quote$targetVersion$quote$after';
+  buffer.write(settingsContents.substring(copiedUpTo));
+  return buffer.toString();
 }
 
 String _applyGradleSettingsDependency(
@@ -281,15 +362,16 @@ class FirebaseAndroidWrites {
   Future<FirebaseJsonWrites> apply() async {
     await _writeAndroidGoogleServicesJsonFile();
 
-    await gradleContentUpdates(flutterApp);
+    await gradleContentUpdates(flutterApp, logger: logger);
 
     return _firebaseJsonWrites();
   }
 }
 
 Future<void> gradleContentUpdates(
-  FlutterApp flutterApp,
-) async {
+  FlutterApp flutterApp, {
+  Logger? logger,
+}) async {
   final androidBuildGradleFile = File(
     path.join(
       flutterApp.androidDirectory.path,
@@ -298,7 +380,7 @@ Future<void> gradleContentUpdates(
   );
 
   if (androidBuildGradleFile.existsSync()) {
-    return _gradleContentUpdates(flutterApp);
+    return _gradleContentUpdates(flutterApp, logger);
   }
 
   final androidBuildGradleKtsFile = File(
@@ -309,7 +391,7 @@ Future<void> gradleContentUpdates(
   );
 
   if (androidBuildGradleKtsFile.existsSync()) {
-    return _gradleKtsContentUpdates(flutterApp);
+    return _gradleKtsContentUpdates(flutterApp, logger);
   }
 
   throw UnimplementedError(
@@ -319,6 +401,7 @@ Future<void> gradleContentUpdates(
 
 Future<void> _gradleContentUpdates(
   FlutterApp flutterApp,
+  Logger? logger,
 ) async {
   final androidBuildGradleFile = File(
     path.join(
@@ -346,7 +429,13 @@ Future<void> _gradleContentUpdates(
     ),
   );
 
-  final firebaseCorePubSpec = await getFirebaseCorePubSpec();
+  // Prefer the versions declared by the `firebase_core` this app resolves. The
+  // pub cache lookup can return a version that only another project uses, so
+  // it is kept for adding missing declarations and never rewrites a pin.
+  final resolvedFirebaseCorePubSpec =
+      await getResolvedFirebaseCorePubSpec(flutterApp.package.path);
+  final firebaseCorePubSpec =
+      resolvedFirebaseCorePubSpec ?? await getFirebaseCorePubSpec();
 
   final androidGradleSettingsFileContents =
       androidGradleSettingsFile.readAsStringSync();
@@ -419,6 +508,14 @@ Future<void> _gradleContentUpdates(
   // We check if plugins block containing "id "com.android.application"" is present in the android/settings.gradle file
   if (androidGradleSettingsFileContents
       .contains('id "com.android.application"')) {
+    if (resolvedFirebaseCorePubSpec != null) {
+      content = _upgradeGoogleServicesPluginPin(
+        content,
+        resolvedFirebaseCorePubSpec.googleServicesGradlePluginVersion,
+        settingsFile: androidGradleSettingsFile,
+        logger: logger,
+      );
+    }
     content = _applyGoogleServicesPlugin(
       flutterApp,
       content,
@@ -450,6 +547,39 @@ Future<void> _gradleContentUpdates(
   // WRITE <app>/android/app/build.gradle
   await androidAppBuildGradleFile.writeAsString(
     content.appBuildGradleContent,
+  );
+}
+
+/// Moves an existing Google Services plugin pin in the settings file forward
+/// to [targetVersion].
+///
+/// This is separate from applying the plugin, which returns early when
+/// `android/app/build.gradle(.kts)` already references the plugin (a legacy
+/// `classpath` declaration, for example) and would leave the pin behind.
+AndroidGradleContents _upgradeGoogleServicesPluginPin(
+  AndroidGradleContents content,
+  String targetVersion, {
+  required File settingsFile,
+  bool kotlin = false,
+  Logger? logger,
+}) {
+  return AndroidGradleContents(
+    buildGradleContent: content.buildGradleContent,
+    appBuildGradleContent: content.appBuildGradleContent,
+    gradleSettingsContent: upgradeGoogleServicesPluginVersion(
+      content.gradleSettingsContent,
+      targetVersion,
+      kotlin: kotlin,
+      onUnsupportedDeclaration: (declaration) {
+        final message = 'Could not read the Google Services plugin version in '
+            '${settingsFile.path}, so it was left unchanged: $declaration';
+        if (logger != null) {
+          logger.stderr(message);
+        } else {
+          stderr.writeln(message);
+        }
+      },
+    ),
   );
 }
 
@@ -559,14 +689,7 @@ AndroidGradleContents _applyGoogleServicesPlugin(
     final pluginExists = androidGradleSettingsFileContents
         .contains(_androidAppBuildGradleGoogleServicesRegex);
 
-    if (pluginExists) {
-      // Re-running `flutterfire configure` on an existing project: make sure an
-      // older pin (e.g. 4.3.15) is moved forward to the version this CLI knows.
-      androidGradleSettingsFileContents = upgradeGoogleServicesPluginVersion(
-        androidGradleSettingsFileContents,
-        googleServicesGradlePluginVersion,
-      );
-    } else {
+    if (!pluginExists) {
       final pattern = androidApplicationPluginPattern;
       final match = pattern.firstMatch(androidGradleSettingsFileContents);
 
@@ -748,6 +871,7 @@ AndroidGradleContents _applyFirebaseAndroidPlugin({
 // i.e., build.gradle.kts, app/build.gradle.kts and settings.gradle.kts files
 Future<void> _gradleKtsContentUpdates(
   FlutterApp flutterApp,
+  Logger? logger,
 ) async {
   final androidBuildGradleKtsFile = File(
     path.join(
@@ -775,7 +899,13 @@ Future<void> _gradleKtsContentUpdates(
     ),
   );
 
-  final firebaseCorePubSpec = await getFirebaseCorePubSpec();
+  // Prefer the versions declared by the `firebase_core` this app resolves. The
+  // pub cache lookup can return a version that only another project uses, so
+  // it is kept for adding missing declarations and never rewrites a pin.
+  final resolvedFirebaseCorePubSpec =
+      await getResolvedFirebaseCorePubSpec(flutterApp.package.path);
+  final firebaseCorePubSpec =
+      resolvedFirebaseCorePubSpec ?? await getFirebaseCorePubSpec();
 
   final androidGradleSettingsKtsFileContents =
       androidGradleSettingsKtsFile.readAsStringSync();
@@ -848,6 +978,15 @@ Future<void> _gradleKtsContentUpdates(
   // We check if plugins block containing "id "com.android.application"" is present in the android/settings.gradle.kts file
   if (androidGradleSettingsKtsFileContents
       .contains('id("com.android.application")')) {
+    if (resolvedFirebaseCorePubSpec != null) {
+      content = _upgradeGoogleServicesPluginPin(
+        content,
+        resolvedFirebaseCorePubSpec.googleServicesGradlePluginVersion,
+        settingsFile: androidGradleSettingsKtsFile,
+        kotlin: true,
+        logger: logger,
+      );
+    }
     content = _applyGoogleServicesPluginKts(
       flutterApp,
       content,
@@ -989,15 +1128,7 @@ AndroidGradleContents _applyGoogleServicesPluginKts(
     final pluginExists = androidGradleSettingsKtsFileContents
         .contains(_androidAppBuildGradleKtsGoogleServicesRegex);
 
-    if (pluginExists) {
-      // Re-running `flutterfire configure` on an existing project: make sure an
-      // older pin (e.g. 4.3.15) is moved forward to the version this CLI knows.
-      androidGradleSettingsKtsFileContents = upgradeGoogleServicesPluginVersion(
-        androidGradleSettingsKtsFileContents,
-        googleServicesGradlePluginVersion,
-        kotlin: true,
-      );
-    } else {
+    if (!pluginExists) {
       final pattern = RegExp(
         r'^.*id\("com\.android\.application"\).*',
         multiLine: true,
@@ -1179,6 +1310,86 @@ AndroidGradleContents _applyFirebaseAndroidPluginKts({
   );
 }
 
+/// The `package_config.json` covering [flutterAppPath], or null if there is
+/// none.
+///
+/// In a pub workspace the file lives at the workspace root rather than next to
+/// the app's own `pubspec.yaml`, so parent directories are searched too.
+File? _packageConfigFile(String flutterAppPath) {
+  var directory = Directory(path.normalize(path.absolute(flutterAppPath)));
+
+  while (true) {
+    final packageConfigFile = File(
+      path.join(directory.path, '.dart_tool', 'package_config.json'),
+    );
+    if (packageConfigFile.existsSync()) return packageConfigFile;
+
+    final parent = directory.parent;
+    if (parent.path == directory.path) return null;
+    directory = parent;
+  }
+}
+
+/// Reads the `firebase` section of the `pubspec.yaml` in [packageDirectory],
+/// or returns null if the package does not have one.
+Future<FirebasePubSpecModel?> _firebasePubSpecOfPackage(
+  Directory packageDirectory,
+) async {
+  final content =
+      await File(pubspecPathForDirectory(packageDirectory)).readAsString();
+  final yamlMap = loadYaml(content) as YamlMap;
+  final unparsedJson = yamlMap['firebase'] as YamlMap?;
+  if (unparsedJson == null) return null;
+
+  return FirebasePubSpecModel.fromJson(unparsedJson.cast<String, dynamic>());
+}
+
+/// Reads the Gradle plugin versions declared by the `firebase_core` package
+/// that the app at [flutterAppPath] resolves to, according to its
+/// `.dart_tool/package_config.json`.
+///
+/// Returns null when the app's dependencies have not been resolved yet, it
+/// does not depend on `firebase_core`, or the resolved package does not
+/// declare the versions.
+Future<FirebasePubSpecModel?> getResolvedFirebaseCorePubSpec(
+  String flutterAppPath,
+) async {
+  try {
+    final packageConfigFile = _packageConfigFile(flutterAppPath);
+    if (packageConfigFile == null) return null;
+
+    final packageConfig =
+        jsonDecode(await packageConfigFile.readAsString()) as Map;
+    final packages = packageConfig['packages'] as List<dynamic>;
+
+    final firebaseCore = packages.firstWhere(
+      (dynamic package) => package is Map && package['name'] == 'firebase_core',
+      orElse: () => null,
+    );
+    if (firebaseCore == null) return null;
+
+    // "rootUri" is either absolute or relative to the ".dart_tool" directory.
+    final rootUri = Uri.parse((firebaseCore as Map)['rootUri'] as String);
+    final packageRoot = rootUri.isAbsolute
+        ? rootUri.toFilePath()
+        : path.normalize(
+            path.join(
+              path.dirname(packageConfigFile.path),
+              rootUri.toFilePath(),
+            ),
+          );
+
+    return await _firebasePubSpecOfPackage(Directory(packageRoot));
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Reads the Gradle plugin versions declared by the highest `firebase_core`
+/// version in the pub cache.
+///
+/// That is not necessarily the version the app being configured uses, so
+/// prefer [getResolvedFirebaseCorePubSpec] and keep this as its fallback.
 Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
   try {
     const packageName = 'firebase_core-';
@@ -1215,17 +1426,9 @@ Future<FirebasePubSpecModel> getFirebaseCorePubSpec() async {
       },
     );
 
-    final firebaseCoreDirectory = firebaseCoreItems.last;
-    final firebaseCorePubspecFile =
-        pubspecPathForDirectory(firebaseCoreDirectory);
-    final content = await File(firebaseCorePubspecFile).readAsString();
-    final yamlMap = loadYaml(content) as YamlMap;
-    final unparsedJson = yamlMap['firebase'] as YamlMap?;
-    if (unparsedJson != null) {
-      return FirebasePubSpecModel.fromJson(
-        unparsedJson.cast<String, dynamic>(),
-      );
-    }
+    final firebaseCorePubSpec =
+        await _firebasePubSpecOfPackage(firebaseCoreItems.last);
+    if (firebaseCorePubSpec != null) return firebaseCorePubSpec;
   } catch (_) {
     // If we cannot find the firebase_core package, we return the fallback versions
   }
