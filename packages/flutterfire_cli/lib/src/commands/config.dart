@@ -96,6 +96,12 @@ class ConfigCommand extends FlutterFireCommand {
           'automatically detect it from your "android" folder (if it exists).',
     );
     argParser.addOption(
+      'android-sha1',
+      valueHelp: 'sha1',
+      help: 'Filter Android OAuth 2.0 Client IDs by SHA-1 fingerprint '
+          '(supports exact match or wildcard search, e.g. "*ABCD*").',
+    );
+    argParser.addOption(
       kWebAppIdFlag,
       valueHelp: 'appId',
       abbr: 'w',
@@ -295,6 +301,10 @@ class ConfigCommand extends FlutterFireCommand {
 
   String? get androidServiceFilePath {
     return argResults!['android-out'] as String?;
+  }
+
+  String? get androidSha1 {
+    return argResults!['android-sha1'] as String?;
   }
 
   String? get androidApplicationId {
@@ -687,6 +697,7 @@ class ConfigCommand extends FlutterFireCommand {
         web: selectedPlatforms[kWeb]!,
         windows: selectedPlatforms[kWindows]!,
         linux: selectedPlatforms[kLinux] != null && selectedPlatforms[kLinux]!,
+        androidSha1: androidSha1,
       );
 
       // 4. Writes for all selected platforms

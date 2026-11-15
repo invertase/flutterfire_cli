@@ -4,6 +4,7 @@ import 'package:flutterfire_cli/src/commands/config.dart';
 import 'package:flutterfire_cli/src/common/package.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';
+import 'package:flutterfire_cli/src/firebase/firebase_android_options.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:test/test.dart';
 
@@ -284,6 +285,21 @@ void main() {
       expect(displayNameError('My White Label App'), isNull);
       expect(displayNameError("Bob's App"), isNull);
       expect(displayNameError('Acme (EU) - v2'), isNull);
+    });
+  });
+
+  group('Android SHA-1 matchesSha1', () {
+    test('Exact match and normalization', () {
+      expect(FirebaseAndroidOptions.matchesSha1('A1:B2:C3:D4', 'A1B2C3D4'), isTrue);
+      expect(FirebaseAndroidOptions.matchesSha1('a1b2c3d4', 'A1-B2-C3-D4'), isTrue);
+      expect(FirebaseAndroidOptions.matchesSha1('A1B2C3D4', 'E5F67890'), isFalse);
+    });
+
+    test('Wildcard matching', () {
+      expect(FirebaseAndroidOptions.matchesSha1('A1B2C3D4', 'A1*D4'), isTrue);
+      expect(FirebaseAndroidOptions.matchesSha1('8120d96567367c0aae013816350829b58e22c046', '81:20:D9:65:*'), isTrue);
+      expect(FirebaseAndroidOptions.matchesSha1('A1B2C3D4', 'A1?B2C3D4'), isTrue);
+      expect(FirebaseAndroidOptions.matchesSha1('A1B2C3D4', 'E1*D4'), isFalse);
     });
   });
 

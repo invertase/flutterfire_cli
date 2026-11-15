@@ -10,6 +10,10 @@
  - **FEAT**: add `--display-name` flag to `flutterfire configure` ([#457](https://github.com/invertase/flutterfire_cli/issues/457)). ([ba609da0](https://github.com/invertase/flutterfire_cli/commit/ba609da08f46d2da3e0944e131f0a1ea9e478b4f))
  - **DOCS**: fix outdated and broken examples in the READMEs ([#470](https://github.com/invertase/flutterfire_cli/issues/470)). ([54cde6cc](https://github.com/invertase/flutterfire_cli/commit/54cde6ccc6b6c346c7869a502170d14677aca4e2))
 
+## 1.4.2
+
+ - **FEAT**: add `--android-sha1` flag to filter Android OAuth 2.0 Client IDs and patch `GoogleService-Info.plist` with wildcard SHA-1 search support.
+
 ## 1.4.1
 
  - **FIX**: stop generating reCAPTCHA site key in Firebase options ([#454](https://github.com/invertase/flutterfire_cli/issues/454)). ([0685d1cb](https://github.com/invertase/flutterfire_cli/commit/0685d1cb34ede011cb8a8f5c0f2b1271acc90ecc))

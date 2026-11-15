@@ -393,10 +393,43 @@ abstract class FirebaseAppleConfiguration {
     return File(serviceFilePath);
   }
 
+  String _updatePlistAndroidClientId(
+    String plistContent,
+    String newAndroidClientId,
+  ) {
+    final regex = RegExp(
+      r'(<key>\s*ANDROID_CLIENT_ID\s*</key>\s*<string>)([^<]*)(</string>)',
+      multiLine: true,
+      dotAll: true,
+    );
+    if (regex.hasMatch(plistContent)) {
+      return plistContent.replaceFirstMapped(regex, (match) {
+        return '${match.group(1)}$newAndroidClientId${match.group(3)}';
+      });
+    } else {
+      final dictCloseRegex = RegExp(r'</dict>\s*</plist>\s*$');
+      if (dictCloseRegex.hasMatch(plistContent)) {
+        return plistContent.replaceFirst(
+          dictCloseRegex,
+          '\t<key>ANDROID_CLIENT_ID</key>\n\t<string>$newAndroidClientId</string>\n</dict>\n</plist>',
+        );
+      }
+    }
+    return plistContent;
+  }
+
   Future<void> _writeGoogleServiceFileToPath() async {
     final file = await _createServiceFileToSpecifiedPath();
 
-    await file.writeAsString(platformOptions.optionsSourceContent);
+    var content = platformOptions.optionsSourceContent;
+    if (platform != kAndroid &&
+        platformOptions.androidClientId != null &&
+        platformOptions.androidClientId!.isNotEmpty) {
+      content =
+          _updatePlistAndroidClientId(content, platformOptions.androidClientId!);
+    }
+
+    await file.writeAsString(content);
   }
 
   Future<FirebaseJsonWrites> apply();
