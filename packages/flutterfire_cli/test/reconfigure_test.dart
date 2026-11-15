@@ -1,3 +1,6 @@
+@Tags(['firebase'])
+library;
+
 import 'dart:io';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart';

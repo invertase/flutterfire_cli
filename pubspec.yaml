@@ -57,4 +57,22 @@ melos:
         scope:
           - flutterfire_cli
 
+    test-offline:
+      description: Run the tests that don't need Firebase credentials.
+      run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart run test --reporter expanded --exclude-tags firebase"
+      select-package:
+        dir-exists:
+          - "test/"
+        scope:
+          - flutterfire_cli
+
+    test-firebase:
+      description: Run the tests that use the Firebase test project.
+      run: melos exec --ignore="flutterfire_starter_hooks" --concurrency=1 -- "dart pub get && dart run test --reporter expanded --tags firebase"
+      select-package:
+        dir-exists:
+          - "test/"
+        scope:
+          - flutterfire_cli
+
     format: dart format -o write .

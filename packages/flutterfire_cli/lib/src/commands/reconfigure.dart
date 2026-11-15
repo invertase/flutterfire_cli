@@ -238,7 +238,9 @@ class Reconfigure extends FlutterFireCommand {
       final targets = getNestedMap(firebaseJsonMap, targetMapKeys);
 
       final futures = <Future<void>>[];
-      targets.forEach((key, dynamic value) async {
+      // One target at a time: each run saves the whole Xcode project, so runs
+      // in parallel would drop each other's changes.
+      for (final key in targets.keys) {
         await addFlutterFireDebugSymbolsScript(
           target: key,
           flutterAppPath: flutterApp!.package.path,
@@ -258,7 +260,7 @@ class Reconfigure extends FlutterFireCommand {
             '$platform "$appleServiceFileName" file write for target: "$key"',
           ),
         );
-      });
+      }
       await Future.wait(futures);
     }
   }

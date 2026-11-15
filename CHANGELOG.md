@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-11-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`flutterfire_cli` - `v1.5.0`](#flutterfire_cli---v150)
+
+---
+
+#### `flutterfire_cli` - `v1.5.0`
+
+ - **FIX**: wait for the dSYM before uploading Crashlytics symbols ([#475](https://github.com/invertase/flutterfire_cli/issues/475)). ([388d53a4](https://github.com/invertase/flutterfire_cli/commit/388d53a443f74e67a5ee0132c7f22df62c80ada5))
+ - **FIX**: support a renamed Xcode project ([#459](https://github.com/invertase/flutterfire_cli/issues/459)). ([f8c352e6](https://github.com/invertase/flutterfire_cli/commit/f8c352e6bb1dc50af81d6e527f383a5bdbc3ccae))
+ - **FIX**: drop the service file from "Copy Bundle Resources" for build configs ([#461](https://github.com/invertase/flutterfire_cli/issues/461)). ([bb4fa9f3](https://github.com/invertase/flutterfire_cli/commit/bb4fa9f3b5cda625782eba0a81a1a84de988f7a0))
+ - **FIX**: make `flutterfire update` work on Windows ([#460](https://github.com/invertase/flutterfire_cli/issues/460)). ([9aa59e4d](https://github.com/invertase/flutterfire_cli/commit/9aa59e4db748eb50d1077c1f91c591ba82f7b605))
+ - **FIX**: unbreak the `analyze` job ([#462](https://github.com/invertase/flutterfire_cli/issues/462)). ([2f308a46](https://github.com/invertase/flutterfire_cli/commit/2f308a4628c038fc78d38e432ee6f7abb76239ed))
+ - **FEAT**: make the cli compatible with jaspr projects ([#440](https://github.com/invertase/flutterfire_cli/issues/440)). ([3226dd43](https://github.com/invertase/flutterfire_cli/commit/3226dd434b01bde4f27c83650b2f990ee900ccab))
+ - **FEAT**: generate `web/firebase-messaging-sw.js` for `firebase_messaging` ([#458](https://github.com/invertase/flutterfire_cli/issues/458)). ([6fd053f0](https://github.com/invertase/flutterfire_cli/commit/6fd053f00b5d047e85b95b49fa56b87e583b7d44))
+ - **FEAT**: add `--display-name` flag to `flutterfire configure` ([#457](https://github.com/invertase/flutterfire_cli/issues/457)). ([ba609da0](https://github.com/invertase/flutterfire_cli/commit/ba609da08f46d2da3e0944e131f0a1ea9e478b4f))
+ - **DOCS**: fix outdated and broken examples in the READMEs ([#470](https://github.com/invertase/flutterfire_cli/issues/470)). ([54cde6cc](https://github.com/invertase/flutterfire_cli/commit/54cde6ccc6b6c346c7869a502170d14677aca4e2))
+
+
 ## 2026-08-03
 
 ### Changes
