@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as path;
 
+import '../strings.dart';
 import '../utils.dart';
 
 String getFirebaseConfigurationFile({
@@ -15,6 +16,11 @@ String getFirebaseConfigurationFile({
     return path.join(
       flutterAppPath,
       removeForwardBackwardSlash(configurationFilePath),
+    );
+  } else if (isNonInteractive) {
+    throw ValidationException(
+      kDart,
+      'The path: $configurationFilePath is not a valid path for the FirebaseOptions file, it must be to a dart file. Please re-run the command with a valid "--$kOutFlag" flag, e.g. "--$kOutFlag=lib/firebase_options.dart".',
     );
   } else {
     final configurationFilePath = promptInput(
@@ -46,6 +52,12 @@ bool promptWriteConfigurationFile({
   if (!fileExists || isCI) {
     return true;
   } else {
+    if (isNonInteractive) {
+      throw ValidationException(
+        kDart,
+        'Generated FirebaseOptions file $configurationFilePath already exists, and the FlutterFire CLI cannot ask whether to override it $nonInteractiveReason. Use `--$kOverwriteFirebaseOptionsFlag` or `--$kYesFlag` flag to override it.',
+      );
+    }
     final shouldOverwrite = promptBool(
       'Generated FirebaseOptions file ${AnsiStyles.cyan(configurationFilePath)} already exists, do you want to override it?',
     );

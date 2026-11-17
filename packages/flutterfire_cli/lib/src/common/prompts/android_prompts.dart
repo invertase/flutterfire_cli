@@ -29,10 +29,10 @@ String getAndroidServiceFile({
       );
     }
   } else {
-    if (isCI) {
+    if (isNonInteractive) {
       throw ValidationException(
         kAndroid,
-        'The path: $serviceFilePath is not a valid path for the Android `google-services.json` file. Please re-run the command with a valid path.',
+        'The path: $serviceFilePath is not a valid path for the Android `google-services.json` file. Please re-run the command with a valid "--$kAndroidOutFlag" flag, e.g. "--$kAndroidOutFlag=android/app/staging/$androidServiceFileName".',
       );
     }
     // Prompt for service file path

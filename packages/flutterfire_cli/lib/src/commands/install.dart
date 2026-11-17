@@ -21,6 +21,7 @@ import 'dart:io';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:collection/collection.dart';
 
+import '../common/strings.dart';
 import '../common/utils.dart';
 import '../flutter_app.dart';
 import 'base.dart';
@@ -136,6 +137,16 @@ class InstallCommand extends FlutterFireCommand {
         }
       }
       return selectedPlugins;
+    }
+
+    if (isNonInteractive) {
+      throw NonInteractiveException(
+        'Cannot ask which Firebase plugins to install $nonInteractiveReason. '
+        'Please re-run the command with the `--plugins` flag, e.g. '
+        '`--plugins=firebase_core,firebase_auth`, or with the '
+        '`--only-pubspec-plugins` flag to install the plugins already in your '
+        '`pubspec.yaml`.',
+      );
     }
 
     final selectedPlugins = <FlutterFirePlugins>[];

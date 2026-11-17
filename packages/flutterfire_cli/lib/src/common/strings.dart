@@ -330,3 +330,17 @@ class ValidationException implements FlutterFireException {
     return 'ValidationException: $platform - $message';
   }
 }
+
+/// An exception that is thrown instead of prompting when the CLI cannot
+/// prompt, on CI or without a terminal attached to stdin, and no flag answers
+/// the prompt.
+class NonInteractiveException implements FlutterFireException {
+  NonInteractiveException(this.message) : super();
+
+  final String message;
+
+  @override
+  String toString() {
+    return 'NonInteractiveException: $message';
+  }
+}

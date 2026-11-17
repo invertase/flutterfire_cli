@@ -113,6 +113,51 @@ bool get isCI {
   return ci.isCI;
 }
 
+/// Whether the CLI cannot prompt the user: on CI, or when no terminal is
+/// attached to stdin, e.g. when a script or an AI agent runs the CLI. A prompt
+/// would then wait for an answer that never comes, so the answer has to come
+/// from a flag instead.
+bool get isNonInteractive {
+  return isCI || !_stdinHasTerminal;
+}
+
+bool get _stdinHasTerminal {
+  if (!stdin.hasTerminal) return false;
+
+  // `hasTerminal` is also true for other character devices, such as the
+  // `/dev/null` scripts and AI agents commonly run commands with, but only a
+  // terminal has an echo mode to read.
+  try {
+    // ignore: unnecessary_statements
+    stdin.echoMode;
+    return true;
+  } on StdinException {
+    return false;
+  }
+}
+
+/// Why the CLI cannot prompt, completing a sentence such as "A bundle id is
+/// required when configuring ...".
+String get nonInteractiveReason {
+  return isCI ? 'on CI' : 'without a terminal attached to stdin';
+}
+
+/// Throws a [NonInteractiveException] instead of letting [prompt] wait forever
+/// for an answer when the CLI cannot prompt.
+///
+/// Callers that know which flag answers the prompt check [isNonInteractive]
+/// themselves to name it, this is the safety net for those that do not.
+void _ensureCanPrompt(String prompt) {
+  if (!isNonInteractive) return;
+
+  throw NonInteractiveException(
+    'The FlutterFire CLI needs an answer to "${AnsiStyles.strip(prompt)}" '
+    'but cannot prompt for it $nonInteractiveReason. Please re-run the '
+    'command in a terminal, or with the flags that answer it (see '
+    '`flutterfire help <command>`).',
+  );
+}
+
 int get terminalWidth {
   if (stdout.hasTerminal) {
     return stdout.terminalColumns;
@@ -160,6 +205,7 @@ bool promptBool(
   String prompt, {
   bool defaultValue = true,
 }) {
+  _ensureCanPrompt(prompt);
   return interact.Confirm(
     prompt: prompt,
     defaultValue: defaultValue,
@@ -171,6 +217,7 @@ int promptSelect(
   List<String> choices, {
   int initialIndex = 0,
 }) {
+  _ensureCanPrompt(prompt);
   return interact.Select(
     prompt: prompt,
     options: choices,
@@ -183,6 +230,7 @@ List<int> promptMultiSelect(
   List<String> choices, {
   List<bool>? defaultSelection,
 }) {
+  _ensureCanPrompt(prompt);
   return interact.MultiSelect(
     prompt: prompt,
     options: choices,
@@ -195,6 +243,7 @@ String promptInput(
   String? defaultValue,
   dynamic Function(String)? validator,
 }) {
+  _ensureCanPrompt(prompt);
   return interact.Input(
     prompt: prompt,
     defaultValue: defaultValue,
@@ -661,7 +710,7 @@ Future<String> defaultAppleTarget(String platform) async {
   // Neither name is there, and guessing would silently attach the Firebase
   // build phases to whatever comes first - an app extension, for instance,
   // producing an app that ships without its service file.
-  if (isCI) {
+  if (isNonInteractive) {
     throw XcodeProjectException(
       platform,
       'Could not work out which target of "$projectName.xcodeproj" is your '

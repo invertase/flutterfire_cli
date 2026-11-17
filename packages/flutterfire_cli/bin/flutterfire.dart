@@ -28,8 +28,8 @@ import 'package:pub_updater/pub_updater.dart';
 Future<void> main(List<String> arguments) async {
   if (arguments.contains('--version') || arguments.contains('-v')) {
     print(cliVersion);
-    // No version checks on CIs.
-    if (utils.isCI) return;
+    // No version checks on CIs, or without a terminal to ask whether to update.
+    if (utils.isNonInteractive) return;
 
     // Check for updates.
     final pubUpdater = PubUpdater();

@@ -36,11 +36,17 @@ Future<AppleInputs> appleValidation({
     );
   }
 
+  final targetFlag = platform == kMacos ? kMacosTargetFlag : kIosTargetFlag;
+  final buildConfigurationFlag =
+      platform == kMacos ? kMacosBuildConfigFlag : kIosBuildConfigFlag;
+
   if (buildConfiguration != null && target != null) {
-    if (isCI) {
+    if (isNonInteractive) {
       throw ValidationException(
         platform,
-        'Cannot set both target and build configuration in CI.',
+        'Cannot set both target and build configuration $nonInteractiveReason. '
+        'Please re-run the command with either the "--$buildConfigurationFlag" '
+        'or the "--$targetFlag" flag.',
       );
     }
     // If user has set both, we need to find out which one they want to use
@@ -58,10 +64,12 @@ Future<AppleInputs> appleValidation({
   }
 
   if (serviceFilePath != null && target == null && buildConfiguration == null) {
-    if (isCI) {
+    if (isNonInteractive) {
       throw ValidationException(
         platform,
-        'Cannot set service file path without a target or build configuration in CI.',
+        'Cannot set service file path without a target or build configuration '
+        '$nonInteractiveReason. Please re-run the command with the '
+        '"--$buildConfigurationFlag" or the "--$targetFlag" flag.',
       );
     }
     // If user has set serviceFilePath, but not a config type, we need to find out which one they want to use
