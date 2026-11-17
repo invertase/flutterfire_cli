@@ -409,7 +409,7 @@ class Reconfigure extends FlutterFireCommand {
         final androidBuildConfigurationsExist =
             doesNestedMapExist(firebaseJsonMap, buildConfigurationKeys);
 
-        await gradleContentUpdates(flutterApp!);
+        await gradleContentUpdates(flutterApp!, logger: logger);
 
         if (androidBuildConfigurationsExist) {
           final buildConfigurations =
